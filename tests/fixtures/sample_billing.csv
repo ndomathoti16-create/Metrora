@@ -1,0 +1,6 @@
+usage_date,service,cost,account,region,environment
+2025-01-01,Compute Engine,125.50,synthetic-account-001,us-east-1,production
+2025-01-02,Object Storage,42.75,synthetic-account-001,us-east-1,production
+2025-01-03,Managed Database,88.10,synthetic-account-002,us-west-2,staging
+2025-01-04,Compute Engine,131.20,synthetic-account-001,us-east-1,production
+2025-01-05,Object Storage,43.05,synthetic-account-002,us-west-2,development
