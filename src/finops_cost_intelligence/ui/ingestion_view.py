@@ -7,6 +7,7 @@ from typing import TYPE_CHECKING
 import pandas as pd
 
 from ..ingestion import IngestionError, load_table, profile_table
+from .mapping_view import render_mapping_view
 
 if TYPE_CHECKING:
     from ..config import Settings
@@ -105,3 +106,5 @@ def render_ingestion_view(settings: Settings) -> None:
 
     with st.expander("Profile details"):
         st.json(profile.to_dict())
+
+    render_mapping_view(settings, loaded_table, profile)

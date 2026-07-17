@@ -1,4 +1,4 @@
-"""Minimal Streamlit shell used until the analytical milestones are implemented."""
+"""Streamlit application shell for the current analytical milestone."""
 
 from __future__ import annotations
 
@@ -11,11 +11,7 @@ if TYPE_CHECKING:
 
 
 def render_app_shell(settings: Settings) -> None:
-    """Render the foundation screen.
-
-    Streamlit is imported inside the function so configuration and unit tests remain
-    importable in environments where UI dependencies have not been installed yet.
-    """
+    """Render the upload, mapping, and normalization workflow."""
     try:
         import streamlit as st
     except ImportError as exc:
@@ -26,29 +22,30 @@ def render_app_shell(settings: Settings) -> None:
 
     st.set_page_config(
         page_title="FinOps Cost Intelligence",
-        page_icon="☁️",
+        page_icon="cloud",
         layout="wide",
     )
     st.title("FinOps Cost Intelligence Platform")
-    st.caption("Milestone 0 · Project foundation")
+    st.caption("Milestone 2 · Mapping and canonical normalization")
 
     st.info(
-        "Milestone 1 supports CSV, Excel, and Parquet upload with a read-only profile. "
-        "Column mapping and financial analysis arrive in later milestones."
+        "Milestone 2 adds reviewable semantic mapping and canonical normalization. "
+        "Quality gates and financial analysis arrive in later milestones."
     )
 
     left, right = st.columns(2)
     with left:
-        st.subheader("Foundation status")
+        st.subheader("Application status")
         st.success("Configuration loaded")
         st.write(f"Environment: `{settings.app_env}`")
         st.write(f"AI provider: `{settings.ai_provider}`")
 
     with right:
-        st.subheader("Milestone 1 workflow")
+        st.subheader("Current workflow")
         st.write("1. Upload one supported billing file")
         st.write("2. Inspect schema and inferred types")
-        st.write("3. Review nulls, duplicates, and parseability")
-        st.write("4. Preview source rows")
+        st.write("3. Review and correct semantic mappings")
+        st.write("4. Normalize to the canonical cost model")
+        st.write("5. Preview conversion issues and lineage")
 
     render_ingestion_view(settings)
