@@ -6,7 +6,7 @@ The project is being built incrementally. Milestone 0 establishes the repository
 
 ## Current status
 
-Milestone 2 is complete. The application accepts CSV, Excel (`.xlsx` and `.xls`), and Parquet uploads, profiles source structure, suggests semantic mappings, supports human corrections, and normalizes data into the canonical cost model. No real billing data or cloud credentials are required.
+Milestone 3 is complete. The application accepts CSV, Excel (`.xlsx` and `.xls`), and Parquet uploads, profiles source structure, supports human-reviewed semantic mappings, normalizes data into the canonical cost model, runs deterministic quality checks, reconciles source and canonical totals, and persists runs to a local DuckDB warehouse. No real billing data or cloud credentials are required.
 
 ## Local setup
 
@@ -40,7 +40,7 @@ pytest
 streamlit run app.py
 ```
 
-The current shell supports upload, profiling, semantic mapping, and canonical normalization. Quality checks, analytics, forecasting, and AI explanations arrive in later milestones.
+The current shell supports upload, profiling, semantic mapping, canonical normalization, quality checks, reconciliation, and local DuckDB persistence. Cost analytics, forecasting, and AI explanations arrive in later milestones.
 
 ## Ingestion behavior
 
@@ -49,6 +49,10 @@ The reader validates file type and configured size before parsing. It rejects mi
 ## Mapping and normalization behavior
 
 The detector ranks source columns for required fields (`usage_date`, `service`, and `cost`) and optional dimensions such as account, region, department, project, environment, usage, currency, and tags. Each suggestion includes a confidence level and explanation, and the Streamlit form requires a human review before applying it. Normalization standardizes dates, strings, currency codes, numeric values, and tags; adds ingestion and row-lineage fields; preserves every input row; and records conversion issues instead of silently dropping invalid values.
+
+## Quality and warehouse behavior
+
+Quality checks distinguish blocking errors from reviewable warnings. They cover row preservation, required-field completeness, normalization errors, currency consistency, exact duplicate canonical rows, negative costs, optional-field completeness, and source-to-canonical cost reconciliation. A run is marked ready for analysis only when no blocking check fails. DuckDB stores the canonical cost fact table, ingestion-run metadata, and individual quality-check results. Saving the same ingestion ID replaces its prior local version so repeated runs do not contaminate the warehouse.
 
 ## Project design
 

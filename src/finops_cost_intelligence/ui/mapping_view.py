@@ -11,6 +11,7 @@ from ..contracts.profile import DataProfile
 from ..ingestion.readers import LoadedTable
 from ..mapping import MappingValidationError, suggest_mappings, validate_mapping
 from ..normalization import normalize_billing_table
+from .quality_view import render_quality_view
 
 if TYPE_CHECKING:
     from ..config import Settings
@@ -133,6 +134,10 @@ def render_mapping_view(
         st.session_state.pop("column_mapping", None)
         st.session_state.pop("normalized_table", None)
         st.session_state.pop("normalized_source_key", None)
+        st.session_state.pop("quality_report", None)
+        st.session_state.pop("quality_source_key", None)
+        st.session_state.pop("warehouse_summary", None)
+        st.session_state.pop("warehouse_source_key", None)
         st.session_state["mapping_source_key"] = source_key
 
     review = suggest_mappings(profile)
@@ -168,3 +173,4 @@ def render_mapping_view(
             st.session_state["normalized_source_key"] = source_key
 
     _render_normalized_result(source_key)
+    render_quality_view(settings, loaded_table, source_key)

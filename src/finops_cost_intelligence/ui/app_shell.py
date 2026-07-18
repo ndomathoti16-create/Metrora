@@ -26,11 +26,11 @@ def render_app_shell(settings: Settings) -> None:
         layout="wide",
     )
     st.title("FinOps Cost Intelligence Platform")
-    st.caption("Milestone 2 · Mapping and canonical normalization")
+    st.caption("Milestone 3 · Quality checks and local DuckDB warehouse")
 
     st.info(
-        "Milestone 2 adds reviewable semantic mapping and canonical normalization. "
-        "Quality gates and financial analysis arrive in later milestones."
+        "Milestone 3 adds deterministic quality checks, source-to-canonical "
+        "reconciliation, and local DuckDB persistence."
     )
 
     left, right = st.columns(2)
@@ -46,6 +46,7 @@ def render_app_shell(settings: Settings) -> None:
         st.write("2. Inspect schema and inferred types")
         st.write("3. Review and correct semantic mappings")
         st.write("4. Normalize to the canonical cost model")
-        st.write("5. Preview conversion issues and lineage")
+        st.write("5. Review quality checks and reconciliation")
+        st.write("6. Save the run to local DuckDB")
 
     render_ingestion_view(settings)

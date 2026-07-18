@@ -83,6 +83,11 @@ def _normalize_numeric(series: pd.Series) -> pd.Series:
     return pd.to_numeric(text, errors="coerce").astype("Float64")
 
 
+def normalize_numeric_values(series: pd.Series) -> pd.Series:
+    """Parse billing-style numeric values for quality reconciliation and normalization."""
+    return _normalize_numeric(series)
+
+
 def _normalize_date(series: pd.Series) -> pd.Series:
     return pd.to_datetime(series, errors="coerce", format="mixed").dt.normalize()
 
