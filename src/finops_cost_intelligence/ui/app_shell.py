@@ -26,11 +26,11 @@ def render_app_shell(settings: Settings) -> None:
         layout="wide",
     )
     st.title("FinOps Cost Intelligence Platform")
-    st.caption("Milestone 3 · Quality checks and local DuckDB warehouse")
+    st.caption("Milestone 4 · Core FinOps analytics")
 
     st.info(
-        "Milestone 3 adds deterministic quality checks, source-to-canonical "
-        "reconciliation, and local DuckDB persistence."
+        "Milestone 4 adds filterable spend KPIs, daily trends, and dimension-level "
+        "FinOps analysis on top of the validated canonical cost model."
     )
 
     left, right = st.columns(2)
@@ -48,5 +48,6 @@ def render_app_shell(settings: Settings) -> None:
         st.write("4. Normalize to the canonical cost model")
         st.write("5. Review quality checks and reconciliation")
         st.write("6. Save the run to local DuckDB")
+        st.write("7. Explore spend KPIs, trends, and cost drivers")
 
     render_ingestion_view(settings)

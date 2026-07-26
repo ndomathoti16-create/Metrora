@@ -2,11 +2,11 @@
 
 A local-first AI financial analytics application for cloud billing analysis, FinOps workflows, budget monitoring, forecasting, anomaly detection, and evidence-based recommendations.
 
-The project is being built incrementally. Milestone 0 establishes the repository foundation; the analytical workflow will be added one milestone at a time.
+The project is being built incrementally, with deterministic calculations kept separate from the Streamlit presentation layer.
 
 ## Current status
 
-Milestone 3 is complete. The application accepts CSV, Excel (`.xlsx` and `.xls`), and Parquet uploads, profiles source structure, supports human-reviewed semantic mappings, normalizes data into the canonical cost model, runs deterministic quality checks, reconciles source and canonical totals, and persists runs to a local DuckDB warehouse. No real billing data or cloud credentials are required.
+Milestones 0–6 are complete. The application accepts CSV, Excel (`.xlsx` and `.xls`), and Parquet uploads, profiles source structure, supports human-reviewed semantic mappings, normalizes data into the canonical cost model, runs deterministic quality checks, reconciles source and canonical totals, and persists runs to a local DuckDB warehouse. It then calculates filterable spend KPIs, budget variance, allocation coverage, business unit economics, daily forecasts, and explainable anomalies. No real billing data or cloud credentials are required.
 
 ## Local setup
 
@@ -40,7 +40,7 @@ pytest
 streamlit run app.py
 ```
 
-The current shell supports upload, profiling, semantic mapping, canonical normalization, quality checks, reconciliation, and local DuckDB persistence. Cost analytics, forecasting, and AI explanations arrive in later milestones.
+The current shell supports upload, profiling, semantic mapping, canonical normalization, quality checks, reconciliation, local DuckDB persistence, core spend analysis, optional budget/business-metric uploads, forecasting, and anomaly detection. AI explanations, exports, and AWS S3/Athena integration remain future milestones.
 
 ## Ingestion behavior
 
@@ -53,6 +53,16 @@ The detector ranks source columns for required fields (`usage_date`, `service`, 
 ## Quality and warehouse behavior
 
 Quality checks distinguish blocking errors from reviewable warnings. They cover row preservation, required-field completeness, normalization errors, currency consistency, exact duplicate canonical rows, negative costs, optional-field completeness, and source-to-canonical cost reconciliation. A run is marked ready for analysis only when no blocking check fails. DuckDB stores the canonical cost fact table, ingestion-run metadata, and individual quality-check results. Saving the same ingestion ID replaces its prior local version so repeated runs do not contaminate the warehouse.
+
+## Analytics behavior
+
+Core spend KPIs and charts use the same inclusive date and dimension filters. Spend is calculated from the canonical `cost` field and is broken down by available service, account, department, project, environment, region, provider, and cost type dimensions. Missing dimensions are shown as unavailable rather than inferred.
+
+Optional budget files are normalized from common headers and compared by inclusive period and scope. Allocation coverage reports both row coverage and positive-cost-weighted coverage; positive spend is the denominator so credits do not distort tagging percentages. Optional business metrics are joined at daily grain to calculate cost per unit.
+
+Forecasts use Holt-Winters when enough history is available and a trailing-mean fallback for short histories. Anomalies use a prior rolling median/MAD baseline, so the observed day is not used to calculate its own expectation. Forecast methods, history windows, thresholds, and uncertainty bounds are displayed with the results.
+
+All analytics are calculated in Python before any future AI summarization layer. The AI layer will receive structured facts and caveats rather than raw authority to invent financial values.
 
 ## Project design
 

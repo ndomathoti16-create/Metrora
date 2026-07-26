@@ -11,6 +11,7 @@ from ..contracts.profile import DataProfile
 from ..ingestion.readers import LoadedTable
 from ..mapping import MappingValidationError, suggest_mappings, validate_mapping
 from ..normalization import normalize_billing_table
+from .analytics_view import render_analytics_view
 from .quality_view import render_quality_view
 
 if TYPE_CHECKING:
@@ -174,3 +175,6 @@ def render_mapping_view(
 
     _render_normalized_result(source_key)
     render_quality_view(settings, loaded_table, source_key)
+    normalized = st.session_state.get("normalized_table")
+    if normalized is not None and st.session_state.get("normalized_source_key") == source_key:
+        render_analytics_view(settings, normalized, source_key)
