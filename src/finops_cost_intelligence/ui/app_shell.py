@@ -16,7 +16,7 @@ def render_app_shell(settings: Settings) -> None:
         import streamlit as st
     except ImportError as exc:
         raise RuntimeError(
-            "Streamlit is not installed. Run `python -m pip install -e \".[dev]\"` "
+            'Streamlit is not installed. Run `python -m pip install -e ".[dev]"` '
             "before starting the application."
         ) from exc
 
@@ -26,11 +26,11 @@ def render_app_shell(settings: Settings) -> None:
         layout="wide",
     )
     st.title("FinOps Cost Intelligence Platform")
-    st.caption("Milestone 4 · Core FinOps analytics")
+    st.caption("Milestones 0–9 · Full local MVP with optional AWS extension")
 
     st.info(
-        "Milestone 4 adds filterable spend KPIs, daily trends, and dimension-level "
-        "FinOps analysis on top of the validated canonical cost model."
+        "The application validates cloud billing data before calculating spend, "
+        "budgets, business efficiency, forecasts, anomalies, and evidence-backed summaries."
     )
 
     left, right = st.columns(2)
@@ -49,5 +49,7 @@ def render_app_shell(settings: Settings) -> None:
         st.write("5. Review quality checks and reconciliation")
         st.write("6. Save the run to local DuckDB")
         st.write("7. Explore spend KPIs, trends, and cost drivers")
+        st.write("8. Review budgets, allocation, business metrics, forecasts, and anomalies")
+        st.write("9. Generate an executive report and export the fact pack")
 
     render_ingestion_view(settings)

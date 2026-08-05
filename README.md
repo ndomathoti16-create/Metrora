@@ -1,14 +1,70 @@
 # FinOps Cost Intelligence Platform
 
-A local-first AI financial analytics application for cloud billing analysis, FinOps workflows, budget monitoring, forecasting, anomaly detection, and evidence-based recommendations.
-
-The project is being built incrementally, with deterministic calculations kept separate from the Streamlit presentation layer.
+An AI-assisted FinOps and cloud financial analytics platform for turning messy billing exports into validated spend insights, budget variance analysis, allocation coverage, business unit economics, forecasts, anomalies, and evidence-backed recommendations.
 
 ## Current status
 
-Milestones 0–6 are complete. The application accepts CSV, Excel (`.xlsx` and `.xls`), and Parquet uploads, profiles source structure, supports human-reviewed semantic mappings, normalizes data into the canonical cost model, runs deterministic quality checks, reconciles source and canonical totals, and persists runs to a local DuckDB warehouse. It then calculates filterable spend KPIs, budget variance, allocation coverage, business unit economics, daily forecasts, and explainable anomalies. No real billing data or cloud credentials are required.
+Milestones 0–9 are complete. The local MVP works without cloud credentials or an AI key, and the optional S3/Athena adapters are covered by injected-client tests rather than requiring a live AWS account.
 
-## Local setup
+## Why this project exists
+
+Cloud billing exports are provider-specific, while finance and FinOps teams need consistent answers:
+
+- What changed in cloud spend, when, and which service or owner drove it?
+- Are actuals within budget and what is the near-term outlook?
+- How much positive spend has an accountable owner?
+- How does cloud cost change relative to customers or transactions?
+- Which follow-up actions are supported by the available evidence?
+
+The application addresses those questions through a traceable pipeline: profile, map, normalize, validate, calculate, explain, and export.
+
+## Workflow
+
+1. Upload a CSV, Excel, or Parquet billing file.
+2. Inspect the source profile and review suggested semantic mappings.
+3. Normalize the file into the canonical cloud-cost model with row lineage.
+4. Review missingness, duplicates, invalid values, currency consistency, and reconciliation.
+5. Explore spend KPIs, daily trends, and dimension breakdowns.
+6. Optionally upload budgets and business metrics.
+7. Review allocation coverage, cost per unit, forecast, and anomalies.
+8. Generate an evidence-backed summary and download the report, fact pack, quality results, and cleaned dataset.
+
+## Architecture
+
+```mermaid
+flowchart LR
+    U[Analyst] --> UI[Streamlit]
+    UI --> ING[Ingestion and profiling]
+    ING --> MAP[Human-reviewed mapping]
+    MAP --> NORM[Canonical normalization]
+    NORM --> QA[Quality and reconciliation]
+    QA --> DB[(DuckDB local warehouse)]
+    DB --> MET[Deterministic analytics]
+    MET --> VIZ[Dashboard]
+    MET --> FP[Versioned fact pack]
+    FP --> AI[Optional grounded AI adapter]
+    FP --> EXP[HTML and data exports]
+    NORM --> S3[(Optional S3 Parquet)]
+    S3 --> ATH[Athena]
+    ATH --> MET
+```
+
+## Core capabilities
+
+- CSV, `.xlsx`, `.xls`, and Parquet ingestion with size/type/error handling.
+- Human-reviewed mapping for date, service, cost, account, region, department, project, environment, usage, currency, and tags.
+- Canonical normalization with conversion diagnostics and source-row lineage.
+- Blocking quality checks and reviewable warnings before analysis.
+- Filterable spend KPIs and ranked breakdowns.
+- Budget variance, allocation/tagging coverage, and cost per business unit.
+- Holt-Winters forecast with a short-history rolling-mean fallback.
+- Prior-window median/MAD anomaly detection without look-ahead leakage.
+- Conservative recommendations that say “investigate” when billing-only evidence cannot prove savings.
+- Fact-grounded deterministic summaries, optional OpenAI-compatible JSON output, and numeric/reference guardrails.
+- Cleaned CSV/Parquet, quality JSON, fact-pack JSON, and self-contained executive HTML exports.
+- Optional S3 standardized Parquet storage and Athena query adapters.
+
+## Quickstart
 
 PowerShell:
 
@@ -17,57 +73,40 @@ python -m venv .venv
 .venv\Scripts\Activate.ps1
 python -m pip install --upgrade pip
 python -m pip install -e ".[dev]"
-```
-
-Copy `.env.example` to `.env` if you want to customize local settings. The default configuration stores local application state under `data/`.
-
-## Run the checks
-
-```powershell
-python -m unittest discover -s tests -v
-finops-check
-```
-
-After installing the development extras, the recommended test command is:
-
-```powershell
-pytest
-```
-
-## Run the application shell
-
-```powershell
+python data/demo/generate_demo_data.py
 streamlit run app.py
 ```
 
-The current shell supports upload, profiling, semantic mapping, canonical normalization, quality checks, reconciliation, local DuckDB persistence, core spend analysis, optional budget/business-metric uploads, forecasting, and anomaly detection. AI explanations, exports, and AWS S3/Athena integration remain future milestones.
+Upload `data/demo/cloud_billing_demo.csv`, then add the budget and business metric files from the optional analysis tabs. The demo data is synthetic and deterministic.
 
-## Ingestion behavior
+## Validation
 
-The reader validates file type and configured size before parsing. It rejects missing paths, unsupported extensions, empty tables, malformed input, and missing format-specific parser dependencies with user-facing errors. The profiler reports row and column counts, null rates, unique counts, duplicate rows, all-null rows, raw numeric and datetime parse rates, sample values, and preview rows without mutating the loaded source.
+```powershell
+python -m pytest -q
+python -m ruff check .
+python -m compileall -q app.py src tests data/demo
+```
 
-## Mapping and normalization behavior
+GitHub Actions runs the test, lint, and compilation checks on Python 3.11 and 3.12.
 
-The detector ranks source columns for required fields (`usage_date`, `service`, and `cost`) and optional dimensions such as account, region, department, project, environment, usage, currency, and tags. Each suggestion includes a confidence level and explanation, and the Streamlit form requires a human review before applying it. Normalization standardizes dates, strings, currency codes, numeric values, and tags; adds ingestion and row-lineage fields; preserves every input row; and records conversion issues instead of silently dropping invalid values.
+## AI guardrail design
 
-## Quality and warehouse behavior
+Python and pandas calculate all financial values first. The AI boundary receives a versioned fact pack containing calculated facts, definitions, quality status, caveats, and recommendation IDs. The optional provider must return structured JSON; unsupported fact references or numeric claims cause the application to use the deterministic fallback instead.
 
-Quality checks distinguish blocking errors from reviewable warnings. They cover row preservation, required-field completeness, normalization errors, currency consistency, exact duplicate canonical rows, negative costs, optional-field completeness, and source-to-canonical cost reconciliation. A run is marked ready for analysis only when no blocking check fails. DuckDB stores the canonical cost fact table, ingestion-run metadata, and individual quality-check results. Saving the same ingestion ID replaces its prior local version so repeated runs do not contaminate the warehouse.
+AI is used for communication and prioritization, not as the source of financial truth.
 
-## Analytics behavior
+## AWS extension
 
-Core spend KPIs and charts use the same inclusive date and dimension filters. Spend is calculated from the canonical `cost` field and is broken down by available service, account, department, project, environment, region, provider, and cost type dimensions. Missing dimensions are shown as unavailable rather than inferred.
+The local path is the default. When configured, the application can upload canonical Parquet to S3 under `standardized/cloud_cost/{ingestion_id}.parquet`. `AthenaWarehouse` can run bounded SQL against a Glue/Athena table and return a DataFrame. See [docs/AWS_ARCHITECTURE.md](docs/AWS_ARCHITECTURE.md) and [infra/aws/README.md](infra/aws/README.md).
 
-Optional budget files are normalized from common headers and compared by inclusive period and scope. Allocation coverage reports both row coverage and positive-cost-weighted coverage; positive spend is the denominator so credits do not distort tagging percentages. Optional business metrics are joined at daily grain to calculate cost per unit.
+## Repository guide
 
-Forecasts use Holt-Winters when enough history is available and a trailing-mean fallback for short histories. Anomalies use a prior rolling median/MAD baseline, so the observed day is not used to calculate its own expectation. Forecast methods, history windows, thresholds, and uncertainty bounds are displayed with the results.
+- [docs/PROJECT_PLAN.md](docs/PROJECT_PLAN.md): scope, architecture, milestone gates, and future work.
+- [docs/DATA_DICTIONARY.md](docs/DATA_DICTIONARY.md): canonical fields and accepted upload shapes.
+- [docs/METRIC_DEFINITIONS.md](docs/METRIC_DEFINITIONS.md): formulas, denominators, and caveats.
+- [docs/INTERVIEW_NOTES.md](docs/INTERVIEW_NOTES.md): portfolio walkthrough and honest limitations.
+- [data/demo/README.md](data/demo/README.md): synthetic demo workflow.
 
-All analytics are calculated in Python before any future AI summarization layer. The AI layer will receive structured facts and caveats rather than raw authority to invent financial values.
+## Privacy and limitations
 
-## Project design
-
-The complete scope, canonical data model, architecture, milestone gates, and portfolio presentation plan are documented in [docs/PROJECT_PLAN.md](docs/PROJECT_PLAN.md).
-
-## Data and privacy
-
-Use synthetic or anonymized data for development. Do not commit cloud account identifiers, customer data, billing exports, access keys, or `.env` files.
+Use synthetic or anonymized data for development. Do not commit cloud account identifiers, customer data, billing exports, access keys, or `.env` files. The platform does not claim rightsizing, idle-resource deletion, commitment optimization, multi-currency conversion, or causal explanations without the evidence required to support those conclusions.

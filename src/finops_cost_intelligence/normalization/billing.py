@@ -52,10 +52,14 @@ def _empty_series(spec: CanonicalFieldSpec, row_count: int) -> pd.Series:
 
 
 def _normalize_string(series: pd.Series) -> pd.Series:
-    normalized = series.astype("string").str.strip().str.replace(
-        r"\s+",
-        " ",
-        regex=True,
+    normalized = (
+        series.astype("string")
+        .str.strip()
+        .str.replace(
+            r"\s+",
+            " ",
+            regex=True,
+        )
     )
     return normalized.mask(normalized.eq(""), pd.NA)
 
@@ -131,9 +135,7 @@ def _row_hashes(dataframe: pd.DataFrame, source_name: str) -> list[str]:
             for row_number, (_, row) in enumerate(dataframe.iterrows(), start=1)
         ]
     return [
-        hashlib.sha256(
-            f"{source_name}|{row_number}|{int(raw_hash)}".encode()
-        ).hexdigest()
+        hashlib.sha256(f"{source_name}|{row_number}|{int(raw_hash)}".encode()).hexdigest()
         for row_number, raw_hash in enumerate(raw_hashes, start=1)
     ]
 

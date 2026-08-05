@@ -35,14 +35,9 @@ def normalize_business_metrics(dataframe: pd.DataFrame) -> pd.DataFrame:
     source = dataframe.copy().reset_index(drop=True)
     source.columns = [str(column) for column in source.columns]
     columns = list(source.columns)
-    matches = {
-        canonical: _find_column(columns, aliases)
-        for canonical, aliases in _ALIASES.items()
-    }
+    matches = {canonical: _find_column(columns, aliases) for canonical, aliases in _ALIASES.items()}
     missing = [
-        field
-        for field in ("metric_date", "metric_name", "metric_value")
-        if matches[field] is None
+        field for field in ("metric_date", "metric_name", "metric_value") if matches[field] is None
     ]
     if missing:
         raise BusinessMetricValidationError(

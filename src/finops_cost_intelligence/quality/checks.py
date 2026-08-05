@@ -337,11 +337,7 @@ def run_quality_checks(
     ]
     statuses = {check.status for check in checks}
     overall_status = (
-        "error"
-        if "error" in statuses
-        else "warning"
-        if "warning" in statuses
-        else "pass"
+        "error" if "error" in statuses else "warning" if "warning" in statuses else "pass"
     )
     return QualityReport(
         ingestion_id=normalized.ingestion_id,

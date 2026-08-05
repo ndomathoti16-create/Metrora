@@ -18,6 +18,7 @@ from ..contracts.analytics import AnalyticsInputError
 from ..contracts.normalization import NormalizedTable
 from .forecast_view import render_forecast_view
 from .operations_view import render_operations_view
+from .report_view import render_report_view
 
 if TYPE_CHECKING:
     from ..config import Settings
@@ -142,9 +143,7 @@ def _render_breakdown(dataframe: pd.DataFrame, currency: str, source_key: str) -
         f"Top {len(breakdown)} {dimension.replace('_', ' ')} values by cost. "
         "Share is calculated against total selected-period spend."
     )
-    cost_label = (
-        f"Cost ({currency})" if currency not in {"Unspecified", "Mixed"} else "Cost"
-    )
+    cost_label = f"Cost ({currency})" if currency not in {"Unspecified", "Mixed"} else "Cost"
     figure = px.bar(
         breakdown.sort_values("cost"),
         x="cost",
@@ -244,9 +243,7 @@ def render_analytics_view(
         selections=selections,
     )
     top_service = (
-        aggregate_spend(filtered, "service", top_n=1)
-        if "service" in filtered
-        else pd.DataFrame()
+        aggregate_spend(filtered, "service", top_n=1) if "service" in filtered else pd.DataFrame()
     )
     top_share = float(top_service.iloc[0]["share_of_total"]) if not top_service.empty else None
     summary = calculate_spend_summary(
@@ -267,3 +264,4 @@ def render_analytics_view(
     st.session_state["analytics_source_key"] = source_key
     render_operations_view(settings, normalized, source_key, filtered)
     render_forecast_view(filtered, source_key)
+    render_report_view(settings, normalized, source_key, filtered)

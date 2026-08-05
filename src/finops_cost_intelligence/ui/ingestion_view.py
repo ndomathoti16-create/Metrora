@@ -81,9 +81,7 @@ def render_ingestion_view(settings: Settings) -> None:
         "numeric_parse_rate",
         "datetime_parse_rate",
     ]:
-        column_frame[rate_column] = column_frame[rate_column].map(
-            lambda value: f"{value:.1%}"
-        )
+        column_frame[rate_column] = column_frame[rate_column].map(lambda value: f"{value:.1%}")
     st.dataframe(
         column_frame[
             [

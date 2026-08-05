@@ -16,9 +16,7 @@ def calculate_budget_variance(
     required_actual = {"usage_date", "cost"}
     missing_actual = sorted(required_actual - set(actual_dataframe.columns))
     if missing_actual:
-        raise AnalyticsInputError(
-            "Actual billing data is missing: " + ", ".join(missing_actual)
-        )
+        raise AnalyticsInputError("Actual billing data is missing: " + ", ".join(missing_actual))
     required_budget = {
         "period_start",
         "period_end",
@@ -28,9 +26,7 @@ def calculate_budget_variance(
     }
     missing_budget = sorted(required_budget - set(budget_dataframe.columns))
     if missing_budget:
-        raise AnalyticsInputError(
-            "Normalized budget data is missing: " + ", ".join(missing_budget)
-        )
+        raise AnalyticsInputError("Normalized budget data is missing: " + ", ".join(missing_budget))
     actual = actual_dataframe.copy()
     actual["usage_date"] = pd.to_datetime(actual["usage_date"], errors="coerce").dt.normalize()
     actual["cost"] = pd.to_numeric(actual["cost"], errors="coerce")

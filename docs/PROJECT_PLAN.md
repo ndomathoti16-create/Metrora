@@ -1,5 +1,9 @@
 # FinOps Cost Intelligence Platform
 
+## Implementation status
+
+Milestones 0–9 are implemented. The local MVP is runnable without AWS credentials or an AI API key; AWS storage/query adapters and the optional AI provider are configured as explicit extensions with deterministic fallbacks and injected-client tests.
+
 ## 1. Project definition
 
 ### Business problem

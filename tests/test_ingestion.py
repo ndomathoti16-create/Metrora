@@ -113,9 +113,7 @@ class ProfileTests(unittest.TestCase):
     def test_profile_contains_quality_signals_and_json_safe_samples(self) -> None:
         source = pd.DataFrame(
             {
-                "usage_date": pd.to_datetime(
-                    ["2025-01-01", "2025-01-02", "2025-01-02", None]
-                ),
+                "usage_date": pd.to_datetime(["2025-01-01", "2025-01-02", "2025-01-02", None]),
                 "service": ["Compute", "Storage", "Storage", None],
                 "cost": [10.0, 20.0, 20.0, None],
                 "region": ["us-east-1", "us-west-2", "us-west-2", None],

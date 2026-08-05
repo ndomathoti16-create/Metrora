@@ -46,6 +46,8 @@ class Settings:
     max_upload_mb: int
     ai_provider: str
     ai_model: str | None
+    ai_api_key: str | None
+    ai_base_url: str
     aws_region: str
     s3_bucket: str | None
     athena_database: str | None
@@ -64,9 +66,7 @@ class Settings:
 
         app_env = values.get("APP_ENV", "development").strip().lower()
         if app_env not in {"development", "test", "production"}:
-            raise ConfigurationError(
-                "APP_ENV must be one of: development, test, production."
-            )
+            raise ConfigurationError("APP_ENV must be one of: development, test, production.")
 
         log_level = values.get("LOG_LEVEL", "INFO").strip().upper()
         if log_level not in {"DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"}:
@@ -75,12 +75,8 @@ class Settings:
             )
 
         data_dir = _resolve_path(values.get("DATA_DIR", "./data"), "DATA_DIR", root)
-        db_path = _resolve_path(
-            values.get("DB_PATH", "./data/finops.duckdb"), "DB_PATH", root
-        )
-        max_upload_mb = _read_positive_int(
-            values.get("MAX_UPLOAD_MB", "200"), "MAX_UPLOAD_MB"
-        )
+        db_path = _resolve_path(values.get("DB_PATH", "./data/finops.duckdb"), "DB_PATH", root)
+        max_upload_mb = _read_positive_int(values.get("MAX_UPLOAD_MB", "200"), "MAX_UPLOAD_MB")
 
         ai_provider = values.get("AI_PROVIDER", "none").strip().lower()
         if not ai_provider:
@@ -89,6 +85,10 @@ class Settings:
         def optional_value(name: str) -> str | None:
             value = values.get(name, "").strip()
             return value or None
+
+        ai_base_url = values.get("AI_BASE_URL", "https://api.openai.com/v1").strip()
+        if not ai_base_url:
+            raise ConfigurationError("AI_BASE_URL cannot be empty.")
 
         aws_region = values.get("AWS_REGION", "us-east-1").strip()
         if not aws_region:
@@ -102,6 +102,8 @@ class Settings:
             max_upload_mb=max_upload_mb,
             ai_provider=ai_provider,
             ai_model=optional_value("AI_MODEL"),
+            ai_api_key=optional_value("AI_API_KEY"),
+            ai_base_url=ai_base_url,
             aws_region=aws_region,
             s3_bucket=optional_value("S3_BUCKET"),
             athena_database=optional_value("ATHENA_DATABASE"),

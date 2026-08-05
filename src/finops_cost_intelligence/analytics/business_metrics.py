@@ -20,8 +20,7 @@ def calculate_unit_economics(
     missing_metric = sorted(required_metric - set(metrics_dataframe.columns))
     if missing_actual or missing_metric:
         raise AnalyticsInputError(
-            "Missing columns for unit economics: "
-            + ", ".join(missing_actual + missing_metric)
+            "Missing columns for unit economics: " + ", ".join(missing_actual + missing_metric)
         )
     actual = actual_dataframe.copy()
     actual["usage_date"] = pd.to_datetime(actual["usage_date"], errors="coerce").dt.normalize()
@@ -43,8 +42,10 @@ def calculate_unit_economics(
     daily_metric = daily_metric.rename(columns={"metric_date": "usage_date"})
     joined = daily_metric.merge(daily_actual, on="usage_date", how="left")
     joined["cost"] = joined["cost"].fillna(0.0)
-    joined["cost_per_unit"] = joined["cost"].where(joined["metric_value"].ne(0)).div(
-        joined["metric_value"].where(joined["metric_value"].ne(0))
+    joined["cost_per_unit"] = (
+        joined["cost"]
+        .where(joined["metric_value"].ne(0))
+        .div(joined["metric_value"].where(joined["metric_value"].ne(0)))
     )
     total_cost = float(joined["cost"].sum())
     total_metric = float(joined["metric_value"].sum())

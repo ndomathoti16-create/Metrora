@@ -31,9 +31,7 @@ def test_budget_normalization_supports_common_headers_and_month_end():
 
 def test_budget_normalization_rejects_negative_amount():
     with pytest.raises(BudgetValidationError, match="cannot be negative"):
-        normalize_budget_dataframe(
-            pd.DataFrame({"date": ["2025-01-01"], "budget": [-10]})
-        )
+        normalize_budget_dataframe(pd.DataFrame({"date": ["2025-01-01"], "budget": [-10]}))
 
 
 def test_budget_variance_matches_total_and_service_scopes():

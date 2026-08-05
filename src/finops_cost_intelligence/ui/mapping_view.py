@@ -71,10 +71,7 @@ def _selected_mapping_from_form(
             source_options,
             index=default_index,
             key=f"mapping_{spec.name}",
-            help=(
-                f"Suggested: {suggestion.source_column or NOT_MAPPED}. "
-                f"{suggestion.reason}"
-            ),
+            help=(f"Suggested: {suggestion.source_column or NOT_MAPPED}. {suggestion.reason}"),
         )
         selected[spec.name] = None if chosen == NOT_MAPPED else chosen
     return selected
@@ -112,9 +109,7 @@ def _render_normalized_result(source_key: str) -> None:
             use_container_width=True,
             hide_index=True,
         )
-        with st.expander(
-            f"Sample conversion issues (up to {report.issue_sample_limit})"
-        ):
+        with st.expander(f"Sample conversion issues (up to {report.issue_sample_limit})"):
             st.dataframe(
                 pd.DataFrame([issue.to_dict() for issue in report.issues]),
                 use_container_width=True,

@@ -59,9 +59,9 @@ def forecast_daily_spend(
             with warnings.catch_warnings():
                 warnings.simplefilter("ignore")
                 fitted = model.fit(optimized=True)
-            forecast_values = pd.Series(
-                fitted.forecast(horizon_days), dtype=float
-            ).reset_index(drop=True)
+            forecast_values = pd.Series(fitted.forecast(horizon_days), dtype=float).reset_index(
+                drop=True
+            )
             method = "holt_winters_weekly" if use_weekly_seasonality else "holt_trend"
             residuals = values - pd.Series(fitted.fittedvalues).reset_index(drop=True)
             residual_std = float(residuals.std(ddof=1)) if len(residuals) > 1 else 0.0

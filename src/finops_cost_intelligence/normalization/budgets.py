@@ -52,15 +52,8 @@ def normalize_budget_dataframe(dataframe: pd.DataFrame) -> pd.DataFrame:
     source = dataframe.copy().reset_index(drop=True)
     source.columns = [str(column) for column in source.columns]
     columns = list(source.columns)
-    matches = {
-        canonical: _find_column(columns, aliases)
-        for canonical, aliases in _ALIASES.items()
-    }
-    missing = [
-        field
-        for field in ("period_start", "budget_amount")
-        if matches[field] is None
-    ]
+    matches = {canonical: _find_column(columns, aliases) for canonical, aliases in _ALIASES.items()}
+    missing = [field for field in ("period_start", "budget_amount") if matches[field] is None]
     if missing:
         raise BudgetValidationError(
             "Budget data is missing required field(s): " + ", ".join(missing)

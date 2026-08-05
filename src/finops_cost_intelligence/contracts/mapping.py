@@ -179,9 +179,7 @@ CANONICAL_FIELD_SPECS: tuple[CanonicalFieldSpec, ...] = (
 )
 
 
-CANONICAL_FIELD_NAMES: tuple[str, ...] = tuple(
-    field.name for field in CANONICAL_FIELD_SPECS
-)
+CANONICAL_FIELD_NAMES: tuple[str, ...] = tuple(field.name for field in CANONICAL_FIELD_SPECS)
 
 
 @dataclass(frozen=True)
@@ -238,8 +236,7 @@ class MappingReview:
 
     def suggested_mapping(self) -> dict[str, str | None]:
         return {
-            suggestion.canonical_field: suggestion.source_column
-            for suggestion in self.suggestions
+            suggestion.canonical_field: suggestion.source_column for suggestion in self.suggestions
         }
 
     def to_dict(self) -> dict[str, Any]:

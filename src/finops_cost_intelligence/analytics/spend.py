@@ -29,8 +29,7 @@ def _require_columns(dataframe: pd.DataFrame, columns: Iterable[str]) -> None:
     missing = [column for column in columns if column not in dataframe.columns]
     if missing:
         raise AnalyticsInputError(
-            "Canonical billing data is missing required column(s): "
-            + ", ".join(missing)
+            "Canonical billing data is missing required column(s): " + ", ".join(missing)
         )
 
 
@@ -87,9 +86,7 @@ def filter_billing_data(
         if values is None:
             continue
         if dimension not in filtered.columns:
-            raise AnalyticsInputError(
-                f"Cannot filter by '{dimension}'; the column is not present."
-            )
+            raise AnalyticsInputError(f"Cannot filter by '{dimension}'; the column is not present.")
         selected_values = list(values)
         if selected_values:
             filtered = filtered.loc[filtered[dimension].isin(selected_values)]
@@ -131,9 +128,7 @@ def aggregate_spend(
     if top_n is not None and top_n < 1:
         raise AnalyticsInputError("top_n must be at least 1 or None.")
     if dataframe.empty:
-        return pd.DataFrame(
-            columns=["value", "cost", "row_count", "share_of_total"]
-        )
+        return pd.DataFrame(columns=["value", "cost", "row_count", "share_of_total"])
 
     working = dataframe.copy()
     working["cost"] = _coerce_cost(working)

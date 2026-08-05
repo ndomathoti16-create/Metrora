@@ -59,6 +59,4 @@ def test_anomaly_detector_flags_spike_without_using_spike_in_baseline():
 
 def test_anomaly_detector_rejects_inconsistent_history_parameters():
     with pytest.raises(AnalyticsInputError, match="cannot exceed"):
-        detect_spend_anomalies(
-            _daily_costs([10.0] * 10), window_days=5, minimum_history_days=6
-        )
+        detect_spend_anomalies(_daily_costs([10.0] * 10), window_days=5, minimum_history_days=6)

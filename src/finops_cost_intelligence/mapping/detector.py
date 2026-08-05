@@ -99,10 +99,7 @@ def suggest_mappings(profile: DataProfile) -> MappingReview:
 
     for spec in CANONICAL_FIELD_SPECS:
         ranked = sorted(
-            (
-                _score_candidate(spec, column)
-                for column in profile_by_name.values()
-            ),
+            (_score_candidate(spec, column) for column in profile_by_name.values()),
             key=lambda candidate: (-candidate.score, candidate.source_column.casefold()),
         )
         raw_candidates[spec.name] = tuple(ranked[:3])

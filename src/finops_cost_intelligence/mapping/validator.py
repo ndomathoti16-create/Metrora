@@ -29,14 +29,11 @@ def validate_mapping(
         errors.append(f"Unknown canonical fields: {', '.join(unknown_fields)}.")
 
     normalized: dict[str, str | None] = {
-        field_name: selection.get(field_name) or None
-        for field_name in CANONICAL_FIELD_NAMES
+        field_name: selection.get(field_name) or None for field_name in CANONICAL_FIELD_NAMES
     }
     for field_name, source_column in normalized.items():
         if source_column is not None and source_column not in source_set:
-            errors.append(
-                f"{field_name!r} points to missing source column {source_column!r}."
-            )
+            errors.append(f"{field_name!r} points to missing source column {source_column!r}.")
 
     reverse_index: dict[str, list[str]] = defaultdict(list)
     for field_name, source_column in normalized.items():
@@ -45,8 +42,7 @@ def validate_mapping(
     for source_column, fields in sorted(reverse_index.items()):
         if len(fields) > 1:
             errors.append(
-                f"Source column {source_column!r} is mapped more than once: "
-                f"{', '.join(fields)}."
+                f"Source column {source_column!r} is mapped more than once: {', '.join(fields)}."
             )
 
     for required_field in ("usage_date", "service", "cost"):

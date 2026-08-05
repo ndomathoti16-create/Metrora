@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 from typing import TYPE_CHECKING
 
 import pandas as pd
@@ -16,14 +17,17 @@ if TYPE_CHECKING:
 
 
 def _quality_frame(report: QualityReport) -> pd.DataFrame:
+    def display_value(value: object) -> str:
+        return json.dumps(value, default=str, ensure_ascii=False)
+
     return pd.DataFrame(
         [
             {
                 "check": check.check_name,
                 "status": check.status,
                 "severity": check.severity,
-                "observed": check.observed_value,
-                "expected": check.expected_value,
+                "observed": display_value(check.observed_value),
+                "expected": display_value(check.expected_value),
                 "affected rows": check.affected_rows,
                 "detail": check.detail,
             }
