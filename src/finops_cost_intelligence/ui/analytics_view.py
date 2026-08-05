@@ -24,9 +24,9 @@ if TYPE_CHECKING:
     from ..config import Settings
 
 
-BLUE = "#2F6BFF"
-GOLD = "#D9A441"
-TEXT = "#1F2937"
+BLUE = "#2878F0"
+GOLD = "#D9F36B"
+TEXT = "#142033"
 
 
 def _format_cost(value: float | None, currency: str) -> str:
@@ -117,7 +117,7 @@ def _render_trend(daily: pd.DataFrame, currency: str) -> None:
         font={"color": TEXT},
         margin={"l": 10, "r": 10, "t": 55, "b": 10},
     )
-    st.plotly_chart(figure, use_container_width=True)
+    st.plotly_chart(figure, width="stretch")
 
 
 def _render_breakdown(dataframe: pd.DataFrame, currency: str, source_key: str) -> None:
@@ -154,11 +154,11 @@ def _render_breakdown(dataframe: pd.DataFrame, currency: str, source_key: str) -
         title=f"Spend by {dimension.replace('_', ' ').title()}",
     )
     figure.update_layout(font={"color": TEXT}, margin={"l": 10, "r": 10, "t": 55, "b": 10})
-    st.plotly_chart(figure, use_container_width=True)
+    st.plotly_chart(figure, width="stretch")
     display = breakdown.copy()
     display["cost"] = display["cost"].round(2)
     display["share_of_total"] = (display["share_of_total"] * 100).round(2).astype(str) + "%"
-    st.dataframe(display, use_container_width=True, hide_index=True)
+    st.dataframe(display, width="stretch", hide_index=True)
 
 
 def render_analytics_view(
@@ -188,10 +188,10 @@ def render_analytics_view(
         st.error(str(exc))
         return
 
-    st.header("Core FinOps analytics")
+    st.header("Explore your spend")
     st.write(
-        "Explore calculated spend trends and drivers. Filters apply to every KPI, "
-        "chart, and table below."
+        "See the shape of cloud cost, isolate the drivers, and keep the same filters "
+        "across every KPI, chart, and table below."
     )
     with st.sidebar:
         st.header("Dashboard filters")

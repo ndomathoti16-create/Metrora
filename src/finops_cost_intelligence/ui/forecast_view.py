@@ -10,9 +10,9 @@ from ..contracts.analytics import AnalyticsInputError
 from ..contracts.forecasting import ForecastInputError
 from ..forecasting import forecast_daily_spend
 
-BLUE = "#2F6BFF"
-GOLD = "#D9A441"
-RED = "#C2413B"
+BLUE = "#2878F0"
+GOLD = "#D9F36B"
+RED = "#FF816B"
 
 
 def _render_forecast(actual: pd.DataFrame, source_key: str) -> None:
@@ -88,11 +88,11 @@ def _render_forecast(actual: pd.DataFrame, source_key: str) -> None:
         hovermode="x unified",
         margin={"l": 10, "r": 10, "t": 55, "b": 10},
     )
-    st.plotly_chart(figure, use_container_width=True)
+    st.plotly_chart(figure, width="stretch")
     display = forecast.copy()
     for column in ("forecast_cost", "lower_bound", "upper_bound"):
         display[column] = display[column].round(2)
-    st.dataframe(display, use_container_width=True, hide_index=True)
+    st.dataframe(display, width="stretch", hide_index=True)
 
 
 def _render_anomalies(actual: pd.DataFrame, source_key: str) -> None:
@@ -149,7 +149,7 @@ def _render_anomalies(actual: pd.DataFrame, source_key: str) -> None:
         hovermode="x unified",
         margin={"l": 10, "r": 10, "t": 55, "b": 10},
     )
-    st.plotly_chart(figure, use_container_width=True)
+    st.plotly_chart(figure, width="stretch")
     if anomalies.empty:
         st.success("No anomalies exceeded the selected threshold.")
         return
@@ -173,17 +173,17 @@ def _render_anomalies(actual: pd.DataFrame, source_key: str) -> None:
     display["anomaly_score"] = display["anomaly_score"].map(
         lambda value: "∞" if value == float("inf") else f"{value:.2f}"
     )
-    st.dataframe(display, use_container_width=True, hide_index=True)
+    st.dataframe(display, width="stretch", hide_index=True)
 
 
 def render_forecast_view(actual: pd.DataFrame, source_key: str) -> None:
     """Render forecasting and anomaly detection over the filtered billing view."""
     import streamlit as st
 
-    st.header("Forecast and anomaly detection")
+    st.header("Plan ahead")
     st.write(
-        "Forecasts estimate future daily spend from historical cost only. Anomalies "
-        "compare each day with a prior rolling baseline and expose the evidence behind a flag."
+        "Use transparent historical methods to estimate future spend and surface unusual "
+        "changes, with the evidence behind every flag."
     )
     forecast_tab, anomaly_tab = st.tabs(["Forecast", "Anomalies"])
     with forecast_tab:

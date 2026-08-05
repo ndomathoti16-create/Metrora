@@ -29,10 +29,10 @@ def render_ingestion_view(settings: Settings) -> None:
     """Render file upload, profile summary, and a small data preview."""
     import streamlit as st
 
-    st.header("Upload and profile data")
+    st.header("Start with your billing data")
     st.write(
-        "Start with a cloud billing export. The application will inspect the file "
-        "before any semantic mapping or financial analysis is applied."
+        "Drop in a cloud billing export and SpendArc will inspect its structure before "
+        "any mapping or financial analysis is applied."
     )
     uploaded_file = st.file_uploader(
         "Choose a billing file",
@@ -41,7 +41,7 @@ def render_ingestion_view(settings: Settings) -> None:
     )
 
     if uploaded_file is None:
-        st.caption("No file uploaded yet.")
+        st.caption("No billing source loaded yet · CSV, Excel, and Parquet are supported.")
         return
 
     max_bytes = settings.max_upload_mb * 1024 * 1024
@@ -68,7 +68,7 @@ def render_ingestion_view(settings: Settings) -> None:
     details = f"{profile.source_name} · {profile.file_format.upper()}"
     if profile.sheet_name:
         details += f" · worksheet: {profile.sheet_name}"
-    st.success(f"Loaded {details}")
+    st.success(f"Source ready · {details}")
 
     st.subheader("Column profile")
     column_records = profile.column_records()
@@ -95,12 +95,12 @@ def render_ingestion_view(settings: Settings) -> None:
                 "sample_values",
             ]
         ],
-        use_container_width=True,
+        width="stretch",
         hide_index=True,
     )
 
     st.subheader("Data preview")
-    st.dataframe(loaded_table.dataframe.head(20), use_container_width=True, hide_index=True)
+    st.dataframe(loaded_table.dataframe.head(20), width="stretch", hide_index=True)
 
     with st.expander("Profile details"):
         st.json(profile.to_dict())

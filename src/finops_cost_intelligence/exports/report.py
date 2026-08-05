@@ -58,7 +58,7 @@ def executive_report_html(fact_pack: FactPack, summary: SummaryResult) -> str:
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>FinOps Executive Summary</title>
+<title>SpendArc Executive Brief</title>
 <style>
 :root {{ color-scheme: light dark; font-family: Inter, system-ui, sans-serif; }}
 body {{ max-width: 1100px; margin: 0 auto; padding: 2rem; line-height: 1.5; }}
@@ -71,7 +71,7 @@ small {{ color: #64748b; }}
 </style>
 </head>
 <body>
-<p class="eyebrow">FinOps Cost Intelligence</p>
+<p class="eyebrow">SpendArc · Cloud FinOps intelligence</p>
 <h1>Executive summary</h1>
 <p><strong>Analysis period:</strong> {html.escape(period)}<br>
 <strong>Source:</strong> {html.escape(fact_pack.source_name)}<br>

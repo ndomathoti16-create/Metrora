@@ -8,7 +8,7 @@ from .config import Settings
 def main() -> int:
     """Validate configuration and print a safe local status summary."""
     settings = Settings.from_environment()
-    print("FinOps Cost Intelligence foundation is configured.")
+    print("SpendArc foundation is configured.")
     print(f"Environment: {settings.app_env}")
     print(f"Data directory: {settings.data_dir}")
     print(f"Database path: {settings.db_path}")

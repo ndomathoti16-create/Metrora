@@ -1,10 +1,16 @@
-# FinOps Cost Intelligence Platform
+# SpendArc
 
-An AI-assisted FinOps and cloud financial analytics platform for turning messy billing exports into validated spend insights, budget variance analysis, allocation coverage, business unit economics, forecasts, anomalies, and evidence-backed recommendations.
+Cloud FinOps analytics and cost intelligence for finance, engineering, and cloud operations teams.
+
+SpendArc turns messy billing exports into validated spend insights, budget variance analysis, allocation coverage, business unit economics, forecasts, anomalies, and evidence-backed recommendations.
 
 ## Current status
 
-Milestones 0–9 are complete. The local MVP works without cloud credentials or an AI key, and the optional S3/Athena adapters are covered by injected-client tests rather than requiring a live AWS account.
+The local MVP is complete across milestones 0–9. It works without cloud credentials or an AI key, and the optional S3/Athena adapters are covered by injected-client tests rather than requiring a live AWS account.
+
+## Product promise
+
+> Validate the data, find the signal, and turn cloud cost into a decision.
 
 ## Why this project exists
 
@@ -16,7 +22,7 @@ Cloud billing exports are provider-specific, while finance and FinOps teams need
 - How does cloud cost change relative to customers or transactions?
 - Which follow-up actions are supported by the available evidence?
 
-The application addresses those questions through a traceable pipeline: profile, map, normalize, validate, calculate, explain, and export.
+SpendArc addresses those questions through a traceable pipeline: profile, map, normalize, validate, calculate, explain, and export.
 
 ## Workflow
 
@@ -33,7 +39,7 @@ The application addresses those questions through a traceable pipeline: profile,
 
 ```mermaid
 flowchart LR
-    U[Analyst] --> UI[Streamlit]
+    U[Analyst] --> UI[SpendArc Streamlit app]
     UI --> ING[Ingestion and profiling]
     ING --> MAP[Human-reviewed mapping]
     MAP --> NORM[Canonical normalization]
@@ -109,4 +115,4 @@ The local path is the default. When configured, the application can upload canon
 
 ## Privacy and limitations
 
-Use synthetic or anonymized data for development. Do not commit cloud account identifiers, customer data, billing exports, access keys, or `.env` files. The platform does not claim rightsizing, idle-resource deletion, commitment optimization, multi-currency conversion, or causal explanations without the evidence required to support those conclusions.
+Use synthetic or anonymized data for development. Do not commit cloud account identifiers, customer data, billing exports, access keys, or `.env` files. SpendArc does not claim rightsizing, idle-resource deletion, commitment optimization, multi-currency conversion, or causal explanations without the evidence required to support those conclusions.

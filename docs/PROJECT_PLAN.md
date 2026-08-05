@@ -1,4 +1,6 @@
-# FinOps Cost Intelligence Platform
+# SpendArc
+
+Cloud FinOps analytics and cost intelligence platform.
 
 ## Implementation status
 
@@ -121,7 +123,7 @@ The AI layer will receive a versioned, structured fact pack containing calculate
 
 ```mermaid
 flowchart LR
-    U[Analyst] --> UI[Streamlit application]
+    U[Analyst] --> UI[SpendArc Streamlit application]
     UI --> ING[Ingestion and profiling]
     ING --> MAP[Column mapping review]
     MAP --> NORM[Canonical normalization]
@@ -244,7 +246,7 @@ The pipeline will compare source total and canonical total using the selected co
 The project will be created as a new repository with business logic separated from the UI:
 
 ```text
-finops-cost-intelligence/
+spendarc/
 ├── app.py
 ├── pyproject.toml
 ├── README.md

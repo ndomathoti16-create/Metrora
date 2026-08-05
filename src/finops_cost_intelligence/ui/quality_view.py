@@ -52,7 +52,7 @@ def render_quality_view(
     st.session_state["quality_report"] = report
     st.session_state["quality_source_key"] = source_key
 
-    st.header("Quality checks and local warehouse")
+    st.header("Trust the numbers")
     metrics = st.columns(4)
     metrics[0].metric("Overall status", report.overall_status.upper())
     metrics[1].metric("Ready for analysis", "Yes" if report.ready_for_analysis else "No")
@@ -69,7 +69,7 @@ def render_quality_view(
     if report.overall_status == "warning":
         st.warning("The run is usable with caveats. Review warnings before sharing results.")
 
-    st.dataframe(_quality_frame(report), use_container_width=True, hide_index=True)
+    st.dataframe(_quality_frame(report), width="stretch", hide_index=True)
     with st.expander("Reconciliation details"):
         st.json(report.reconciliation.to_dict())
 
@@ -90,7 +90,7 @@ def render_quality_view(
         else:
             st.session_state["warehouse_summary"] = summary
             st.session_state["warehouse_source_key"] = source_key
-            st.success("Run saved to the local DuckDB warehouse.")
+        st.success("Run saved to the SpendArc local warehouse.")
 
     summary = st.session_state.get("warehouse_summary")
     if summary is not None and st.session_state.get("warehouse_source_key") == source_key:

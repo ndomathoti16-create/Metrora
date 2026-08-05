@@ -44,9 +44,9 @@ def render_report_view(
     quality_report = st.session_state.get("quality_report")
     if quality_report is None:
         return
-    st.header("Executive summary and exports")
+    st.header("Share the story")
     st.write(
-        "Generate a concise summary from the calculated fact pack, then export the "
+        "Turn the calculated fact pack into a concise executive brief, then export the "
         "evidence, quality checks, and cleaned dataset for review."
     )
     budget = st.session_state.get("budget_table")
@@ -99,7 +99,7 @@ def render_report_view(
         st.download_button(
             "Download executive HTML report",
             data=executive_report_html(fact_pack, summary).encode("utf-8"),
-            file_name="finops_executive_summary.html",
+            file_name="spendarc_executive_brief.html",
             mime="text/html",
             key=f"download_report_{source_key}",
         )
@@ -107,28 +107,28 @@ def render_report_view(
     columns[0].download_button(
         "Cleaned CSV",
         data=cleaned_csv_bytes(normalized),
-        file_name="canonical_cloud_cost.csv",
+        file_name="spendarc_canonical_cloud_cost.csv",
         mime="text/csv",
         key=f"download_csv_{source_key}",
     )
     columns[1].download_button(
         "Cleaned Parquet",
         data=cleaned_parquet_bytes(normalized),
-        file_name="canonical_cloud_cost.parquet",
+        file_name="spendarc_canonical_cloud_cost.parquet",
         mime="application/octet-stream",
         key=f"download_parquet_{source_key}",
     )
     columns[2].download_button(
         "Fact pack JSON",
         data=fact_pack_json_bytes(fact_pack),
-        file_name="finops_fact_pack.json",
+        file_name="spendarc_fact_pack.json",
         mime="application/json",
         key=f"download_fact_pack_{source_key}",
     )
     columns[3].download_button(
         "Quality JSON",
         data=quality_report_json_bytes(quality_report),
-        file_name="quality_report.json",
+        file_name="spendarc_quality_report.json",
         mime="application/json",
         key=f"download_quality_{source_key}",
     )

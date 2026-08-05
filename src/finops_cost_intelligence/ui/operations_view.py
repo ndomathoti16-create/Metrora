@@ -90,7 +90,7 @@ def _render_budget_view(actual: pd.DataFrame, source_key: str) -> None:
         display[column] = display[column].map(
             lambda value: f"{value:.1%}" if pd.notna(value) else "—"
         )
-    st.dataframe(display, use_container_width=True, hide_index=True)
+    st.dataframe(display, width="stretch", hide_index=True)
     chart_data = comparison.assign(
         label=comparison["period_start"].dt.strftime("%Y-%m-%d")
         + " · "
@@ -113,7 +113,7 @@ def _render_budget_view(actual: pd.DataFrame, source_key: str) -> None:
         title="Actual versus budget",
     )
     figure.update_layout(margin={"l": 10, "r": 10, "t": 55, "b": 10})
-    st.plotly_chart(figure, use_container_width=True)
+    st.plotly_chart(figure, width="stretch")
 
 
 def _render_allocation_view(actual: pd.DataFrame) -> None:
@@ -155,7 +155,7 @@ def _render_allocation_view(actual: pd.DataFrame) -> None:
         lambda value: f"{value:.1%}" if pd.notna(value) else "—"
     )
     display["allocated_positive_cost"] = display["allocated_positive_cost"].round(2)
-    st.dataframe(display, use_container_width=True, hide_index=True)
+    st.dataframe(display, width="stretch", hide_index=True)
 
 
 def _render_business_metric_view(actual: pd.DataFrame, source_key: str) -> None:
@@ -217,8 +217,8 @@ def _render_business_metric_view(actual: pd.DataFrame, source_key: str) -> None:
         title=f"Cost per unit over time · {metric_name}",
     )
     figure.update_layout(margin={"l": 10, "r": 10, "t": 55, "b": 10})
-    st.plotly_chart(figure, use_container_width=True)
-    st.dataframe(joined, use_container_width=True, hide_index=True)
+    st.plotly_chart(figure, width="stretch")
+    st.dataframe(joined, width="stretch", hide_index=True)
 
 
 def render_operations_view(
@@ -231,10 +231,10 @@ def render_operations_view(
     del settings
     import streamlit as st
 
-    st.header("Budgets, allocation, and business metrics")
+    st.header("Connect spend to the business")
     st.write(
-        "These analyses use the current dashboard filters and keep uploaded planning "
-        "data separate from the canonical billing table."
+        "Layer budgets, ownership coverage, and business metrics onto the current view "
+        "without changing the canonical billing table."
     )
     budget_tab, allocation_tab, business_tab = st.tabs(
         ["Budget variance", "Allocation coverage", "Business efficiency"]

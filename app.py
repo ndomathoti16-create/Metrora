@@ -1,4 +1,4 @@
-"""Streamlit entry point for the FinOps Cost Intelligence Platform."""
+"""Streamlit entry point for SpendArc."""
 
 from finops_cost_intelligence.config import Settings
 from finops_cost_intelligence.logging_utils import configure_logging

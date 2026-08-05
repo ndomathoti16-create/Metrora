@@ -96,7 +96,7 @@ def _render_normalized_result(source_key: str) -> None:
     else:
         st.error("Normalization changed the row count; investigate before proceeding.")
 
-    st.dataframe(normalized.dataframe.head(20), use_container_width=True, hide_index=True)
+    st.dataframe(normalized.dataframe.head(20), width="stretch", hide_index=True)
     if report.issue_count:
         st.caption("Issue counts by canonical field")
         st.dataframe(
@@ -106,13 +106,13 @@ def _render_normalized_result(source_key: str) -> None:
                     for field, count in report.issue_counts_by_field.items()
                 ]
             ),
-            use_container_width=True,
+            width="stretch",
             hide_index=True,
         )
         with st.expander(f"Sample conversion issues (up to {report.issue_sample_limit})"):
             st.dataframe(
                 pd.DataFrame([issue.to_dict() for issue in report.issues]),
-                use_container_width=True,
+                width="stretch",
                 hide_index=True,
             )
 
@@ -139,21 +139,21 @@ def render_mapping_view(
     review = suggest_mappings(profile)
     existing_mapping = st.session_state.get("column_mapping")
 
-    st.header("Review column mappings")
+    st.header("Map the source to SpendArc")
     st.write(
-        "Suggestions use source names and profile signals. Review every required "
-        "field before applying the mapping; optional fields may remain unmapped."
+        "SpendArc suggests the meaning of each source column. Review every required "
+        "field, make corrections where needed, and then create the canonical cost model."
     )
     with st.expander("Detector suggestions", expanded=True):
         st.dataframe(
             _review_frame(review),
-            use_container_width=True,
+            width="stretch",
             hide_index=True,
         )
 
     with st.form(key=f"mapping_form_{source_key}"):
         selected_mapping = _selected_mapping_from_form(review, existing_mapping)
-        submitted = st.form_submit_button("Apply mapping and normalize")
+        submitted = st.form_submit_button("Confirm mapping and build the model")
 
     if submitted:
         try:

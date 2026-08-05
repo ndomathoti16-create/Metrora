@@ -1,4 +1,4 @@
-# AWS extension architecture
+# SpendArc AWS extension architecture
 
 The local application remains the default demo path. The AWS extension uses the same canonical Parquet shape so a reviewer can understand the cloud path without needing cloud credentials to run the application.
 
@@ -28,9 +28,9 @@ Set these variables only in a local environment or managed secret store:
 
 ```text
 AWS_REGION=us-east-1
-S3_BUCKET=your-finops-bucket
-ATHENA_DATABASE=finops
-ATHENA_OUTPUT_LOCATION=s3://your-finops-bucket/athena-results/
+S3_BUCKET=your-spendarc-bucket
+ATHENA_DATABASE=spendarc
+ATHENA_OUTPUT_LOCATION=s3://your-spendarc-bucket/athena-results/
 ```
 
 Local DuckDB and the deterministic summary continue to work when these values are empty.

@@ -1,4 +1,4 @@
-"""Generate safe, deterministic demo inputs for the FinOps application."""
+"""Generate safe, deterministic demo inputs for SpendArc."""
 
 from __future__ import annotations
 

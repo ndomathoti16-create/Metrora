@@ -24,7 +24,7 @@ class SettingsTests(unittest.TestCase):
             )
             self.assertEqual(
                 settings.db_path,
-                (Path(temporary_directory) / "data" / "finops.duckdb").resolve(),
+                (Path(temporary_directory) / "data" / "spendarc.duckdb").resolve(),
             )
 
     def test_ensure_directories_creates_runtime_paths(self) -> None:
