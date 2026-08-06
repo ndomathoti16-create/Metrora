@@ -199,9 +199,3 @@ The current release does not claim rightsizing, idle-resource deletion, commitme
 ### Future extensions
 
 Potential next capabilities include hosted multi-user workspaces, scheduled ingestion, provider APIs, resource-utilization evidence, rightsizing analysis, commitment optimization, richer allocation rules, alert delivery, and broader cloud-provider coverage.
-
-## Project context
-
-SpendArc is an independent product-focused project built to demonstrate how a trustworthy cloud-financial operations product could be designed and implemented from ingestion through executive decision support.
-
-It is presented as a product because the core work is organized around a real customer problem, a defined workflow, clear analytical contracts, and a SaaS-ready architecture. The repository also remains transparent about its current stage: the reference implementation runs locally today, while hosted multi-user deployment, authentication, scheduled ingestion, and production operations are future extensions.
