@@ -1,76 +1,152 @@
 # SpendArc
 
-Cloud FinOps analytics and cost intelligence for finance, engineering, and cloud operations teams.
+## Cloud financial intelligence for modern cloud teams
 
-SpendArc turns messy billing exports into validated spend insights, budget variance analysis, allocation coverage, business unit economics, forecasts, anomalies, and evidence-backed recommendations.
+SpendArc helps finance, FinOps, and engineering leaders understand where cloud money is going, what changed, and what deserves attention next.
 
-## Current status
+It brings billing data, budgets, ownership, business context, forecasts, and evidence-backed recommendations into one decision workspace.
 
-The local MVP is complete across milestones 0–9. It works without cloud credentials or an AI key, and the optional S3/Athena adapters are covered by injected-client tests rather than requiring a live AWS account.
+**SpendArc** · Cloud FinOps analytics · Local-first reference implementation
 
-## Product promise
+> Validate the data. Find the signal. Move with confidence.
 
-> Validate the data, find the signal, and turn cloud cost into a decision.
+[Product capabilities](#what-spendarc-delivers) · [How it works](#how-spendarc-works) · [Technical appendix](#technical-appendix)
 
-## Why this project exists
+## The cloud cost visibility gap
 
-Cloud billing exports are provider-specific, while finance and FinOps teams need consistent answers:
+Cloud spend is easy to generate and difficult to explain. Provider exports use different structures, ownership information is often incomplete, and the most important business questions rarely stop at a billing total.
 
-- What changed in cloud spend, when, and which service or owner drove it?
-- Are actuals within budget and what is the near-term outlook?
-- How much positive spend has an accountable owner?
-- How does cloud cost change relative to customers or transactions?
-- Which follow-up actions are supported by the available evidence?
+SpendArc is designed for teams that need to answer questions such as:
 
-SpendArc addresses those questions through a traceable pipeline: profile, map, normalize, validate, calculate, explain, and export.
+- Which services, accounts, projects, departments, environments, or regions are driving spend?
+- What changed compared with the prior period?
+- Are actual costs within budget, and where is risk emerging?
+- How much spend can be attributed to an accountable owner?
+- What does cloud cost look like relative to customers, revenue, transactions, or usage?
+- Which actions are supported by the available evidence?
 
-## Workflow
+## What SpendArc delivers
 
-1. Upload a CSV, Excel, or Parquet billing file.
-2. Inspect the source profile and review suggested semantic mappings.
-3. Normalize the file into the canonical cloud-cost model with row lineage.
-4. Review missingness, duplicates, invalid values, currency consistency, and reconciliation.
-5. Explore spend KPIs, daily trends, and dimension breakdowns.
-6. Optionally upload budgets and business metrics.
-7. Review allocation coverage, cost per unit, forecast, and anomalies.
-8. Generate an evidence-backed summary and download the report, fact pack, quality results, and cleaned dataset.
+| Product area | Business value |
+| --- | --- |
+| Trusted cost foundation | Convert provider-specific files into a consistent, reviewable cost model. |
+| Spend intelligence | See trends, service drivers, ownership mix, and regional or environmental patterns. |
+| Planning and outlook | Compare actuals with budgets and estimate future spend using transparent methods. |
+| Cost accountability | Measure allocation and tagging coverage so teams know where ownership is missing. |
+| Business context | Relate cloud cost to customers, revenue, transactions, or product usage. |
+| Decision-ready communication | Generate concise summaries, recommendations, cleaned data, and executive reports. |
 
-## Architecture
+## Built for the people who manage technology economics
+
+**Finance and FP&A** get a clearer view of technology spend, budget variance, and forward-looking cost risk.
+
+**FinOps teams** get a repeatable workflow for ingestion, validation, allocation, trend analysis, anomaly review, and action planning.
+
+**Engineering and platform teams** get service- and ownership-level context without needing to interpret raw billing exports.
+
+**Business and product leaders** can connect infrastructure cost to the outcomes their teams are responsible for delivering.
+
+## How SpendArc works
+
+1. **Bring in the data** — upload a cloud billing export and optionally add budget or business-metric data.
+2. **Make the meaning explicit** — review detected columns and confirm the mapping to SpendArc's canonical model.
+3. **Trust the numbers** — inspect missing values, duplicates, invalid records, currency consistency, and reconciliation.
+4. **Understand the movement** — explore spend by service, account, department, project, environment, and region.
+5. **Plan and prioritize** — review budgets, allocation coverage, unit economics, forecasts, anomalies, and supported next steps.
+6. **Share the decision** — generate an evidence-backed executive brief and export the supporting data.
+
+## A decision layer built on traceable data
 
 ```mermaid
 flowchart LR
-    U[Analyst] --> UI[SpendArc Streamlit app]
-    UI --> ING[Ingestion and profiling]
-    ING --> MAP[Human-reviewed mapping]
-    MAP --> NORM[Canonical normalization]
-    NORM --> QA[Quality and reconciliation]
-    QA --> DB[(DuckDB local warehouse)]
-    DB --> MET[Deterministic analytics]
-    MET --> VIZ[Dashboard]
-    MET --> FP[Versioned fact pack]
-    FP --> AI[Optional grounded AI adapter]
-    FP --> EXP[HTML and data exports]
-    NORM --> S3[(Optional S3 Parquet)]
-    S3 --> ATH[Athena]
-    ATH --> MET
+    SOURCES[Billing, budget, and business data] --> WORKSPACE[SpendArc workspace]
+    WORKSPACE --> TRUST[Profile, map, normalize, reconcile]
+    TRUST --> INSIGHT[Spend, budget, ownership, and business insight]
+    INSIGHT --> OUTLOOK[Forecasts and anomaly signals]
+    INSIGHT --> ACTION[Evidence-backed recommendations]
+    OUTLOOK --> BRIEF[Executive brief and exports]
+    ACTION --> BRIEF
 ```
 
-## Core capabilities
+SpendArc keeps the analytical path explainable: source data is profiled and normalized before metrics are calculated, and every summary is grounded in those calculated facts.
 
-- CSV, `.xlsx`, `.xls`, and Parquet ingestion with size/type/error handling.
-- Human-reviewed mapping for date, service, cost, account, region, department, project, environment, usage, currency, and tags.
-- Canonical normalization with conversion diagnostics and source-row lineage.
-- Blocking quality checks and reviewable warnings before analysis.
-- Filterable spend KPIs and ranked breakdowns.
-- Budget variance, allocation/tagging coverage, and cost per business unit.
-- Holt-Winters forecast with a short-history rolling-mean fallback.
-- Prior-window median/MAD anomaly detection without look-ahead leakage.
-- Conservative recommendations that say “investigate” when billing-only evidence cannot prove savings.
-- Fact-grounded deterministic summaries, optional OpenAI-compatible JSON output, and numeric/reference guardrails.
-- Cleaned CSV/Parquet, quality JSON, fact-pack JSON, and self-contained executive HTML exports.
-- Optional S3 standardized Parquet storage and Athena query adapters.
+## The product experience
 
-## Quickstart
+### Start with any supported billing export
+
+SpendArc accepts CSV, Excel, and Parquet files, then profiles their structure before analysis begins. Users can review detected dates, services, costs, accounts, regions, departments, projects, environments, usage fields, currencies, and tags.
+
+### See the cost story, not just the total
+
+Interactive views show total spend, average daily spend, period movement, top-service concentration, daily trends, and ranked breakdowns across the dimensions present in the data.
+
+### Connect actuals to operating context
+
+Optional budgets provide actual-versus-budget comparisons. Ownership analysis measures allocation and tagging coverage. Business metrics support cost-per-customer, cost-per-transaction, or other unit-cost views when the data supports them.
+
+### Look forward without hiding uncertainty
+
+SpendArc provides a transparent baseline forecast and historical anomaly detection. Each result includes its method, history, threshold, and caveats so a forecast is not mistaken for certainty.
+
+### Use AI where it adds value
+
+AI helps explain validated results and prioritize follow-up actions. It does not calculate financial values, create unsupported savings claims, or replace the underlying evidence.
+
+## Delivery model
+
+SpendArc is structured as a SaaS-ready product: a clear data contract, modular analytical services, a Streamlit workspace, local persistence, and optional AWS storage and query adapters.
+
+The current reference implementation runs locally and can operate without cloud credentials or an AI API key. The same canonical Parquet model provides a path to S3, Glue, and Athena for a hosted deployment.
+
+## Technical appendix
+
+The sections below are intended for implementation teams and technical stakeholders who want to reproduce or extend the current release.
+
+### Current release
+
+The local MVP covers milestones 0-9. The application works without AWS credentials or an AI key. Optional S3 and Athena adapters are covered by injected-client tests and are not required for local analysis.
+
+### Requirements
+
+- Python 3.11 or newer
+- Windows PowerShell, macOS, or Linux shell
+- A supported billing file with mappable date, service, and cost columns
+- Optional: budget data with period, scope, amount, and currency fields
+- Optional: business data with date, metric name, metric value, and unit fields
+- Optional: an OpenAI-compatible API key for AI-generated explanations
+- Optional: AWS credentials with least-privilege S3 and Athena access
+
+### Detailed data workflow
+
+1. Upload a CSV, Excel, or Parquet billing file.
+2. Inspect row counts, columns, inferred types, null rates, distinct values, and sample values.
+3. Review and correct semantic mappings.
+4. Normalize into the canonical cloud-cost model with source-row lineage.
+5. Review blocking errors, warnings, and source-to-canonical reconciliation.
+6. Save the run to the local DuckDB warehouse.
+7. Apply dashboard filters consistently across KPIs, charts, and tables.
+8. Add budget and business-metric files when available.
+9. Review forecasts, anomaly evidence, recommendations, and exports.
+
+### Minimum billing fields
+
+The billing source must contain mappable fields for:
+
+- `usage_date`
+- `service`
+- `cost`
+
+Recommended fields include `currency`, `provider`, `account_id`, `account_name`, `region`, `department`, `project`, `environment`, `resource_id`, `usage_quantity`, `usage_unit`, `usage_type`, `cost_type`, and `tags_json`.
+
+See [docs/DATA_DICTIONARY.md](docs/DATA_DICTIONARY.md) for the canonical schema and accepted upload shapes.
+
+### Data-quality requirements
+
+SpendArc checks for missing required fields, duplicates, invalid dates, invalid costs, unsupported or mixed currencies, blank ownership dimensions, normalization issues, row-count changes, and reconciliation differences. Blocking errors pause analysis; warnings remain visible as caveats.
+
+Metric formulas, denominators, and caveats are documented in [docs/METRIC_DEFINITIONS.md](docs/METRIC_DEFINITIONS.md).
+
+### Quickstart
 
 PowerShell:
 
@@ -83,9 +159,9 @@ python data/demo/generate_demo_data.py
 streamlit run app.py
 ```
 
-Upload `data/demo/cloud_billing_demo.csv`, then add the budget and business metric files from the optional analysis tabs. The demo data is synthetic and deterministic.
+Upload `data/demo/cloud_billing_demo.csv`, then add `data/demo/budget_demo.csv` and `data/demo/business_metrics_demo.csv` from the optional analysis tabs. The demo data is synthetic and deterministic.
 
-## Validation
+### Validation and testing
 
 ```powershell
 python -m pytest -q
@@ -93,26 +169,39 @@ python -m ruff check .
 python -m compileall -q app.py src tests data/demo
 ```
 
-GitHub Actions runs the test, lint, and compilation checks on Python 3.11 and 3.12.
+GitHub Actions runs tests, linting, and compilation checks on Python 3.11 and 3.12.
 
-## AI guardrail design
+### AI guardrails
 
-Python and pandas calculate all financial values first. The AI boundary receives a versioned fact pack containing calculated facts, definitions, quality status, caveats, and recommendation IDs. The optional provider must return structured JSON; unsupported fact references or numeric claims cause the application to use the deterministic fallback instead.
+Python and pandas calculate all financial values before the AI boundary. The AI receives a versioned fact pack containing calculated facts, definitions, quality status, caveats, and recommendation IDs.
 
-AI is used for communication and prioritization, not as the source of financial truth.
+The optional provider must return structured JSON. Unsupported fact references or numeric claims cause SpendArc to use the deterministic fallback summary.
 
-## AWS extension
+### AWS extension
 
-The local path is the default. When configured, the application can upload canonical Parquet to S3 under `standardized/cloud_cost/{ingestion_id}.parquet`. `AthenaWarehouse` can run bounded SQL against a Glue/Athena table and return a DataFrame. See [docs/AWS_ARCHITECTURE.md](docs/AWS_ARCHITECTURE.md) and [infra/aws/README.md](infra/aws/README.md).
+When configured, SpendArc can upload canonical Parquet to S3 under `standardized/cloud_cost/{ingestion_id}.parquet`. `AthenaWarehouse` can run bounded SQL against a Glue/Athena table and return a DataFrame.
 
-## Repository guide
+See [docs/AWS_ARCHITECTURE.md](docs/AWS_ARCHITECTURE.md) and [infra/aws/README.md](infra/aws/README.md).
+
+### Repository guide
 
 - [docs/PROJECT_PLAN.md](docs/PROJECT_PLAN.md): scope, architecture, milestone gates, and future work.
 - [docs/DATA_DICTIONARY.md](docs/DATA_DICTIONARY.md): canonical fields and accepted upload shapes.
 - [docs/METRIC_DEFINITIONS.md](docs/METRIC_DEFINITIONS.md): formulas, denominators, and caveats.
-- [docs/INTERVIEW_NOTES.md](docs/INTERVIEW_NOTES.md): portfolio walkthrough and honest limitations.
-- [data/demo/README.md](data/demo/README.md): synthetic demo workflow.
+- [data/demo/README.md](data/demo/README.md): deterministic demo-data workflow.
 
-## Privacy and limitations
+### Security and limitations
 
-Use synthetic or anonymized data for development. Do not commit cloud account identifiers, customer data, billing exports, access keys, or `.env` files. SpendArc does not claim rightsizing, idle-resource deletion, commitment optimization, multi-currency conversion, or causal explanations without the evidence required to support those conclusions.
+Use synthetic or anonymized data for development. Do not commit cloud account identifiers, customer data, billing exports, access keys, or `.env` files.
+
+The current release does not claim rightsizing, idle-resource deletion, commitment optimization, multi-currency conversion, or causal explanations without the utilization, pricing, or operational evidence required to support those conclusions.
+
+### Future extensions
+
+Potential next capabilities include hosted multi-user workspaces, scheduled ingestion, provider APIs, resource-utilization evidence, rightsizing analysis, commitment optimization, richer allocation rules, alert delivery, and broader cloud-provider coverage.
+
+## Project context
+
+SpendArc is an independent product-focused project built to demonstrate how a trustworthy cloud-financial operations product could be designed and implemented from ingestion through executive decision support.
+
+It is presented as a product because the core work is organized around a real customer problem, a defined workflow, clear analytical contracts, and a SaaS-ready architecture. The repository also remains transparent about its current stage: the reference implementation runs locally today, while hosted multi-user deployment, authentication, scheduled ingestion, and production operations are future extensions.
