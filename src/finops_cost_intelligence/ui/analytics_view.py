@@ -165,8 +165,12 @@ def render_analytics_view(
     settings: Settings,
     normalized: NormalizedTable,
     source_key: str,
+    *,
+    include_operations: bool = True,
+    include_forecast: bool = True,
+    include_report: bool = True,
 ) -> None:
-    """Render summary-first, filterable spend analytics from canonical data."""
+    """Render filterable spend analytics with optional downstream sections."""
     import streamlit as st
 
     quality_report = st.session_state.get("quality_report")
@@ -262,6 +266,9 @@ def render_analytics_view(
     _render_breakdown(filtered, summary.currency, source_key)
     st.session_state["analytics_filtered_table"] = filtered
     st.session_state["analytics_source_key"] = source_key
-    render_operations_view(settings, normalized, source_key, filtered)
-    render_forecast_view(filtered, source_key)
-    render_report_view(settings, normalized, source_key, filtered)
+    if include_operations:
+        render_operations_view(settings, normalized, source_key, filtered)
+    if include_forecast:
+        render_forecast_view(filtered, source_key)
+    if include_report:
+        render_report_view(settings, normalized, source_key, filtered)

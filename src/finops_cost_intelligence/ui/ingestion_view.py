@@ -25,8 +25,8 @@ def _format_bytes(size_bytes: int | None) -> str:
     return f"{size_bytes / 1024**3:.2f} GB"
 
 
-def render_ingestion_view(settings: Settings) -> None:
-    """Render file upload, profile summary, and a small data preview."""
+def render_ingestion_view(settings: Settings, *, include_mapping: bool = True) -> None:
+    """Render file upload, profiling, and optionally the mapping step."""
     import streamlit as st
 
     st.header("Start with your billing data")
@@ -105,4 +105,5 @@ def render_ingestion_view(settings: Settings) -> None:
     with st.expander("Profile details"):
         st.json(profile.to_dict())
 
-    render_mapping_view(settings, loaded_table, profile)
+    if include_mapping:
+        render_mapping_view(settings, loaded_table, profile)

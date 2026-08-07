@@ -250,6 +250,122 @@ html, body, [class*="css"] {
     line-height: 1.45;
 }
 
+.spendarc-workspace-heading {
+    margin: 2rem 0 .85rem;
+}
+
+.spendarc-workspace-heading span {
+    color: var(--spendarc-violet);
+    font-size: .7rem;
+    font-weight: 700;
+    letter-spacing: .16em;
+}
+
+.spendarc-workspace-heading h2 {
+    margin: .35rem 0 .2rem;
+    color: var(--spendarc-ink);
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: clamp(1.65rem, 3vw, 2.45rem);
+    letter-spacing: -.06em;
+}
+
+.spendarc-workspace-heading p {
+    margin: 0;
+    color: var(--spendarc-muted);
+}
+
+.spendarc-stepbar {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: .45rem;
+    margin: .55rem 0 1.35rem;
+}
+
+.spendarc-stepbar-label {
+    margin-right: .35rem;
+    color: #8a96a8;
+    font-size: .66rem;
+    font-weight: 700;
+    letter-spacing: .12em;
+}
+
+.spendarc-step {
+    display: inline-flex;
+    align-items: center;
+    gap: .38rem;
+    padding: .38rem .62rem;
+    border: 1px solid var(--spendarc-line);
+    border-radius: 999px;
+    background: rgba(255,255,255,.68);
+    color: #98a4b5;
+    font-size: .74rem;
+    font-weight: 600;
+}
+
+.spendarc-step b {
+    color: #aeb8c7;
+    font-size: .65rem;
+}
+
+.spendarc-step.is-ready {
+    border-color: rgba(91,213,181,.35);
+    background: rgba(91,213,181,.12);
+    color: #277c6a;
+}
+
+.spendarc-step.is-ready b {
+    color: #277c6a;
+}
+
+.spendarc-empty-state {
+    display: flex;
+    align-items: flex-start;
+    gap: 1rem;
+    max-width: 720px;
+    margin: 2rem auto;
+    padding: 1.5rem;
+    border: 1px solid var(--spendarc-line);
+    border-radius: 1.25rem;
+    background: rgba(255,255,255,.8);
+    box-shadow: 0 14px 34px rgba(43, 59, 87, .05);
+}
+
+.spendarc-empty-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.5rem;
+    height: 2.5rem;
+    flex: 0 0 auto;
+    border-radius: .8rem;
+    background: #edf0ff;
+    color: var(--spendarc-violet);
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 1.35rem;
+    font-weight: 600;
+}
+
+.spendarc-empty-state h3 {
+    margin: 0 0 .3rem;
+    color: var(--spendarc-ink);
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 1.15rem;
+    letter-spacing: -.035em;
+}
+
+.spendarc-empty-state p {
+    margin: 0 0 .7rem;
+    color: var(--spendarc-muted);
+    line-height: 1.5;
+}
+
+.spendarc-next-step {
+    color: var(--spendarc-violet);
+    font-size: .78rem;
+    font-weight: 700;
+}
+
 [data-testid="stMetric"] {
     min-height: 110px;
     padding: 1rem 1.05rem;

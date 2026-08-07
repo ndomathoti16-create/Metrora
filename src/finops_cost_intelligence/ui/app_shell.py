@@ -5,7 +5,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from .branding import inject_styles, render_brand_header, render_sidebar
-from .ingestion_view import render_ingestion_view
+from .workspace_view import render_workspace
 
 if TYPE_CHECKING:
     from ..config import Settings
@@ -32,4 +32,4 @@ def render_app_shell(settings: Settings) -> None:
     render_sidebar(settings)
     render_brand_header()
 
-    render_ingestion_view(settings)
+    render_workspace(settings)

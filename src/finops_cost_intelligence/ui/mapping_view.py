@@ -21,7 +21,8 @@ if TYPE_CHECKING:
 NOT_MAPPED = "Not mapped"
 
 
-def _source_key(loaded_table: LoadedTable, profile: DataProfile) -> str:
+def source_key_for(loaded_table: LoadedTable, profile: DataProfile) -> str:
+    """Return the stable session key for the current uploaded source."""
     return ":".join(
         [
             loaded_table.source_name,
@@ -121,11 +122,13 @@ def render_mapping_view(
     settings: Settings,
     loaded_table: LoadedTable,
     profile: DataProfile,
+    *,
+    include_analytics: bool = True,
 ) -> None:
-    """Render detector suggestions, manual overrides, and normalization output."""
+    """Render detector suggestions, overrides, normalization, and optional analytics."""
     import streamlit as st
 
-    source_key = _source_key(loaded_table, profile)
+    source_key = source_key_for(loaded_table, profile)
     if st.session_state.get("mapping_source_key") != source_key:
         st.session_state.pop("column_mapping", None)
         st.session_state.pop("normalized_table", None)
@@ -171,5 +174,9 @@ def render_mapping_view(
     _render_normalized_result(source_key)
     render_quality_view(settings, loaded_table, source_key)
     normalized = st.session_state.get("normalized_table")
-    if normalized is not None and st.session_state.get("normalized_source_key") == source_key:
+    if (
+        include_analytics
+        and normalized is not None
+        and st.session_state.get("normalized_source_key") == source_key
+    ):
         render_analytics_view(settings, normalized, source_key)
