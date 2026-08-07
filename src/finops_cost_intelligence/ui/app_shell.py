@@ -28,7 +28,7 @@ def render_app_shell(settings: Settings) -> None:
         initial_sidebar_state="expanded",
     )
 
-    inject_styles()
+    inject_styles(st.session_state.get("dark_mode", False))
     render_sidebar(settings)
     render_brand_header()
 

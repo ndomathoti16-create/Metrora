@@ -52,6 +52,21 @@ html, body, [class*="css"] {
     padding: 2rem 3rem 5rem;
 }
 
+[data-testid="stMarkdownContainer"] p {
+    font-size: .98rem;
+    line-height: 1.55;
+}
+
+[data-testid="stCaptionContainer"] {
+    font-size: .88rem;
+}
+
+[data-testid="stWidgetLabel"] p,
+[data-testid="stWidgetLabel"] label {
+    font-size: .92rem;
+    font-weight: 600;
+}
+
 [data-testid="stSidebar"] {
     background: #111a2b;
     border-right: 0;
@@ -246,7 +261,7 @@ html, body, [class*="css"] {
 .spendarc-feature-card p {
     margin: 0;
     color: var(--spendarc-muted);
-    font-size: .88rem;
+    font-size: .94rem;
     line-height: 1.45;
 }
 
@@ -357,6 +372,7 @@ html, body, [class*="css"] {
 .spendarc-empty-state p {
     margin: 0 0 .7rem;
     color: var(--spendarc-muted);
+    font-size: .96rem;
     line-height: 1.5;
 }
 
@@ -389,6 +405,7 @@ html, body, [class*="css"] {
 
 .stButton > button,
 .stDownloadButton > button {
+    min-height: 2.65rem;
     border: 0;
     border-radius: .8rem;
     background: var(--spendarc-violet);
@@ -449,11 +466,98 @@ div[data-testid="stDataFrame"] {
 """
 
 
-def inject_styles() -> None:
-    """Inject the SpendArc theme once at the top of the Streamlit app."""
+SPENDARC_DARK_CSS = """
+<style>
+[data-testid="stAppViewContainer"] {
+    background:
+        radial-gradient(circle at 92% 2%, rgba(217,243,107,.09), transparent 22rem),
+        radial-gradient(circle at 4% 24%, rgba(91,213,181,.07), transparent 26rem),
+        #0c1220;
+    color: #edf3fb;
+}
+
+[data-testid="stMain"] {
+    color: #edf3fb;
+}
+
+.spendarc-workspace-heading h2,
+.spendarc-feature-card h3,
+.spendarc-empty-state h3,
+[data-testid="stMetricValue"] {
+    color: #f4f7fb;
+}
+
+.spendarc-workspace-heading p,
+.spendarc-feature-card p,
+.spendarc-empty-state p,
+[data-testid="stCaptionContainer"] {
+    color: #b2bfd1;
+}
+
+.spendarc-feature-card,
+.spendarc-empty-state,
+[data-testid="stMetric"] {
+    border-color: #2a3850;
+    background: rgba(24, 36, 56, .86);
+    box-shadow: 0 14px 34px rgba(0, 0, 0, .18);
+}
+
+.spendarc-feature-card .icon,
+.spendarc-empty-icon {
+    background: rgba(102,88,232,.22);
+    color: #b8b1ff;
+}
+
+.spendarc-step {
+    border-color: #2a3850;
+    background: rgba(24,36,56,.82);
+    color: #9baac0;
+}
+
+.spendarc-step.is-ready {
+    border-color: rgba(91,213,181,.4);
+    background: rgba(91,213,181,.12);
+    color: #8ae7d0;
+}
+
+[data-testid="stFileUploaderDropzone"] {
+    border-color: #53627a;
+    background: rgba(24,36,56,.72);
+}
+
+.stExpander,
+div[data-testid="stDataFrame"] {
+    border-color: #2a3850;
+    background: rgba(17, 27, 44, .7);
+}
+
+.stTabs [data-baseweb="tab-list"] {
+    border-color: #2a3850;
+}
+
+.stTabs [data-baseweb="tab"] {
+    color: #a8b5c8;
+}
+
+.stTabs [aria-selected="true"] {
+    color: #c4bdff;
+}
+
+[data-testid="stWidgetLabel"] p,
+[data-testid="stWidgetLabel"] label {
+    color: #dce5f1;
+}
+</style>
+"""
+
+
+def inject_styles(dark_mode: bool = False) -> None:
+    """Inject the SpendArc theme and optional dark-mode overrides."""
     import streamlit as st
 
     st.markdown(SPENDARC_CSS, unsafe_allow_html=True)
+    if dark_mode:
+        st.markdown(SPENDARC_DARK_CSS, unsafe_allow_html=True)
 
 
 def render_brand_header() -> None:
@@ -535,8 +639,11 @@ def render_sidebar(settings: Settings) -> None:
             """,
             unsafe_allow_html=True,
         )
+        has_source = st.session_state.get("loaded_table") is not None
+        has_model = st.session_state.get("normalized_table") is not None
+        status_label = "Analysis ready" if has_model else "Source loaded" if has_source else "Ready"
         status = (
-            f'<div class="spendarc-sidebar-status"><strong>● Ready</strong><br>'
+            f'<div class="spendarc-sidebar-status"><strong>● {status_label}</strong><br>'
             f"{settings.app_env.title()} workspace<br>AI: {settings.ai_provider}</div>"
         )
         st.markdown(status, unsafe_allow_html=True)
@@ -552,7 +659,69 @@ def render_sidebar(settings: Settings) -> None:
             """
         )
         st.divider()
+        st.toggle(
+            "Dark mode",
+            key="dark_mode",
+            help="Use a lower-glare dark workspace while keeping the same data and filters.",
+        )
+        if st.button(
+            "Reset workspace",
+            disabled=not (has_source or has_model),
+            width="stretch",
+            help="Clear the current upload and analysis state without changing your settings.",
+        ):
+            reset_workspace_state()
+            st.rerun()
+        with st.expander("How to use SpendArc"):
+            st.markdown(
+                "Upload one billing file, confirm the suggested mapping, then use the tabs "
+                "from left to right. Optional budgets and business metrics appear only after "
+                "your spend view is ready."
+            )
         st.caption(
             "SpendArc keeps deterministic calculations at the center. AI explains "
             "the evidence; it does not invent the numbers."
         )
+
+
+def reset_workspace_state() -> None:
+    """Clear data and widget state while preserving app preferences."""
+    import streamlit as st
+
+    exact_keys = {
+        "loaded_table",
+        "data_profile",
+        "column_mapping",
+        "normalized_table",
+        "normalized_source_key",
+        "mapping_source_key",
+        "quality_report",
+        "quality_source_key",
+        "warehouse_summary",
+        "warehouse_source_key",
+        "fact_pack",
+        "summary_result",
+        "analytics_filtered_table",
+        "analytics_source_key",
+        "budget_table",
+        "budget_upload_key",
+        "business_metrics_table",
+        "business_upload_key",
+    }
+    prefixes = (
+        "mapping_",
+        "analysis_",
+        "breakdown_",
+        "forecast_",
+        "anomaly_",
+        "allocation_",
+        "business_metric_",
+        "budget_",
+        "business_upload_",
+        "s3_upload_",
+        "summary_button_",
+        "download_",
+    )
+    for key in list(st.session_state):
+        if key in exact_keys or key.startswith(prefixes):
+            st.session_state.pop(key, None)

@@ -208,17 +208,19 @@ def render_analytics_view(
         )
         date_start, date_end = _date_range(selected_dates)
         selections: dict[str, list[object]] = {}
-        for dimension in ("service", "account_id", "department", "environment", "region"):
-            if dimension not in dataframe.columns:
-                continue
-            options = sorted(dataframe[dimension].dropna().astype(str).unique().tolist())
-            if not options:
-                continue
-            selections[dimension] = st.multiselect(
-                dimension.replace("_", " ").title(),
-                options,
-                key=f"analysis_filter_{dimension}_{source_key}",
-            )
+        with st.expander("Optional dimension filters"):
+            st.caption("Leave a filter empty to include every value.")
+            for dimension in ("service", "account_id", "department", "environment", "region"):
+                if dimension not in dataframe.columns:
+                    continue
+                options = sorted(dataframe[dimension].dropna().astype(str).unique().tolist())
+                if not options:
+                    continue
+                selections[dimension] = st.multiselect(
+                    dimension.replace("_", " ").title(),
+                    options,
+                    key=f"analysis_filter_{dimension}_{source_key}",
+                )
 
     if date_start is None or date_end is None:
         st.info("Select both a start and end date to view analytics.")

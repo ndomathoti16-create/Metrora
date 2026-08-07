@@ -148,18 +148,23 @@ Metric formulas, denominators, and caveats are documented in [docs/METRIC_DEFINI
 
 ### Quickstart
 
+Run these commands from the SpendArc repository root. Replace the example path with the folder where you cloned the repository.
+
 PowerShell:
 
 ```powershell
+cd "C:\path\to\spendarc"
 python -m venv .venv
 .venv\Scripts\Activate.ps1
 python -m pip install --upgrade pip
 python -m pip install -e ".[dev]"
 python data/demo/generate_demo_data.py
-streamlit run app.py
+python -m streamlit run app.py
 ```
 
 Upload `data/demo/cloud_billing_demo.csv`, then add `data/demo/budget_demo.csv` and `data/demo/business_metrics_demo.csv` from the optional analysis tabs. The demo data is synthetic and deterministic.
+
+If PowerShell says a command or file cannot be found, check that the prompt is inside the repository folder and that the virtual environment is activated. You can also run the app directly with `.venv\Scripts\python.exe -m streamlit run app.py`.
 
 ### Validation and testing
 

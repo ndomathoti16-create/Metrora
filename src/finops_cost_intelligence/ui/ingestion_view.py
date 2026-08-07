@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from pathlib import Path
 from typing import TYPE_CHECKING
 
 import pandas as pd
@@ -41,7 +42,24 @@ def render_ingestion_view(settings: Settings, *, include_mapping: bool = True) -
     )
 
     if uploaded_file is None:
-        st.caption("No billing source loaded yet · CSV, Excel, and Parquet are supported.")
+        st.info(
+            "No billing source loaded yet. Upload a file to begin, or download the sample "
+            "dataset to explore the workflow first."
+        )
+        demo_path = (
+            Path(__file__).resolve().parents[3]
+            / "data"
+            / "demo"
+            / "cloud_billing_demo.csv"
+        )
+        if demo_path.is_file():
+            st.download_button(
+                "Download sample billing CSV",
+                data=demo_path.read_bytes(),
+                file_name="spendarc_sample_billing.csv",
+                mime="text/csv",
+                help="Synthetic data for learning the SpendArc workflow.",
+            )
         return
 
     max_bytes = settings.max_upload_mb * 1024 * 1024
