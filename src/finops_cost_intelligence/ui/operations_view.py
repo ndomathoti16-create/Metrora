@@ -50,22 +50,23 @@ def _render_budget_view(actual: pd.DataFrame, source_key: str) -> None:
         key=f"budget_upload_{source_key}",
         help="Accepted fields include period_start, budget_amount, scope_type, and scope_value.",
     )
-    if uploaded is None:
+    budget = st.session_state.get("budget_table")
+    if uploaded is not None:
+        upload_key = f"{uploaded.name}:{getattr(uploaded, 'size', '')}"
+        if st.session_state.get("budget_upload_key") != upload_key:
+            try:
+                budget = _load_optional(uploaded, "budget")
+            except ValueError as exc:
+                st.error(f"Budget upload needs attention: {exc}")
+                st.session_state.pop("budget_table", None)
+                return
+            st.session_state["budget_table"] = budget
+            st.session_state["budget_upload_key"] = upload_key
+    if budget is None:
         st.info("Optional: upload a budget table to compare planned and actual cost.")
         return
-    upload_key = f"{uploaded.name}:{getattr(uploaded, 'size', '')}"
-    if st.session_state.get("budget_upload_key") != upload_key:
-        try:
-            budget = _load_optional(uploaded, "budget")
-        except ValueError as exc:
-            st.error(f"Budget upload needs attention: {exc}")
-            st.session_state.pop("budget_table", None)
-            return
-        st.session_state["budget_table"] = budget
-        st.session_state["budget_upload_key"] = upload_key
-    budget = st.session_state.get("budget_table")
-    if budget is None:
-        return
+    if st.session_state.get("demo_mode") and uploaded is None:
+        st.caption("Guided demo context loaded from budget_demo.csv. Upload a file to replace it.")
     try:
         comparison, summary = calculate_budget_variance(actual, budget)
     except AnalyticsInputError as exc:
@@ -110,7 +111,7 @@ def _render_budget_view(actual: pd.DataFrame, source_key: str) -> None:
         y="amount",
         color="series",
         barmode="group",
-        color_discrete_map={"budget_amount": "#9CA3AF", "actual_cost": "#2F6BFF"},
+        color_discrete_map={"budget_amount": "#6E7E95", "actual_cost": "#91A8FF"},
         labels={"label": "Budget row", "amount": "Amount", "series": "Series"},
         title="Actual versus budget",
     )
@@ -178,22 +179,26 @@ def _render_business_metric_view(actual: pd.DataFrame, source_key: str) -> None:
         key=f"business_upload_{source_key}",
         help="Accepted fields include metric_date, metric_name, and metric_value.",
     )
-    if uploaded is None:
+    metrics = st.session_state.get("business_metrics_table")
+    if uploaded is not None:
+        upload_key = f"{uploaded.name}:{getattr(uploaded, 'size', '')}"
+        if st.session_state.get("business_upload_key") != upload_key:
+            try:
+                metrics = _load_optional(uploaded, "business")
+            except ValueError as exc:
+                st.error(f"Business metrics upload needs attention: {exc}")
+                st.session_state.pop("business_metrics_table", None)
+                return
+            st.session_state["business_metrics_table"] = metrics
+            st.session_state["business_upload_key"] = upload_key
+    if metrics is None:
         st.info("Optional: upload customers, revenue, transactions, or usage metrics.")
         return
-    upload_key = f"{uploaded.name}:{getattr(uploaded, 'size', '')}"
-    if st.session_state.get("business_upload_key") != upload_key:
-        try:
-            metrics = _load_optional(uploaded, "business")
-        except ValueError as exc:
-            st.error(f"Business metrics upload needs attention: {exc}")
-            st.session_state.pop("business_metrics_table", None)
-            return
-        st.session_state["business_metrics_table"] = metrics
-        st.session_state["business_upload_key"] = upload_key
-    metrics = st.session_state.get("business_metrics_table")
-    if metrics is None:
-        return
+    if st.session_state.get("demo_mode") and uploaded is None:
+        st.caption(
+            "Guided demo context loaded from business_metrics_demo.csv. "
+            "Upload a file to replace it."
+        )
     names = sorted(metrics["metric_name"].unique().tolist())
     metric_name = st.selectbox(
         "Business metric",
@@ -222,7 +227,7 @@ def _render_business_metric_view(actual: pd.DataFrame, source_key: str) -> None:
         x="usage_date",
         y="cost_per_unit",
         markers=True,
-        color_discrete_sequence=["#D9A441"],
+        color_discrete_sequence=["#6FE2D3"],
         labels={"usage_date": "Metric date", "cost_per_unit": "Cost per unit"},
         title=f"Cost per unit over time · {metric_name}",
     )

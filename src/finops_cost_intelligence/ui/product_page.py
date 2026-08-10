@@ -4,6 +4,7 @@
 
 from __future__ import annotations
 
+from html import escape
 from pathlib import Path
 from typing import TYPE_CHECKING
 
@@ -15,15 +16,49 @@ from ..contracts.quality import QualityReport
 from ..ingestion import IngestionError, LoadedTable, load_table, profile_table
 from ..mapping import MappingValidationError, suggest_mappings, validate_mapping
 from ..normalization import normalize_billing_table
+from ..normalization.budgets import normalize_budget_dataframe
+from ..normalization.business_metrics import normalize_business_metrics
 from ..quality import run_quality_checks
 from .branding import METRORA_LOGO_SVG, reset_workspace_state
 from .mapping_view import source_key_for
+from .navigation import set_product_route, set_workspace_route
 
 if TYPE_CHECKING:
     from ..config import Settings
 
 
-PUBLIC_PAGES = ("Product", "Workflow", "Evidence", "Demo")
+PUBLIC_PAGES = ("Product", "Demo")
+
+DEFAULT_DEMO_SCENARIO = "forecast_risk"
+DEMO_SCENARIOS: dict[str, dict[str, str]] = {
+    "healthy": {
+        "label": "Healthy baseline",
+        "status": "Ready to share",
+        "description": "Clean, stable spend with complete ownership and comfortable budget headroom.",
+        "lesson": "See what a low-risk, decision-ready review looks like.",
+        "billing": "cloud_billing_healthy.csv",
+        "budget": "budget_healthy.csv",
+        "business": "business_metrics_healthy.csv",
+    },
+    "quality_risk": {
+        "label": "Data needs review",
+        "status": "Blocked on quality",
+        "description": "Mixed currency, invalid required values, duplicates, and ownership gaps.",
+        "lesson": "See how Metrora stops unreliable numbers before analysis.",
+        "billing": "cloud_billing_quality_risk.csv",
+        "budget": "budget_quality_risk.csv",
+        "business": "business_metrics_quality_risk.csv",
+    },
+    "forecast_risk": {
+        "label": "Hidden future risk",
+        "status": "Healthy now, watch next",
+        "description": "Reconciled spend that is currently controlled but accelerating into the forecast.",
+        "lesson": "See why a clean current period can still require action.",
+        "billing": "cloud_billing_demo.csv",
+        "budget": "budget_demo.csv",
+        "business": "business_metrics_demo.csv",
+    },
+}
 
 
 PRODUCT_PAGE_CSS = """
@@ -1125,18 +1160,600 @@ PRODUCT_PAGE_REFINED_CSS = """
 """
 
 
-def _demo_path() -> Path:
-    return Path(__file__).resolve().parents[3] / "data" / "demo" / "cloud_billing_demo.csv"
+PRODUCT_PAGE_V2_CSS = """
+<style>
+/* Product experience v2: one dark, restrained system with a visible analytical flow. */
+:root {
+    --metrora-bg: #070a0e;
+    --metrora-surface: #0d1219;
+    --metrora-surface-raised: #111821;
+    --metrora-line-soft: #222c38;
+    --metrora-text: #f3f6f8;
+    --metrora-text-muted: #98a4b2;
+    --metrora-blue-v2: #7da7ff;
+    --metrora-teal-v2: #55d6c7;
+}
+
+[data-testid="stAppViewContainer"] {
+    background:
+        radial-gradient(circle at 72% -8%, rgba(85, 214, 199, .09), transparent 30rem),
+        radial-gradient(circle at 18% 18%, rgba(125, 167, 255, .08), transparent 36rem),
+        var(--metrora-bg) !important;
+}
+
+.block-container {
+    max-width: 1320px !important;
+    padding: 1.65rem 2.5rem 7rem !important;
+}
+
+html { scroll-behavior: smooth; }
+
+.metrora-product-section,
+.metrora-premium-hero { scroll-margin-top: 1.5rem; }
+
+.metrora-product-section:target,
+.metrora-premium-hero:target {
+    animation: metrora-section-focus .68s cubic-bezier(.2, .7, .2, 1) both;
+}
+
+.metrora-product-nav {
+    min-height: 3.65rem;
+    margin-bottom: .75rem;
+}
+
+.metrora-product-mark,
+.metrora-product-mark .metrora-logo {
+    width: 2.8rem;
+    height: 2.8rem;
+}
+
+.metrora-product-name {
+    font-family: 'Manrope', 'Outfit', sans-serif;
+    font-size: 1.12rem;
+    letter-spacing: -.04em;
+}
+
+.metrora-product-subtitle { color: #8491a1 !important; }
+.metrora-product-nav-meta span {
+    border: 0 !important;
+    background: transparent !important;
+    color: #8592a3 !important;
+}
+
+.st-key-product-page-nav {
+    width: min(100%, 35rem);
+    margin: 0 auto 4.8rem;
+    border-bottom: 1px solid var(--metrora-line-soft) !important;
+}
+
+.st-key-product-page-nav [data-testid="stButton"] button,
+.metrora-page-link {
+    min-height: 2.85rem !important;
+    color: #798594 !important;
+    font-size: .8rem;
+}
+
+.st-key-product-page-nav [data-testid="stButton"] button:hover,
+.metrora-page-link {
+    color: var(--metrora-text) !important;
+}
+
+.metrora-page-link { border-bottom-color: var(--metrora-teal-v2) !important; }
+
+.metrora-premium-hero {
+    position: relative;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 25rem), 1fr));
+    align-items: center;
+    gap: clamp(2.25rem, 4cqw, 4.5rem);
+    min-height: 39rem;
+    margin: 0 0 2.4rem;
+    padding: clamp(3rem, 6vw, 6rem) clamp(2rem, 6vw, 6rem) !important;
+    overflow: hidden;
+    border: 1px solid rgba(126, 145, 170, .20) !important;
+    border-radius: 1.6rem !important;
+    background:
+        linear-gradient(120deg, rgba(125, 167, 255, .075), transparent 42%),
+        linear-gradient(155deg, #0d131b 0%, #080c11 60%, #0b1118 100%) !important;
+    box-shadow: 0 35px 110px rgba(0, 0, 0, .44) !important;
+}
+
+.metrora-premium-hero::before {
+    width: 34rem;
+    height: 34rem;
+    right: -13rem;
+    top: -15rem;
+    border: 1px solid rgba(85, 214, 199, .13);
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(85, 214, 199, .10), transparent 66%);
+    animation: metrora-halo 18s ease-in-out infinite alternate;
+}
+
+.metrora-premium-hero::after {
+    width: 26rem;
+    height: 26rem;
+    left: -16rem;
+    bottom: -18rem;
+    border: 1px solid rgba(125, 167, 255, .14);
+    border-radius: 50%;
+    transform: none;
+}
+
+.metrora-hero-orbit {
+    position: absolute;
+    z-index: -1;
+    inset: 0;
+    overflow: hidden;
+    opacity: .44;
+    pointer-events: none;
+}
+
+.metrora-hero-orbit svg { width: 100%; height: 100%; }
+.metrora-hero-orbit path {
+    fill: none;
+    stroke: rgba(177, 198, 231, .23);
+    stroke-width: 1;
+    stroke-dasharray: 9 15;
+    animation: metrora-orbit 22s linear infinite;
+}
+.metrora-hero-orbit path + path {
+    stroke: rgba(85, 214, 199, .16);
+    animation-direction: reverse;
+    animation-duration: 28s;
+}
+
+.metrora-hero-copy {
+    position: relative;
+    z-index: 2;
+    max-width: 35rem;
+    animation: metrora-enter .7s cubic-bezier(.2,.7,.2,1) both;
+}
+
+.metrora-product-kicker {
+    margin-bottom: 1.45rem;
+    color: var(--metrora-teal-v2) !important;
+}
+
+.metrora-product-hero h1 {
+    max-width: 38rem;
+    font-family: 'Manrope', 'Outfit', sans-serif;
+    font-size: clamp(3.35rem, 6.2cqw, 5.65rem) !important;
+    font-weight: 620;
+    letter-spacing: -.075em;
+    line-height: .96;
+    text-wrap: balance;
+}
+.metrora-product-hero h1 > span { display: block; }
+
+.metrora-product-hero h1 em {
+    display: block;
+    margin-top: .12em;
+    color: #b9d0ff;
+    font-family: 'DM Serif Display', Georgia, serif;
+    font-weight: 400;
+    letter-spacing: -.045em;
+}
+
+.metrora-product-hero p {
+    max-width: 34rem;
+    margin: 2rem 0 1.7rem;
+    color: #aab5c2 !important;
+    font-size: 1.05rem;
+    line-height: 1.76;
+}
+
+.metrora-product-pill {
+    border-color: rgba(144, 166, 198, .2) !important;
+    background: rgba(14, 20, 29, .68) !important;
+    color: #a8b4c3 !important;
+}
+
+.metrora-command-surface {
+    position: relative;
+    z-index: 2;
+    align-self: center;
+    width: 100%;
+    margin: 0;
+    padding: 1.35rem !important;
+    border: 1px solid rgba(137, 160, 192, .24) !important;
+    border-radius: 1.1rem !important;
+    background: rgba(9, 14, 20, .88) !important;
+    box-shadow: 0 24px 70px rgba(0, 0, 0, .34) !important;
+    backdrop-filter: blur(18px);
+    animation: metrora-command-enter .85s .12s cubic-bezier(.2,.7,.2,1) both;
+}
+
+.metrora-visual-status {
+    display: inline-flex;
+    align-items: center;
+    gap: .4rem;
+    color: #84e3d8 !important;
+}
+.metrora-visual-status i {
+    width: .38rem;
+    height: .38rem;
+    border-radius: 50%;
+    background: var(--metrora-teal-v2);
+    box-shadow: 0 0 0 4px rgba(85, 214, 199, .09);
+    animation: metrora-status 3.2s ease-in-out infinite;
+}
+
+.metrora-visual-metric {
+    margin-top: .8rem;
+    color: var(--metrora-text) !important;
+    font-family: 'Manrope', 'Outfit', sans-serif;
+    font-size: clamp(2rem, 3.6vw, 3rem);
+}
+.metrora-visual-metric small {
+    color: #8d99a8 !important;
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 600;
+}
+
+.metrora-line-visual {
+    height: 11.5rem;
+    margin: 1.35rem 0 1rem;
+    border-color: rgba(137, 160, 192, .15) !important;
+    background:
+        repeating-linear-gradient(90deg, transparent 0, transparent calc(20% - 1px), rgba(143, 163, 190, .08) 20%),
+        repeating-linear-gradient(0deg, transparent 0, transparent calc(33.333% - 1px), rgba(143, 163, 190, .07) 33.333%);
+}
+
+.metrora-chart-trace {
+    stroke: var(--metrora-teal-v2);
+    stroke-width: 2.5;
+    stroke-dasharray: 1800;
+    stroke-dashoffset: 1800;
+    filter: drop-shadow(0 0 5px rgba(85, 214, 199, .25));
+    animation: metrora-draw-v2 2.4s .45s ease forwards;
+}
+.metrora-chart-area { opacity: 0; animation: metrora-area-in .7s 1.55s ease forwards; }
+
+.metrora-visual-footer strong { color: #dfe7f1 !important; font-size: .69rem; }
+
+.metrora-command-flow {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr) 1.5rem) minmax(0, 1fr);
+    align-items: stretch;
+    margin-top: 1.25rem;
+    padding-top: 1rem;
+    border-top: 1px solid rgba(137, 160, 192, .16);
+}
+.metrora-command-node {
+    min-width: 0;
+    padding: .72rem;
+    border-radius: .7rem;
+    background: #0e151e;
+}
+.metrora-command-node i {
+    display: inline-grid;
+    width: 1.45rem;
+    height: 1.45rem;
+    margin-bottom: .7rem;
+    place-items: center;
+    border-radius: .42rem;
+    background: rgba(125, 167, 255, .12);
+    color: #a9c2f4;
+    font-size: .55rem;
+    font-style: normal;
+    font-weight: 800;
+}
+.metrora-command-node span,
+.metrora-command-node b { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.metrora-command-node span { color: #778495; font-size: .58rem; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; }
+.metrora-command-node b { margin-top: .28rem; color: #dfe6ef; font-size: .67rem; font-weight: 650; }
+.metrora-command-node.is-ready { background: rgba(85, 214, 199, .045); }
+.metrora-command-node.is-ready i { background: rgba(85, 214, 199, .12); color: #8be4da; }
+.metrora-command-node.is-ready span { color: #91cfc8; }
+.metrora-command-node.is-current { background: rgba(85, 214, 199, .09); }
+.metrora-command-node.is-current i { background: rgba(85, 214, 199, .18); color: #c4fff7; }
+.metrora-command-link { position: relative; min-width: 0; }
+.metrora-command-link::before {
+    position: absolute;
+    top: 50%;
+    right: .1rem;
+    left: .1rem;
+    height: 1px;
+    background: #2b3746;
+    content: '';
+}
+.metrora-command-link span {
+    position: absolute;
+    top: calc(50% - 2px);
+    left: .1rem;
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: var(--metrora-teal-v2);
+    box-shadow: 0 0 8px rgba(85, 214, 199, .55);
+    animation: metrora-flow-dot 4.4s ease-in-out infinite;
+}
+
+.st-key-product_demo_hero,
+.st-key-product_workflow_hero { margin-top: .55rem; }
+.st-key-product_workflow_hero button {
+    border-color: #2a3542 !important;
+    background: #0d131b !important;
+    color: #dbe3ed !important;
+}
+
+.metrora-hero-secondary-link {
+    display: inline-flex;
+    width: 100%;
+    min-height: 2.5rem;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid #2a3542;
+    border-radius: .58rem;
+    background: #0d131b;
+    color: #dbe3ed !important;
+    font-size: .84rem;
+    font-weight: 650;
+    text-decoration: none !important;
+    transition: border-color .18s ease, background .18s ease, transform .18s ease;
+}
+
+.metrora-hero-secondary-link:hover {
+    border-color: #3c526d;
+    background: #111b26;
+    transform: translateY(-1px);
+}
+
+.metrora-centered-caption { color: #738091 !important; }
+.metrora-product-section { margin: 8rem auto 3.4rem; }
+.metrora-product-section-kicker { color: var(--metrora-teal-v2) !important; }
+.metrora-product-section h2 {
+    font-family: 'Manrope', 'Outfit', sans-serif;
+    font-size: clamp(2.5rem, 4.7vw, 4.8rem) !important;
+    letter-spacing: -.075em;
+    line-height: 1.02;
+}
+.metrora-product-section > p { color: #9ca8b6 !important; font-size: 1rem; }
+
+.metrora-model-map {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 13rem), 1fr));
+    align-items: stretch;
+    gap: clamp(1rem, 2.4vw, 2.4rem);
+    margin: 3.5rem 0 0;
+    overflow: visible;
+    border-top: 1px solid var(--metrora-line-soft) !important;
+    border-bottom: 1px solid var(--metrora-line-soft) !important;
+    background: transparent !important;
+}
+.metrora-model-node {
+    position: relative;
+    min-width: 0;
+    min-height: 11rem;
+    padding: 1.75rem 1.2rem 1.75rem 0 !important;
+    border: 0 !important;
+    border-right: 1px solid var(--metrora-line-soft) !important;
+    background: transparent !important;
+}
+.metrora-model-node:last-child { border-right: 0 !important; }
+.metrora-model-node small { color: var(--metrora-teal-v2) !important; }
+.metrora-model-node strong {
+    display: block;
+    margin-top: 1.3rem;
+    color: #edf2f7 !important;
+    font-family: 'Manrope', sans-serif;
+    overflow-wrap: normal;
+    word-break: normal;
+}
+.metrora-model-node p {
+    color: #8f9ba9 !important;
+    overflow-wrap: normal;
+    word-break: normal;
+}
+.metrora-model-caption {
+    margin: 2.2rem auto 0 !important;
+    padding: 0 1rem !important;
+    border: 0 !important;
+    line-height: 1.65;
+}
+
+.metrora-access-note {
+    min-height: 4.8rem;
+    margin: 2.1rem auto 1.2rem !important;
+    padding: 1.15rem 1.35rem !important;
+    border-radius: .82rem !important;
+    line-height: 1.65;
+}
+
+.metrora-scenario-card {
+    min-height: 15.25rem;
+    padding: 1.45rem 1.35rem 1.35rem;
+    border-top: 1px solid #293544;
+    background: linear-gradient(180deg, rgba(17, 24, 33, .58), transparent);
+}
+.metrora-scenario-card,
+.metrora-product-step,
+.metrora-product-output,
+.metrora-product-principle,
+.metrora-product-card,
+.metrora-product-story,
+.metrora-evidence-visual,
+.metrora-product-split,
+.metrora-access-note {
+    animation: metrora-section-enter .62s cubic-bezier(.2, .7, .2, 1) both;
+}
+.metrora-scenario-card small {
+    color: var(--metrora-teal-v2);
+    font-size: .62rem;
+    font-weight: 800;
+    letter-spacing: .11em;
+    text-transform: uppercase;
+}
+.metrora-scenario-card h3 {
+    margin: 1rem 0 .75rem;
+    color: #eef3f7 !important;
+    font-family: 'Manrope', sans-serif;
+    font-size: 1.25rem;
+}
+.metrora-scenario-card p {
+    margin: 0 0 1.1rem;
+    color: #98a5b4 !important;
+    font-size: .88rem;
+    line-height: 1.65;
+}
+.metrora-scenario-card span {
+    display: block;
+    color: #c6d0dc;
+    font-size: .74rem;
+    line-height: 1.55;
+}
+.st-key-product_demo_scenario_healthy,
+.st-key-product_demo_scenario_quality_risk,
+.st-key-product_demo_scenario_forecast_risk { margin-top: .75rem; }
+.st-key-product_demo_scenario_healthy button,
+.st-key-product_demo_scenario_quality_risk button,
+.st-key-product_demo_scenario_forecast_risk button {
+    border-color: #2a3542 !important;
+    background: #101925 !important;
+    color: #dbe3ed !important;
+    box-shadow: none !important;
+}
+.st-key-product_demo_scenario_healthy button:hover,
+.st-key-product_demo_scenario_quality_risk button:hover,
+.st-key-product_demo_scenario_forecast_risk button:hover {
+    border-color: #3c526d !important;
+    background: #142131 !important;
+}
+
+.metrora-product-principle { padding-top: 1.5rem; border-top-color: #27313e; }
+.metrora-product-principle .icon { background: rgba(85, 214, 199, .11); color: #80ddd3 !important; }
+.metrora-product-story { padding: 1rem 2rem 1rem 0; }
+.metrora-evidence-visual {
+    border-color: #26313e !important;
+    background: linear-gradient(145deg, rgba(17, 24, 33, .92), rgba(11, 16, 23, .86)) !important;
+    box-shadow: 0 22px 60px rgba(0, 0, 0, .2);
+}
+.metrora-evidence-title b { color: var(--metrora-teal-v2); }
+.metrora-evidence-row i::before { background: linear-gradient(90deg, var(--metrora-teal-v2), var(--metrora-blue-v2)); }
+
+@keyframes metrora-enter {
+    from { opacity: 0; transform: translateY(14px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+@keyframes metrora-section-enter {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+@keyframes metrora-section-focus {
+    0% { filter: brightness(.9); }
+    55% { filter: brightness(1.08); }
+    100% { filter: brightness(1); }
+}
+@keyframes metrora-command-enter {
+    from { opacity: 0; transform: translate3d(18px, 10px, 0) scale(.985); }
+    to { opacity: 1; transform: translate3d(0, 0, 0) scale(1); }
+}
+@keyframes metrora-orbit { to { stroke-dashoffset: -240; } }
+@keyframes metrora-halo {
+    from { transform: translate3d(0, 0, 0) scale(.96); opacity: .72; }
+    to { transform: translate3d(-1.5rem, 1rem, 0) scale(1.06); opacity: 1; }
+}
+@keyframes metrora-draw-v2 { to { stroke-dashoffset: 0; } }
+@keyframes metrora-area-in { to { opacity: 1; } }
+@keyframes metrora-status { 50% { opacity: .45; box-shadow: 0 0 0 7px rgba(85, 214, 199, .04); } }
+@keyframes metrora-flow-dot { 0%, 12% { left: .1rem; opacity: 0; } 30%, 72% { opacity: 1; } 88%, 100% { left: calc(100% - 5px); opacity: 0; } }
+
+@media (max-width: 980px) {
+    .metrora-premium-hero { min-height: auto; }
+    .metrora-command-surface { max-width: 44rem; }
+    .metrora-model-node { min-height: 9rem; }
+}
+
+@media (max-width: 620px) {
+    .block-container { padding: 1.1rem 1rem 4.5rem !important; }
+    .metrora-premium-hero { padding: 2.4rem 1.35rem !important; border-radius: 1.2rem !important; }
+    .metrora-product-hero h1 { font-size: clamp(3rem, 15vw, 4.4rem) !important; }
+    .metrora-command-flow { grid-template-columns: 1fr; gap: .5rem; }
+    .metrora-command-link { display: none; }
+    .metrora-product-section { margin-top: 6rem; }
+    .metrora-model-map { grid-template-columns: 1fr; }
+    .metrora-model-node {
+        min-height: auto;
+        padding: 1.35rem 0 !important;
+        border-right: 0 !important;
+        border-bottom: 1px solid #222c38 !important;
+    }
+    .metrora-model-node:last-child { border-bottom: 0 !important; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .metrora-hero-orbit path,
+    .metrora-premium-hero::before,
+    .metrora-hero-copy,
+    .metrora-command-surface,
+    .metrora-chart-trace,
+    .metrora-chart-area,
+    .metrora-visual-status i,
+    .metrora-command-link span,
+    .metrora-scenario-card,
+    .metrora-product-step,
+    .metrora-product-output,
+    .metrora-product-principle,
+    .metrora-product-card,
+    .metrora-product-story,
+    .metrora-evidence-visual,
+    .metrora-product-split,
+    .metrora-access-note { animation: none !important; }
+    .metrora-chart-trace { stroke-dashoffset: 0 !important; }
+    .metrora-chart-area { opacity: 1 !important; }
+}
+</style>
+"""
+
+
+def _demo_scenario(scenario_id: str) -> dict[str, str]:
+    """Return validated metadata for one guided scenario."""
+    scenario = DEMO_SCENARIOS.get(scenario_id)
+    if scenario is None:
+        allowed = ", ".join(DEMO_SCENARIOS)
+        raise IngestionError(f"Unknown demo scenario {scenario_id!r}; choose one of: {allowed}.")
+    return scenario
+
+
+def _demo_path(scenario_id: str = DEFAULT_DEMO_SCENARIO) -> Path:
+    scenario = _demo_scenario(scenario_id)
+    return _demo_supporting_path(scenario["billing"])
+
+
+def _demo_supporting_path(filename: str) -> Path:
+    """Return one of the checked-in supporting files used by the guided demo."""
+    return Path(__file__).resolve().parents[3] / "data" / "demo" / filename
+
+
+def _load_demo_planning_context(settings: Settings, scenario_id: str):
+    """Load normalized budget and business context for a complete guided demo."""
+    scenario = _demo_scenario(scenario_id)
+    budget_path = _demo_supporting_path(scenario["budget"])
+    business_path = _demo_supporting_path(scenario["business"])
+    missing = [path.name for path in (budget_path, business_path) if not path.is_file()]
+    if missing:
+        raise IngestionError("The demo support file(s) are missing: " + ", ".join(missing))
+    try:
+        budget = normalize_budget_dataframe(
+            load_table(budget_path, max_bytes=settings.max_upload_mb * 1024 * 1024).dataframe
+        )
+        business_metrics = normalize_business_metrics(
+            load_table(business_path, max_bytes=settings.max_upload_mb * 1024 * 1024).dataframe
+        )
+    except (IngestionError, ValueError) as exc:
+        raise IngestionError(f"The demo planning context could not be prepared: {exc}") from exc
+    return budget, business_metrics
 
 
 def _set_product_page(page: str) -> None:
     """Store the selected public product page for the next Streamlit rerun."""
     if page in PUBLIC_PAGES:
-        st.session_state["product_page"] = page
+        set_product_route(page)
 
 
 def build_demo_artifacts(
     settings: Settings,
+    scenario_id: str = DEFAULT_DEMO_SCENARIO,
 ) -> tuple[
     LoadedTable,
     DataProfile,
@@ -1144,8 +1761,8 @@ def build_demo_artifacts(
     NormalizedTable,
     QualityReport,
 ]:
-    """Load and prepare the deterministic billing demo for a guided session."""
-    demo_path = _demo_path()
+    """Load and prepare one deterministic billing scenario for a guided session."""
+    demo_path = _demo_path(scenario_id)
     if not demo_path.is_file():
         raise IngestionError(
             "The demo billing file is missing. Run data/demo/generate_demo_data.py first."
@@ -1158,8 +1775,7 @@ def build_demo_artifacts(
     profile = profile_table(loaded_table)
     review = suggest_mappings(profile)
     suggested_mapping = {
-        suggestion.canonical_field: suggestion.source_column
-        for suggestion in review.suggestions
+        suggestion.canonical_field: suggestion.source_column for suggestion in review.suggestions
     }
     try:
         accepted_mapping = validate_mapping(suggested_mapping, review.source_columns)
@@ -1171,17 +1787,28 @@ def build_demo_artifacts(
     return loaded_table, profile, accepted_mapping, normalized, report
 
 
-def activate_demo_session(settings: Settings) -> None:
+def activate_demo_session(
+    settings: Settings,
+    scenario_id: str = DEFAULT_DEMO_SCENARIO,
+    *,
+    persist_route: bool = True,
+) -> None:
     """Start a local guided demo with real Metrora analysis state."""
-    loaded_table, profile, accepted_mapping, normalized, report = build_demo_artifacts(settings)
+    scenario = _demo_scenario(scenario_id)
+    loaded_table, profile, accepted_mapping, normalized, report = build_demo_artifacts(
+        settings,
+        scenario_id,
+    )
+    budget, business_metrics = _load_demo_planning_context(settings, scenario_id)
     reset_workspace_state()
     source_key = source_key_for(loaded_table, profile)
     st.session_state.update(
         {
             "demo_authenticated": True,
             "demo_mode": True,
+            "demo_scenario": scenario_id,
             "demo_user_email": "demo@metrora.local",
-            "demo_workspace": "Metrora guided demo",
+            "demo_workspace": f"Metrora / {scenario['label']}",
             "loaded_table": loaded_table,
             "data_profile": profile,
             "mapping_source_key": source_key,
@@ -1190,14 +1817,78 @@ def activate_demo_session(settings: Settings) -> None:
             "normalized_source_key": source_key,
             "quality_report": report,
             "quality_source_key": source_key,
+            "budget_table": budget,
+            "budget_upload_key": f"demo:{scenario['budget']}",
+            "business_metrics_table": business_metrics,
+            "business_upload_key": f"demo:{scenario['business']}",
             "auto_attempted_source_key": source_key,
-            "workspace_page": "Home",
+            "workspace_page": "Home" if report.ready_for_analysis else "Advanced",
             "auto_analysis_message": (
-                "Guided source ready. Metrora mapped, normalized, and checked the data "
+                "Guided scenario ready. Metrora mapped, normalized, and checked the source "
                 "automatically."
+                if report.ready_for_analysis
+                else "Metrora stopped the analysis because the guided source contains "
+                "blocking quality issues. Review the highlighted checks before using its totals."
             ),
         }
     )
+    if persist_route:
+        set_workspace_route(
+            "Home" if report.ready_for_analysis else "Advanced",
+            scenario_id=scenario_id,
+        )
+
+
+def _demo_preview_facts(settings: Settings) -> dict[str, object]:
+    """Calculate the public demo visual from the checked-in synthetic source."""
+    cache_key = "_metrora_product_demo_facts"
+    cached = st.session_state.get(cache_key)
+    if isinstance(cached, dict):
+        return cached
+
+    loaded, profile, _, normalized, report = build_demo_artifacts(settings)
+    dataframe = normalized.dataframe.copy()
+    total = float(dataframe["cost"].sum())
+    currencies = dataframe["currency"].dropna().astype(str).unique().tolist()
+    currency = currencies[0] if len(currencies) == 1 else "Mixed"
+    total_label = f"${total:,.0f}" if currency == "USD" else f"{currency} {total:,.0f}"
+
+    daily = dataframe.groupby("usage_date", as_index=False)["cost"].sum().sort_values("usage_date")
+    values = daily["cost"].astype(float).tolist()
+    minimum = min(values)
+    span = max(max(values) - minimum, 1.0)
+    width, top, bottom = 530.0, 24.0, 150.0
+    points: list[str] = []
+    for index, value in enumerate(values):
+        x = width * index / max(len(values) - 1, 1)
+        y = bottom - ((value - minimum) / span) * (bottom - top)
+        points.append(f"{x:.1f} {y:.1f}")
+    chart_path = "M" + " L".join(points)
+    area_path = f"{chart_path} L{width:.1f} 176 L0 176 Z"
+
+    services = (
+        dataframe.groupby("service", as_index=False)["cost"]
+        .sum()
+        .sort_values("cost", ascending=False)
+    )
+    lead_service = str(services.iloc[0]["service"])
+    lead_share = float(services.iloc[0]["cost"]) / total if total else 0.0
+    difference = report.reconciliation.absolute_difference or 0.0
+    facts: dict[str, object] = {
+        "source": loaded.source_name,
+        "rows": profile.row_count,
+        "total": total_label,
+        "currency": currency,
+        "lead_service": lead_service,
+        "lead_share": lead_share,
+        "difference": difference,
+        "chart_path": chart_path,
+        "area_path": area_path,
+        "date_start": str(daily["usage_date"].min().date()),
+        "date_end": str(daily["usage_date"].max().date()),
+    }
+    st.session_state[cache_key] = facts
+    return facts
 
 
 def _render_brand_header() -> None:
@@ -1222,10 +1913,16 @@ def _render_brand_header() -> None:
     )
 
 
-def _render_page_intro(kicker: str, title: str, copy: str) -> None:
+def _render_page_intro(
+    kicker: str,
+    title: str,
+    copy: str,
+    *,
+    anchor_id: str | None = None,
+) -> None:
     st.markdown(
         f"""
-        <section class="metrora-product-section">
+        <section{f' id="{anchor_id}"' if anchor_id else ""} class="metrora-product-section">
             <div class="metrora-product-section-kicker">{kicker}</div>
             <h2>{title}</h2>
             <p>{copy}</p>
@@ -1245,19 +1942,16 @@ def _render_model_map() -> None:
                 <strong>Billing export</strong>
                 <p>Provider rows, budgets, ownership, and business metrics.</p>
             </div>
-            <div class="metrora-model-arrow">&rarr;</div>
             <div class="metrora-model-node">
                 <small>02 / Model</small>
                 <strong>Trusted cost model</strong>
                 <p>Mapped, normalized, reconciled, and quality-checked data.</p>
             </div>
-            <div class="metrora-model-arrow">&rarr;</div>
             <div class="metrora-model-node">
                 <small>03 / Insight</small>
                 <strong>Decision signals</strong>
                 <p>Trends, drivers, forecasts, anomalies, and coverage.</p>
             </div>
-            <div class="metrora-model-arrow">&rarr;</div>
             <div class="metrora-model-node">
                 <small>04 / Action</small>
                 <strong>Evidence-backed brief</strong>
@@ -1265,8 +1959,7 @@ def _render_model_map() -> None:
             </div>
         </div>
         <p class="metrora-centered-caption metrora-model-caption">
-            Python calculates the values first. The AI layer explains the evidence after
-            the model is ready.
+            Calculated first. Explained second. Traceable throughout.
         </p>
         """,
         unsafe_allow_html=True,
@@ -1274,75 +1967,92 @@ def _render_model_map() -> None:
 
 
 def _render_overview(settings: Settings) -> None:
+    facts = _demo_preview_facts(settings)
     st.markdown(
-        """
-        <section class="metrora-product-hero metrora-premium-hero">
+        f"""
+        <section id="metrora-overview" class="metrora-product-hero metrora-premium-hero">
+            <div class="metrora-hero-orbit" aria-hidden="true">
+                <svg viewBox="0 0 1200 560" preserveAspectRatio="none">
+                    <path d="M-40 108 C250 22 410 178 650 94 S1030 24 1260 132" />
+                    <path d="M-80 164 C210 76 430 234 700 142 S1030 92 1280 196" />
+                </svg>
+            </div>
             <div class="metrora-hero-copy">
-                <div class="metrora-product-kicker">Metrora / FinOps operating system</div>
-                <h1>Make cloud spend <em>legible.</em></h1>
+                <div class="metrora-product-kicker">Metrora / FinOps decision system</div>
+                <h1><span>Know what changed.</span> <em>Prove the number.</em></h1>
                 <p>
-                    Bring billing exports, budgets, ownership data, and business metrics into one
-                    calm operating view for finance, FinOps, and cloud operations teams.
+                    Turn billing exports, budgets, ownership data, and business metrics into one
+                    calm operating view—then keep every finding traceable to source.
                 </p>
                 <div class="metrora-product-pills">
-                    <span class="metrora-product-pill">Calculated before explained</span>
-                    <span class="metrora-product-pill">Source traceable</span>
+                    <span class="metrora-product-pill">One-click guided analysis</span>
+                    <span class="metrora-product-pill">Evidence before AI</span>
                 </div>
             </div>
             <div class="metrora-hero-visual metrora-command-surface">
                 <div class="metrora-visual-header">
-                    <span>Cost position / demo signal</span>
-                    <span class="metrora-visual-status">Model ready</span>
+                    <span>Guided workspace / live sample</span>
+                    <span class="metrora-visual-status"><i></i> Model ready</span>
                 </div>
-                <div class="metrora-visual-metric">$48.2k <small>+8.4% / prior window</small></div>
-                <div class="metrora-visual-chart metrora-line-visual" aria-label="Illustrative spend trend">
+                <div class="metrora-visual-metric">{facts["total"]}
+                    <small>{facts["rows"]:,} reconciled rows</small>
+                </div>
+                <div class="metrora-visual-chart metrora-line-visual" aria-label="Calculated synthetic-demo spend trend">
                     <svg viewBox="0 0 530 176" preserveAspectRatio="none" aria-hidden="true">
                         <defs>
                             <linearGradient id="metrora-area" x1="0" x2="0" y1="0" y2="1">
-                                <stop offset="0" stop-color="#9bb8ff" stop-opacity=".30" />
-                                <stop offset="1" stop-color="#9bb8ff" stop-opacity="0" />
+                                <stop offset="0" stop-color="#55d6c7" stop-opacity=".30" />
+                                <stop offset="1" stop-color="#55d6c7" stop-opacity="0" />
                             </linearGradient>
                         </defs>
-                        <path class="metrora-chart-area" d="M0 151 L45 143 L90 146 L135 122 L180 132 L225 104 L270 116 L315 53 L360 66 L405 39 L450 74 L495 60 L530 27 L530 176 L0 176 Z" />
-                        <path class="metrora-chart-trace" d="M0 151 L45 143 L90 146 L135 122 L180 132 L225 104 L270 116 L315 53 L360 66 L405 39 L450 74 L495 60 L530 27" />
-                        <circle class="metrora-chart-point" cx="405" cy="39" r="5" />
+                        <path class="metrora-chart-area" d="{facts["area_path"]}" />
+                        <path class="metrora-chart-trace" d="{facts["chart_path"]}" />
                     </svg>
                 </div>
                 <div class="metrora-visual-footer">
-                    <span>Signal to review</span>
-                    <strong>Compute / 42% of demo spend</strong>
+                    <span>Largest service driver</span>
+                    <strong>{escape(str(facts["lead_service"]))} / {facts["lead_share"]:.0%} of spend</strong>
+                </div>
+                <div class="metrora-command-flow" aria-label="Metrora analysis flow">
+                    <div class="metrora-command-node is-ready"><i>01</i><span>Source</span><b>{escape(str(facts["source"]))}</b></div>
+                    <div class="metrora-command-link"><span></span></div>
+                    <div class="metrora-command-node is-ready"><i>02</i><span>Model</span><b>{escape(str(facts["currency"]))} {float(facts["difference"]):,.2f} difference</b></div>
+                    <div class="metrora-command-link"><span></span></div>
+                    <div class="metrora-command-node is-ready is-current"><i>03</i><span>Decision</span><b>Review {escape(str(facts["lead_service"]))}</b></div>
                 </div>
             </div>
         </section>
         """,
         unsafe_allow_html=True,
     )
-    button_columns = st.columns([1, 1.45, 1], gap="small")
+    button_columns = st.columns([1, 1.05, 1.05, 1], gap="small")
     with button_columns[1]:
-        if st.button(
-            "Try interactive demo",
+        st.button(
+            "Explore demo scenarios",
             type="primary",
             width="stretch",
             key="product_demo_hero",
-        ):
-            try:
-                activate_demo_session(settings)
-            except IngestionError as exc:
-                st.error(str(exc))
-            else:
-                st.rerun()
+            on_click=_set_product_page,
+            args=("Demo",),
+        )
+    with button_columns[2]:
+        st.markdown(
+            '<a class="metrora-hero-secondary-link" href="#metrora-workflow">See how it works</a>',
+            unsafe_allow_html=True,
+        )
     st.markdown(
         '<p class="metrora-centered-caption">'
-        'Illustrative signal using synthetic data. No cloud connection or credentials required.'
-        '</p>',
+        f"Calculated from {facts['rows']:,} synthetic billing rows. No cloud connection or "
+        "credentials required."
+        "</p>",
         unsafe_allow_html=True,
     )
 
     _render_page_intro(
-        "The operating view",
-        "One reliable answer, without the billing-export archaeology.",
-        "Metrora automates the normal path, then preserves the detail a reviewer needs to trust "
-        "the result and decide what deserves attention.",
+        "A visible operating loop",
+        "From export to action, without losing the evidence.",
+        "Metrora automates the normal path, keeps the workflow legible, and opens the technical "
+        "detail only when a reviewer needs it.",
     )
     _render_model_map()
     principles = [
@@ -1408,12 +2118,14 @@ def _render_overview(settings: Settings) -> None:
             unsafe_allow_html=True,
         )
 
+
 def _render_pipeline() -> None:
     _render_page_intro(
         "The pipeline",
         "One defensible path from raw export to recommendation.",
         "Each stage turns uncertainty into a clear next action while keeping financial "
         "calculations deterministic.",
+        anchor_id="metrora-workflow",
     )
     steps = [
         (
@@ -1500,9 +2212,9 @@ def _render_pipeline() -> None:
 def _render_trust() -> None:
     _render_page_intro(
         "Trust by design",
-        "AI explains evidence. It does not invent the numbers.",
-        "Metrora calculates totals, trends, forecasts, and quality results in Python "
-        "before any narrative layer sees them.",
+        "Numbers first. Narrative second.",
+        "Every value is calculated and checked before Metrora explains what it means.",
+        anchor_id="metrora-evidence",
     )
     columns = st.columns(3, gap="medium")
     trust_cards = [
@@ -1559,78 +2271,64 @@ def _render_access_panel(settings: Settings) -> None:
     st.markdown(
         """
         <div class="metrora-product-access">
-            <h3>Open the guided workspace</h3>
+            <h3>Choose the story you want to test</h3>
             <p>
-                Metrora opens a preloaded, local workspace so you can explore the workflow
-                without connecting an account or uploading a file first.
+                Each scenario opens the complete workspace with its billing, budget, and
+                business context already connected.
             </p>
         </div>
         """,
         unsafe_allow_html=True,
     )
+    columns = st.columns(len(DEMO_SCENARIOS), gap="large")
+    for column, (scenario_id, scenario) in zip(
+        columns,
+        DEMO_SCENARIOS.items(),
+        strict=True,
+    ):
+        with column:
+            st.markdown(
+                f"""
+                <article class="metrora-scenario-card">
+                    <small>{escape(scenario["status"])}</small>
+                    <h3>{escape(scenario["label"])}</h3>
+                    <p>{escape(scenario["description"])}</p>
+                    <span>{escape(scenario["lesson"])}</span>
+                </article>
+                """,
+                unsafe_allow_html=True,
+            )
+            if st.button(
+                f"Open {scenario['label'].lower()}",
+                type="secondary",
+                width="stretch",
+                key=f"product_demo_scenario_{scenario_id}",
+            ):
+                try:
+                    activate_demo_session(settings, scenario_id)
+                except IngestionError as exc:
+                    st.error(str(exc))
+                else:
+                    st.rerun()
     st.markdown(
         """
         <div class="metrora-access-note">
-            <strong>What you will see:</strong>
-            a deterministic billing export with a built-in spike, ownership gaps, budget
-            pressure, and business metrics. The demo stays in the current local session.
+            <strong>Safe to explore.</strong>
+            Every scenario is synthetic and deterministic. No account, credentials, or cloud
+            connection is required, and nothing leaves the current app session.
         </div>
         """,
         unsafe_allow_html=True,
     )
-    if st.button(
-        "Open the guided demo",
-        type="primary",
-        width="stretch",
-        key="product_demo_access",
-    ):
-        try:
-            activate_demo_session(settings)
-        except IngestionError as exc:
-            st.error(str(exc))
-        else:
-            st.rerun()
 
 
 def _render_demo_access(settings: Settings) -> None:
     _render_page_intro(
         "Workspace access",
-        "See the workflow before connecting anything.",
-        "Open a preloaded analysis workspace with one click and follow the evidence from "
-        "source data to decision.",
+        "Test the decisions, not the setup.",
+        "Open one of three preloaded business situations and follow the evidence from source "
+        "data to decision.",
     )
-    columns = st.columns(3, gap="medium")
-    demo_cards = [
-        (
-            "01",
-            "Synthetic billing data",
-            "A deterministic cloud billing export is already included for exploration.",
-        ),
-        (
-            "02",
-            "Ready to explore",
-            "No credentials, cloud account, or external identity provider is needed for "
-            "this preview.",
-        ),
-        (
-            "03",
-            "Traceable results",
-            "The guided demo opens the same upload, mapping, quality, and analysis views "
-            "used for a real source.",
-        ),
-    ]
-    for column, (number, title, copy) in zip(columns, demo_cards, strict=True):
-        with column:
-            st.markdown(
-                f"""
-                <div class="metrora-product-card">
-                    <span class="icon">{number}</span>
-                    <h3>{title}</h3>
-                    <p>{copy}</p>
-                </div>
-                """,
-                unsafe_allow_html=True,
-            )
     _render_access_panel(settings)
 
 
@@ -1639,44 +2337,23 @@ def render_product_page(settings: Settings) -> None:
     st.markdown(PRODUCT_PAGE_CSS, unsafe_allow_html=True)
     st.markdown(PRODUCT_PAGE_DARK_CSS, unsafe_allow_html=True)
     st.markdown(PRODUCT_PAGE_REFINED_CSS, unsafe_allow_html=True)
+    st.markdown(PRODUCT_PAGE_V2_CSS, unsafe_allow_html=True)
 
-    _render_brand_header()
     selected_page = st.session_state.get("product_page", "Product")
     if selected_page not in PUBLIC_PAGES:
         selected_page = "Product"
         st.session_state["product_page"] = selected_page
 
-    with st.container(key="product-page-nav"):
-        nav_columns = st.columns(len(PUBLIC_PAGES), gap="small")
-        for column, page in zip(nav_columns, PUBLIC_PAGES, strict=True):
-            with column:
-                if page == selected_page:
-                    st.markdown(
-                        f'<div class="metrora-page-link" aria-current="page">{page}</div>',
-                        unsafe_allow_html=True,
-                    )
-                else:
-                    st.button(
-                        page,
-                        key=f"product_page_nav_{page.lower()}",
-                        type="tertiary",
-                        width="stretch",
-                        on_click=_set_product_page,
-                        args=(page,),
-                    )
-
-    if selected_page == "Product":
-        _render_overview(settings)
-    elif selected_page == "Workflow":
-        _render_pipeline()
-    elif selected_page == "Evidence":
-        _render_trust()
-    else:
+    if selected_page == "Demo":
         _render_demo_access(settings)
+    else:
+        _render_overview(settings)
+        _render_pipeline()
+        _render_trust()
 
     st.markdown(
         '<div class="metrora-product-footer">'
-        'Metrora - cloud FinOps intelligence - local product preview'
-        '</div>',
+        "Metrora - cloud FinOps intelligence - local product preview"
+        "</div>",
         unsafe_allow_html=True,
     )

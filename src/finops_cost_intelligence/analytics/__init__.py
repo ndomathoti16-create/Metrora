@@ -1,5 +1,6 @@
 """Deterministic analytics over the canonical cloud cost model."""
 
+from .anomaly_scope import select_comparable_anomaly_history
 from .drivers import analyze_service_cost_drivers
 from .spend import (
     DEFAULT_BREAKDOWN_DIMENSIONS,
@@ -16,4 +17,5 @@ __all__ = [
     "calculate_spend_summary",
     "filter_billing_data",
     "prepare_daily_spend",
+    "select_comparable_anomaly_history",
 ]

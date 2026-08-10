@@ -1,0 +1,11 @@
+period_start,period_end,scope_type,scope_value,budget_amount,currency
+2025-01-01,2025-01-31,service,Compute,3857.72,USD
+2025-01-01,2025-01-31,service,Storage,1154.18,USD
+2025-01-01,2025-01-31,service,Database,2567.93,USD
+2025-01-01,2025-01-31,service,Data Transfer,817.7,USD
+2025-01-01,2025-01-31,total,Total,8283.95,USD
+2025-02-01,2025-02-28,service,Compute,3558.62,USD
+2025-02-01,2025-02-28,service,Storage,1104.06,USD
+2025-02-01,2025-02-28,service,Database,2438.6,USD
+2025-02-01,2025-02-28,service,Data Transfer,779.63,USD
+2025-02-01,2025-02-28,total,Total,7737.62,USD

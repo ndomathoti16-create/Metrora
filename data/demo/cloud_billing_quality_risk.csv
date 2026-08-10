@@ -1,0 +1,238 @@
+UsageStartDate,ProductName,UnblendedCost,Currency,AccountNumber,AWSRegion,Dept,ProjectName,Env,Usage,Unit,CostType
+2025-01-01,Compute,120.72,USD,acct-prod-001,us-east-1,Engineering,Customer Portal,prod,205.23,units,Usage
+2025-01-01,Storage,36.35,USD,acct-prod-001,us-east-1,Engineering,Customer Portal,prod,61.8,units,Usage
+not-a-date,Database,81.87,USD,acct-prod-001,us-east-1,Engineering,Customer Portal,prod,139.18,units,Usage
+2025-01-01,Data Transfer,25.97,USD,acct-prod-001,us-west-2,Finance,Analytics,prod,44.14,units,Usage
+2025-01-02,Compute,114.39,USD,acct-prod-001,us-east-1,Engineering,Customer Portal,prod,194.46,units,Usage
+2025-01-02,Storage,34.74,USD,acct-prod-001,us-east-1,Engineering,Customer Portal,prod,59.06,units,Usage
+2025-01-02,Database,78.49,USD,acct-prod-001,us-east-1,Engineering,Customer Portal,prod,133.43,units,Usage
+2025-01-02,Data Transfer,25.66,USD,acct-prod-001,us-west-2,Finance,Analytics,prod,43.63,units,Usage
+2025-01-03,Compute,119.69,USD,acct-prod-001,us-east-1,Engineering,Customer Portal,prod,203.48,units,Usage
+2025-01-03,,36.21,USD,acct-prod-001,us-east-1,Engineering,Customer Portal,prod,61.55,units,Usage
+2025-01-03,Database,78.11,USD,acct-prod-001,us-east-1,Engineering,Customer Portal,prod,132.78,units,Usage
+2025-01-03,Data Transfer,26.32,USD,acct-prod-001,us-west-2,Finance,Analytics,prod,44.75,units,Usage
+2025-01-04,Compute,94.82,USD,acct-prod-001,us-east-1,Engineering,Customer Portal,prod,161.2,units,Usage
+2025-01-04,Storage,30.26,USD,acct-prod-001,us-east-1,Engineering,Customer Portal,prod,51.44,units,Usage
+2025-01-04,Database,67.48,USD,acct-prod-001,us-east-1,Engineering,Customer Portal,prod,114.72,units,Usage
+2025-01-04,Data Transfer,not-a-cost,USD,acct-prod-001,us-west-2,Finance,Analytics,prod,37.06,units,Usage
+2025-01-05,Compute,102.33,USD,acct-prod-001,us-east-1,Engineering,Customer Portal,prod,173.97,units,Usage
+2025-01-05,Storage,29.43,USD,acct-prod-001,us-east-1,Engineering,Customer Portal,prod,50.03,units,Usage
+2025-01-05,Database,68.01,USD,acct-prod-001,us-east-1,Engineering,Customer Portal,prod,115.62,units,Usage
+2025-01-05,Data Transfer,21.86,USD,acct-prod-001,us-west-2,Finance,Analytics,prod,37.16,units,Usage
+2025-01-06,Compute,113.86,USD,acct-prod-001,us-east-1,Engineering,Customer Portal,prod,193.56,units,Usage
+2025-01-06,Storage,36.11,USD,acct-prod-001,us-east-1,Engineering,Customer Portal,prod,61.38,units,Usage
+2025-01-06,Database,81.24,USD,acct-prod-001,us-east-1,Engineering,Customer Portal,prod,138.11,units,Usage
+2025-01-06,Data Transfer,24.74,USD,acct-prod-001,us-west-2,Finance,Analytics,prod,42.06,units,Usage
+2025-01-07,Compute,113.56,EUR,acct-prod-001,us-east-1,Engineering,Customer Portal,prod,193.06,units,Usage
+2025-01-07,Storage,36.17,USD,acct-prod-001,us-east-1,Engineering,Customer Portal,prod,61.48,units,Usage
+2025-01-07,Database,80.52,USD,acct-prod-001,us-east-1,Engineering,Customer Portal,prod,136.88,units,Usage
+2025-01-07,Data Transfer,25.69,USD,acct-prod-001,us-west-2,Finance,Analytics,prod,43.68,units,Usage
+2025-01-08,Compute,123.33,USD,acct-prod-001,us-east-1,Engineering,Customer Portal,prod,209.67,units,Usage
+2025-01-08,Storage,37.0,USD,acct-prod-001,us-east-1,Engineering,Customer Portal,prod,62.9,units,Usage
+2025-01-08,Database,-18.5,USD,acct-prod-001,us-east-1,Engineering,Customer Portal,prod,139.16,units,Usage
+2025-01-08,Data Transfer,25.16,USD,acct-prod-001,us-west-2,Finance,Analytics,prod,42.77,units,Usage
+2025-01-09,Compute,119.9,USD,acct-prod-001,us-east-1,Engineering,Customer Portal,prod,203.84,units,Usage
+2025-01-09,Storage,35.61,USD,acct-prod-001,us-east-1,Engineering,Customer Portal,prod,60.53,units,Usage
+2025-01-09,Database,84.06,USD,acct-prod-001,us-east-1,Engineering,Customer Portal,prod,142.9,units,Usage
+2025-01-09,Data Transfer,26.31,USD,acct-prod-001,us-west-2,Finance,Analytics,prod,44.74,units,Usage
+2025-01-10,Compute,111.93,USD,acct-prod-001,us-east-1,Engineering,Customer Portal,prod,190.27,units,Usage
+2025-01-10,Storage,35.3,USD,acct-prod-001,us-east-1,Engineering,Customer Portal,prod,60.01,units,Usage
+2025-01-10,Database,80.78,USD,acct-prod-001,us-east-1,Engineering,Customer Portal,prod,137.32,units,Usage
+2025-01-10,Data Transfer,25.38,USD,acct-prod-001,us-west-2,Finance,Analytics,prod,43.15,units,Usage
+2025-01-11,Compute,96.32,USD,acct-prod-001,us-east-1,,,prod,163.75,units,Usage
+2025-01-11,Storage,29.8,USD,acct-prod-001,us-east-1,,,prod,50.67,units,Usage
+2025-01-11,Database,70.32,USD,acct-prod-001,us-east-1,,,prod,119.54,units,Usage
+2025-01-11,Data Transfer,21.45,USD,acct-prod-001,us-west-2,,,prod,36.47,units,Usage
+2025-01-12,Compute,95.67,USD,acct-prod-001,us-east-1,,,prod,162.63,units,Usage
+2025-01-12,Storage,30.63,USD,acct-prod-001,us-east-1,,,prod,52.07,units,Usage
+2025-01-12,Database,70.84,USD,acct-prod-001,us-east-1,,,prod,120.43,units,Usage
+2025-01-12,Data Transfer,22.8,USD,acct-prod-001,us-west-2,,,prod,38.76,units,Usage
+2025-01-13,Compute,117.89,USD,acct-prod-001,us-east-1,,,prod,200.41,units,Usage
+2025-01-13,Storage,36.12,USD,acct-prod-001,us-east-1,,,prod,61.4,units,Usage
+2025-01-13,Database,79.81,USD,acct-prod-001,us-east-1,,,prod,135.67,units,Usage
+2025-01-13,Data Transfer,25.37,USD,acct-prod-001,us-west-2,,,prod,43.13,units,Usage
+2025-01-14,Compute,119.28,USD,acct-prod-001,us-east-1,,,prod,202.77,units,Usage
+2025-01-14,Storage,37.48,USD,acct-prod-001,us-east-1,,,prod,63.72,units,Usage
+2025-01-14,Database,83.76,USD,acct-prod-001,us-east-1,,,prod,142.39,units,Usage
+2025-01-14,Data Transfer,25.56,USD,acct-prod-001,us-west-2,,,prod,43.45,units,Usage
+2025-01-15,Compute,120.34,USD,acct-prod-001,us-east-1,,,prod,204.58,units,Usage
+2025-01-15,Storage,37.09,USD,acct-prod-001,us-east-1,,,prod,63.06,units,Usage
+2025-01-15,Database,82.32,USD,acct-prod-001,us-east-1,,,prod,139.95,units,Usage
+2025-01-15,Data Transfer,24.25,USD,acct-prod-001,us-west-2,,,prod,41.23,units,Usage
+2025-01-16,Compute,117.83,USD,acct-prod-001,us-east-1,,,prod,200.3,units,Usage
+2025-01-16,Storage,36.23,USD,acct-prod-001,us-east-1,,,prod,61.59,units,Usage
+2025-01-16,Database,84.05,USD,acct-prod-001,us-east-1,,,prod,142.88,units,Usage
+2025-01-16,Data Transfer,25.58,USD,acct-prod-001,us-west-2,,,prod,43.48,units,Usage
+2025-01-17,Compute,119.33,USD,acct-prod-001,us-east-1,,,prod,202.87,units,Usage
+2025-01-17,Storage,36.72,USD,acct-prod-001,us-east-1,,,prod,62.43,units,Usage
+2025-01-17,Database,84.0,USD,acct-prod-001,us-east-1,,,prod,142.8,units,Usage
+2025-01-17,Data Transfer,26.22,USD,acct-prod-001,us-west-2,,,prod,44.58,units,Usage
+2025-01-18,Compute,103.18,USD,acct-prod-001,us-east-1,,,prod,175.4,units,Usage
+2025-01-18,Storage,32.29,USD,acct-prod-001,us-east-1,,,prod,54.89,units,Usage
+2025-01-18,Database,71.15,USD,acct-prod-001,us-east-1,,,prod,120.96,units,Usage
+2025-01-18,Data Transfer,22.36,USD,acct-prod-001,us-west-2,,,prod,38.02,units,Usage
+2025-01-19,Compute,99.71,USD,acct-prod-001,us-east-1,,,prod,169.5,units,Usage
+2025-01-19,Storage,31.12,USD,acct-prod-001,us-east-1,,,prod,52.91,units,Usage
+2025-01-19,Database,73.49,USD,acct-prod-001,us-east-1,,,prod,124.94,units,Usage
+2025-01-19,Data Transfer,21.93,USD,acct-prod-001,us-west-2,,,prod,37.28,units,Usage
+2025-01-20,Compute,119.77,USD,acct-prod-001,us-east-1,,,prod,203.62,units,Usage
+2025-01-20,Storage,36.52,USD,acct-prod-001,us-east-1,,,prod,62.09,units,Usage
+2025-01-20,Database,81.23,USD,acct-prod-001,us-east-1,,,prod,138.09,units,Usage
+2025-01-20,Data Transfer,24.03,USD,acct-prod-001,us-west-2,,,prod,40.85,units,Usage
+2025-01-21,Compute,123.17,USD,acct-prod-001,us-east-1,,,prod,209.39,units,Usage
+2025-01-21,Storage,35.61,USD,acct-prod-001,us-east-1,,,prod,60.54,units,Usage
+2025-01-21,Database,80.27,USD,acct-prod-001,us-east-1,,,prod,136.46,units,Usage
+2025-01-21,Data Transfer,26.66,USD,acct-prod-001,us-west-2,,,prod,45.32,units,Usage
+2025-01-22,Compute,112.09,USD,acct-prod-001,us-east-1,,,prod,190.55,units,Usage
+2025-01-22,Storage,36.67,USD,acct-prod-001,us-east-1,,,prod,62.34,units,Usage
+2025-01-22,Database,80.85,USD,acct-prod-001,us-east-1,,,prod,137.44,units,Usage
+2025-01-22,Data Transfer,24.76,USD,acct-prod-001,us-west-2,,,prod,42.09,units,Usage
+2025-01-23,Compute,120.35,USD,acct-prod-001,us-east-1,,,prod,204.59,units,Usage
+2025-01-23,Storage,36.02,USD,acct-prod-001,us-east-1,,,prod,61.23,units,Usage
+2025-01-23,Database,81.78,USD,acct-prod-001,us-east-1,,,prod,139.03,units,Usage
+2025-01-23,Data Transfer,25.63,USD,acct-prod-001,us-west-2,,,prod,43.57,units,Usage
+2025-01-24,Compute,120.5,USD,acct-prod-001,us-east-1,,,prod,204.86,units,Usage
+2025-01-24,Storage,38.62,USD,acct-prod-001,us-east-1,,,prod,65.66,units,Usage
+2025-01-24,Database,79.66,USD,acct-prod-001,us-east-1,,,prod,135.42,units,Usage
+2025-01-24,Data Transfer,26.42,USD,acct-prod-001,us-west-2,,,prod,44.92,units,Usage
+2025-01-25,Compute,99.0,USD,acct-prod-001,us-east-1,,,prod,168.3,units,Usage
+2025-01-25,Storage,30.89,USD,acct-prod-001,us-east-1,,,prod,52.51,units,Usage
+2025-01-25,Database,66.12,USD,acct-prod-001,us-east-1,,,prod,112.41,units,Usage
+2025-01-25,Data Transfer,21.33,USD,acct-prod-001,us-west-2,,,prod,36.26,units,Usage
+2025-01-26,Compute,99.79,USD,acct-prod-001,us-east-1,,,prod,169.65,units,Usage
+2025-01-26,Storage,31.91,USD,acct-prod-001,us-east-1,,,prod,54.24,units,Usage
+2025-01-26,Database,70.23,USD,acct-prod-001,us-east-1,,,prod,119.4,units,Usage
+2025-01-26,Data Transfer,22.38,USD,acct-prod-001,us-west-2,,,prod,38.04,units,Usage
+2025-01-27,Compute,121.04,USD,acct-prod-001,us-east-1,,,prod,205.76,units,Usage
+2025-01-27,Storage,35.61,USD,acct-prod-001,us-east-1,,,prod,60.54,units,Usage
+2025-01-27,Database,85.0,USD,acct-prod-001,us-east-1,,,prod,144.49,units,Usage
+2025-01-27,Data Transfer,25.77,USD,acct-prod-001,us-west-2,,,prod,43.82,units,Usage
+2025-01-28,Compute,121.0,USD,acct-prod-001,us-east-1,,,prod,205.7,units,Usage
+2025-01-28,Storage,36.66,USD,acct-prod-001,us-east-1,,,prod,62.33,units,Usage
+2025-01-28,Database,82.81,USD,acct-prod-001,us-east-1,,,prod,140.77,units,Usage
+2025-01-28,Data Transfer,26.38,USD,acct-prod-001,us-west-2,,,prod,44.84,units,Usage
+2025-01-29,Compute,113.02,USD,acct-prod-001,us-east-1,,,prod,192.14,units,Usage
+2025-01-29,Storage,38.56,USD,acct-prod-001,us-east-1,,,prod,65.55,units,Usage
+2025-01-29,Database,82.7,USD,acct-prod-001,us-east-1,,,prod,140.58,units,Usage
+2025-01-29,Data Transfer,26.67,USD,acct-prod-001,us-west-2,,,prod,45.33,units,Usage
+2025-01-30,Compute,119.9,USD,acct-prod-001,us-east-1,,,prod,203.84,units,Usage
+2025-01-30,Storage,36.95,USD,acct-prod-001,us-east-1,,,prod,62.82,units,Usage
+2025-01-30,Database,79.92,USD,acct-prod-001,us-east-1,,,prod,135.86,units,Usage
+2025-01-30,Data Transfer,25.8,USD,acct-prod-001,us-west-2,,,prod,43.85,units,Usage
+2025-01-31,Compute,113.31,USD,acct-prod-001,us-east-1,,,prod,192.63,units,Usage
+2025-01-31,Storage,36.78,USD,acct-prod-001,us-east-1,,,prod,62.52,units,Usage
+2025-01-31,Database,85.49,USD,acct-prod-001,us-east-1,,,prod,145.34,units,Usage
+2025-01-31,Data Transfer,24.92,USD,acct-prod-001,us-west-2,,,prod,42.36,units,Usage
+2025-02-01,Compute,99.56,USD,acct-prod-001,us-east-1,,,prod,169.26,units,Usage
+2025-02-01,Storage,31.04,USD,acct-prod-001,us-east-1,,,prod,52.77,units,Usage
+2025-02-01,Database,72.31,USD,acct-prod-001,us-east-1,,,prod,122.92,units,Usage
+2025-02-01,Data Transfer,22.88,USD,acct-prod-001,us-west-2,,,prod,38.89,units,Usage
+2025-02-02,Compute,101.71,USD,acct-prod-001,us-east-1,,,prod,172.9,units,Usage
+2025-02-02,Storage,31.46,USD,acct-prod-001,us-east-1,,,prod,53.48,units,Usage
+2025-02-02,Database,69.84,USD,acct-prod-001,us-east-1,,,prod,118.73,units,Usage
+2025-02-02,Data Transfer,21.86,USD,acct-prod-001,us-west-2,,,prod,37.16,units,Usage
+2025-02-03,Compute,118.35,USD,acct-prod-001,us-east-1,,,prod,201.2,units,Usage
+2025-02-03,Storage,36.6,USD,acct-prod-001,us-east-1,,,prod,62.21,units,Usage
+2025-02-03,Database,82.39,USD,acct-prod-001,us-east-1,,,prod,140.07,units,Usage
+2025-02-03,Data Transfer,26.16,USD,acct-prod-001,us-west-2,,,prod,44.47,units,Usage
+2025-02-04,Compute,118.02,USD,acct-prod-001,us-east-1,,,prod,200.64,units,Usage
+2025-02-04,Storage,37.55,USD,acct-prod-001,us-east-1,,,prod,63.84,units,Usage
+2025-02-04,Database,82.68,USD,acct-prod-001,us-east-1,,,prod,140.56,units,Usage
+2025-02-04,Data Transfer,26.45,USD,acct-prod-001,us-west-2,,,prod,44.97,units,Usage
+2025-02-05,Compute,116.11,USD,acct-prod-001,us-east-1,,,prod,197.39,units,Usage
+2025-02-05,Storage,36.45,USD,acct-prod-001,us-east-1,,,prod,61.97,units,Usage
+2025-02-05,Database,82.99,USD,acct-prod-001,us-east-1,,,prod,141.09,units,Usage
+2025-02-05,Data Transfer,26.32,USD,acct-prod-001,us-west-2,,,prod,44.75,units,Usage
+2025-02-06,Compute,119.47,USD,acct-prod-001,us-east-1,,,prod,203.1,units,Usage
+2025-02-06,Storage,38.39,USD,acct-prod-001,us-east-1,,,prod,65.26,units,Usage
+2025-02-06,Database,82.48,USD,acct-prod-001,us-east-1,,,prod,140.22,units,Usage
+2025-02-06,Data Transfer,27.03,USD,acct-prod-001,us-west-2,,,prod,45.95,units,Usage
+2025-02-07,Compute,123.89,USD,acct-prod-001,us-east-1,,,prod,210.61,units,Usage
+2025-02-07,Storage,37.7,USD,acct-prod-001,us-east-1,,,prod,64.09,units,Usage
+2025-02-07,Database,83.79,USD,acct-prod-001,us-east-1,,,prod,142.44,units,Usage
+2025-02-07,Data Transfer,26.53,USD,acct-prod-001,us-west-2,,,prod,45.09,units,Usage
+2025-02-08,Compute,101.61,USD,acct-prod-001,us-east-1,,,prod,172.74,units,Usage
+2025-02-08,Storage,30.57,USD,acct-prod-001,us-east-1,,,prod,51.97,units,Usage
+2025-02-08,Database,69.49,USD,acct-prod-001,us-east-1,,,prod,118.13,units,Usage
+2025-02-08,Data Transfer,21.88,USD,acct-prod-001,us-west-2,,,prod,37.19,units,Usage
+2025-02-09,Compute,100.95,USD,acct-prod-001,us-east-1,,,prod,171.62,units,Usage
+2025-02-09,Storage,30.93,USD,acct-prod-001,us-east-1,,,prod,52.58,units,Usage
+2025-02-09,Database,68.49,USD,acct-prod-001,us-east-1,,,prod,116.43,units,Usage
+2025-02-09,Data Transfer,22.35,USD,acct-prod-001,us-west-2,,,prod,38.0,units,Usage
+2025-02-10,Compute,124.24,USD,acct-prod-001,us-east-1,,,prod,211.21,units,Usage
+2025-02-10,Storage,36.45,USD,acct-prod-001,us-east-1,,,prod,61.96,units,Usage
+2025-02-10,Database,79.64,USD,acct-prod-001,us-east-1,,,prod,135.38,units,Usage
+2025-02-10,Data Transfer,25.91,USD,acct-prod-001,us-west-2,,,prod,44.04,units,Usage
+2025-02-11,Compute,117.03,USD,acct-prod-001,us-east-1,,,prod,198.94,units,Usage
+2025-02-11,Storage,36.35,USD,acct-prod-001,us-east-1,,,prod,61.8,units,Usage
+2025-02-11,Database,80.73,USD,acct-prod-001,us-east-1,Engineering,Customer Portal,prod,137.25,units,Usage
+2025-02-11,Data Transfer,26.19,USD,acct-prod-001,us-west-2,Finance,Analytics,prod,44.52,units,Usage
+2025-02-12,Compute,121.95,USD,acct-prod-001,us-east-1,Engineering,Customer Portal,prod,207.32,units,Usage
+2025-02-12,Storage,39.16,USD,acct-prod-001,us-east-1,Engineering,Customer Portal,prod,66.58,units,Usage
+2025-02-12,Database,81.01,USD,acct-prod-001,us-east-1,Engineering,Customer Portal,prod,137.72,units,Usage
+2025-02-12,Data Transfer,25.44,USD,acct-prod-001,us-west-2,Finance,Analytics,prod,43.25,units,Usage
+2025-02-13,Compute,120.13,USD,acct-prod-001,us-east-1,Engineering,Customer Portal,prod,204.22,units,Usage
+2025-02-13,Storage,37.16,USD,acct-prod-001,us-east-1,Engineering,Customer Portal,prod,63.17,units,Usage
+2025-02-13,Database,86.39,USD,acct-prod-001,us-east-1,Engineering,Customer Portal,prod,146.85,units,Usage
+2025-02-13,Data Transfer,27.09,USD,acct-prod-001,us-west-2,Finance,Analytics,prod,46.06,units,Usage
+2025-02-14,Compute,118.85,USD,acct-prod-001,us-east-1,Engineering,Customer Portal,prod,202.05,units,Usage
+2025-02-14,Storage,35.56,USD,acct-prod-001,us-east-1,Engineering,Customer Portal,prod,60.45,units,Usage
+2025-02-14,Database,84.48,USD,acct-prod-001,us-east-1,Engineering,Customer Portal,prod,143.61,units,Usage
+2025-02-14,Data Transfer,26.07,USD,acct-prod-001,us-west-2,Finance,Analytics,prod,44.31,units,Usage
+2025-02-15,Compute,106.32,USD,acct-prod-001,us-east-1,Engineering,Customer Portal,prod,180.75,units,Usage
+2025-02-15,Storage,31.59,USD,acct-prod-001,us-east-1,Engineering,Customer Portal,prod,53.71,units,Usage
+2025-02-15,Database,70.58,USD,acct-prod-001,us-east-1,Engineering,Customer Portal,prod,119.98,units,Usage
+2025-02-15,Data Transfer,21.66,USD,acct-prod-001,us-west-2,Finance,Analytics,prod,36.82,units,Usage
+2025-02-16,Compute,102.52,USD,acct-prod-001,us-east-1,Engineering,Customer Portal,prod,174.28,units,Usage
+2025-02-16,Storage,32.71,USD,acct-prod-001,us-east-1,Engineering,Customer Portal,prod,55.6,units,Usage
+2025-02-16,Database,69.37,USD,acct-prod-001,us-east-1,Engineering,Customer Portal,prod,117.92,units,Usage
+2025-02-16,Data Transfer,22.51,USD,acct-prod-001,us-west-2,Finance,Analytics,prod,38.27,units,Usage
+2025-02-17,Compute,119.36,USD,acct-prod-001,us-east-1,Engineering,Customer Portal,prod,202.92,units,Usage
+2025-02-17,Storage,38.17,USD,acct-prod-001,us-east-1,Engineering,Customer Portal,prod,64.88,units,Usage
+2025-02-17,Database,83.48,USD,acct-prod-001,us-east-1,Engineering,Customer Portal,prod,141.92,units,Usage
+2025-02-17,Data Transfer,26.72,USD,acct-prod-001,us-west-2,Finance,Analytics,prod,45.43,units,Usage
+2025-02-18,Compute,121.94,USD,acct-prod-001,us-east-1,Engineering,Customer Portal,prod,207.31,units,Usage
+2025-02-18,Storage,36.67,USD,acct-prod-001,us-east-1,Engineering,Customer Portal,prod,62.34,units,Usage
+2025-02-18,Database,81.46,USD,acct-prod-001,us-east-1,Engineering,Customer Portal,prod,138.48,units,Usage
+2025-02-18,Data Transfer,27.2,USD,acct-prod-001,us-west-2,Finance,Analytics,prod,46.25,units,Usage
+2025-02-19,Compute,120.21,USD,acct-prod-001,us-east-1,Engineering,Customer Portal,prod,204.36,units,Usage
+2025-02-19,Storage,36.58,USD,acct-prod-001,us-east-1,Engineering,Customer Portal,prod,62.18,units,Usage
+2025-02-19,Database,82.48,USD,acct-prod-001,us-east-1,Engineering,Customer Portal,prod,140.21,units,Usage
+2025-02-19,Data Transfer,27.43,USD,acct-prod-001,us-west-2,Finance,Analytics,prod,46.64,units,Usage
+2025-02-20,Compute,121.52,USD,acct-prod-001,us-east-1,Engineering,Customer Portal,prod,206.59,units,Usage
+2025-02-20,Storage,38.43,USD,acct-prod-001,us-east-1,Engineering,Customer Portal,prod,65.32,units,Usage
+2025-02-20,Database,79.44,USD,acct-prod-001,us-east-1,Engineering,Customer Portal,prod,135.04,units,Usage
+2025-02-20,Data Transfer,27.84,USD,acct-prod-001,us-west-2,Finance,Analytics,prod,47.33,units,Usage
+2025-02-21,Compute,121.59,USD,acct-prod-001,us-east-1,Engineering,Customer Portal,prod,206.7,units,Usage
+2025-02-21,Storage,38.65,USD,acct-prod-001,us-east-1,Engineering,Customer Portal,prod,65.7,units,Usage
+2025-02-21,Database,83.26,USD,acct-prod-001,us-east-1,Engineering,Customer Portal,prod,141.53,units,Usage
+2025-02-21,Data Transfer,26.45,USD,acct-prod-001,us-west-2,Finance,Analytics,prod,44.96,units,Usage
+2025-02-22,Compute,105.51,USD,acct-prod-001,us-east-1,Engineering,Customer Portal,prod,179.36,units,Usage
+2025-02-22,Storage,33.48,USD,acct-prod-001,us-east-1,Engineering,Customer Portal,prod,56.92,units,Usage
+2025-02-22,Database,71.56,USD,acct-prod-001,us-east-1,Engineering,Customer Portal,prod,121.66,units,Usage
+2025-02-22,Data Transfer,22.09,USD,acct-prod-001,us-west-2,Finance,Analytics,prod,37.56,units,Usage
+2025-02-23,Compute,106.01,USD,acct-prod-001,us-east-1,Engineering,Customer Portal,prod,180.23,units,Usage
+2025-02-23,Storage,33.71,USD,acct-prod-001,us-east-1,Engineering,Customer Portal,prod,57.3,units,Usage
+2025-02-23,Database,68.74,USD,acct-prod-001,us-east-1,Engineering,Customer Portal,prod,116.86,units,Usage
+2025-02-23,Data Transfer,22.01,USD,acct-prod-001,us-west-2,Finance,Analytics,prod,37.42,units,Usage
+2025-02-24,Compute,123.42,USD,acct-prod-001,us-east-1,Engineering,Customer Portal,prod,209.82,units,Usage
+2025-02-24,Storage,37.23,USD,acct-prod-001,us-east-1,Engineering,Customer Portal,prod,63.3,units,Usage
+2025-02-24,Database,79.83,USD,acct-prod-001,us-east-1,Engineering,Customer Portal,prod,135.72,units,Usage
+2025-02-24,Data Transfer,26.54,USD,acct-prod-001,us-west-2,Finance,Analytics,prod,45.12,units,Usage
+2025-02-25,Compute,122.55,USD,acct-prod-001,us-east-1,Engineering,Customer Portal,prod,208.34,units,Usage
+2025-02-25,Storage,38.23,USD,acct-prod-001,us-east-1,Engineering,Customer Portal,prod,64.98,units,Usage
+2025-02-25,Database,86.79,USD,acct-prod-001,us-east-1,Engineering,Customer Portal,prod,147.54,units,Usage
+2025-02-25,Data Transfer,25.78,USD,acct-prod-001,us-west-2,Finance,Analytics,prod,43.83,units,Usage
+2025-02-26,Compute,120.36,USD,acct-prod-001,us-east-1,Engineering,Customer Portal,prod,204.61,units,Usage
+2025-02-26,Storage,37.61,USD,acct-prod-001,us-east-1,Engineering,Customer Portal,prod,63.94,units,Usage
+2025-02-26,Database,84.98,USD,acct-prod-001,us-east-1,Engineering,Customer Portal,prod,144.47,units,Usage
+2025-02-26,Data Transfer,26.13,USD,acct-prod-001,us-west-2,Finance,Analytics,prod,44.43,units,Usage
+2025-02-27,Compute,122.01,USD,acct-prod-001,us-east-1,Engineering,Customer Portal,prod,207.43,units,Usage
+2025-02-27,Storage,37.03,USD,acct-prod-001,us-east-1,Engineering,Customer Portal,prod,62.95,units,Usage
+2025-02-27,Database,85.89,USD,acct-prod-001,us-east-1,Engineering,Customer Portal,prod,146.01,units,Usage
+2025-02-27,Data Transfer,27.36,USD,acct-prod-001,us-west-2,Finance,Analytics,prod,46.51,units,Usage
+2025-02-28,Compute,119.92,USD,acct-prod-001,us-east-1,Engineering,Customer Portal,prod,203.86,units,Usage
+2025-02-28,Storage,38.23,USD,acct-prod-001,us-east-1,Engineering,Customer Portal,prod,64.98,units,Usage
+2025-02-28,Database,82.34,USD,acct-prod-001,us-east-1,Engineering,Customer Portal,prod,139.98,units,Usage
+2025-02-28,Data Transfer,26.87,USD,acct-prod-001,us-west-2,Finance,Analytics,prod,45.68,units,Usage
+2025-01-02,Database,78.49,USD,acct-prod-001,us-east-1,Engineering,Customer Portal,prod,133.43,units,Usage

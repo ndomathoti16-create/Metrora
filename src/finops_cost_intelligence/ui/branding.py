@@ -4,6 +4,7 @@
 
 from __future__ import annotations
 
+from html import escape
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
@@ -1914,8 +1915,8 @@ html, body, [class*="css"] {
     color: #ffffff !important;
 }
 
-[data-testid="stAppViewContainer"] [data-testid="stButton"] button[kind="primary"],
-[data-testid="stAppViewContainer"] [data-testid="stFormSubmitButton"] button,
+[data-testid="stMain"] [data-testid="stButton"] button[kind="primary"],
+[data-testid="stMain"] [data-testid="stFormSubmitButton"] button,
 [data-testid="stFileUploaderDropzone"] button {
     border-color: #9bb8ff !important;
     background: #9bb8ff !important;
@@ -1923,8 +1924,8 @@ html, body, [class*="css"] {
     box-shadow: 0 9px 24px rgba(117, 150, 223, .18) !important;
 }
 
-[data-testid="stAppViewContainer"] [data-testid="stButton"] button[kind="primary"] *,
-[data-testid="stAppViewContainer"] [data-testid="stFormSubmitButton"] button *,
+[data-testid="stMain"] [data-testid="stButton"] button[kind="primary"] *,
+[data-testid="stMain"] [data-testid="stFormSubmitButton"] button *,
 [data-testid="stFileUploaderDropzone"] button * {
     color: #08101d !important;
 }
@@ -2095,8 +2096,755 @@ div[data-testid="stDataFrame"] .stDataFrameGlideDataEditor {
     color: #f2f5fb !important;
 }
 
+/* Keep the operating area rich in context without turning it into a wall of cards. */
+.metrora-workspace-command-meta {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    flex-wrap: wrap;
+    gap: .95rem;
+}
+
+.metrora-workspace-context-item {
+    display: grid;
+    gap: .16rem;
+    min-width: 4.8rem;
+    padding-left: .95rem;
+    border-left: 1px solid #273347;
+}
+
+.metrora-workspace-context-item small,
+.metrora-decision-snapshot span {
+    color: #8e9bb0 !important;
+    font-size: .64rem !important;
+    font-weight: 800;
+    letter-spacing: .11em;
+    text-transform: uppercase;
+}
+
+.metrora-workspace-context-item strong {
+    max-width: 12rem;
+    overflow: hidden;
+    color: #e9eef7 !important;
+    font-size: .78rem;
+    font-weight: 650;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.metrora-decision-snapshot {
+    display: grid;
+    grid-template-columns: minmax(14rem, 1.45fr) repeat(3, minmax(9.5rem, 1fr));
+    margin: 1.45rem 0 2.65rem;
+    border-top: 1px solid #32425b;
+    border-bottom: 1px solid #273347;
+    background: linear-gradient(100deg, rgba(145, 168, 255, .085), rgba(16, 23, 34, 0) 44%);
+}
+
+.metrora-snapshot-lead,
+.metrora-snapshot-signal {
+    min-height: 8.5rem;
+    padding: 1.3rem 1.15rem 1.2rem 0;
+}
+
+.metrora-snapshot-signal {
+    padding-left: 1.15rem;
+    border-left: 1px solid #273347;
+}
+
+.metrora-decision-snapshot strong {
+    display: block;
+    margin: .5rem 0 .45rem;
+    color: #f1f5fb !important;
+    font-family: 'Outfit', sans-serif;
+    font-size: 1rem;
+    font-weight: 650;
+    letter-spacing: -.025em;
+    line-height: 1.18;
+}
+
+.metrora-decision-snapshot p {
+    margin: 0 !important;
+    color: #aeb9c9 !important;
+    font-size: .78rem !important;
+    line-height: 1.52 !important;
+}
+
+@media (max-width: 980px) {
+    .metrora-workspace-command-meta { justify-content: flex-start; }
+    .metrora-decision-snapshot { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .metrora-snapshot-signal:nth-child(3) { border-left: 0; }
+    .metrora-snapshot-signal:nth-child(-n+3) { border-bottom: 1px solid #273347; }
+}
+
+@media (max-width: 640px) {
+    .metrora-workspace-context-item { padding-left: .7rem; }
+    .metrora-decision-snapshot { grid-template-columns: 1fr; }
+    .metrora-snapshot-lead,
+    .metrora-snapshot-signal {
+        min-height: auto;
+        padding: 1rem 0;
+        border-left: 0;
+        border-bottom: 1px solid #273347;
+    }
+    .metrora-snapshot-signal:last-child { border-bottom: 0; }
+}
+
 @media (prefers-reduced-motion: reduce) {
     *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
+}
+</style>
+"""
+
+
+METRORA_WORKSPACE_V2_CSS = """
+<style>
+/* Workspace v2: a focused operating canvas with quiet navigation and visible flow. */
+@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700&display=swap');
+
+:root {
+    color-scheme: dark;
+    --metrora-ink: #f2f5f8;
+    --metrora-muted: #96a2b1;
+    --metrora-line: #232e3a;
+    --metrora-paper: #080b10;
+    --metrora-white: #0e141c;
+    --metrora-violet: #7da7ff;
+    --metrora-blue: #7da7ff;
+    --metrora-mint: #55d6c7;
+    --metrora-lime: #a8c5ff;
+    --metrora-coral: #efbd7f;
+}
+
+html, body, [class*="css"] {
+    background: var(--metrora-paper);
+    color: var(--metrora-ink);
+    font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+}
+
+[data-testid="stAppViewContainer"] {
+    background:
+        linear-gradient(rgba(255,255,255,.012) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,.012) 1px, transparent 1px),
+        radial-gradient(circle at 88% -8%, rgba(85, 214, 199, .075), transparent 31rem),
+        #080b10 !important;
+    background-size: 48px 48px, 48px 48px, auto, auto !important;
+}
+
+.block-container {
+    max-width: 1540px !important;
+    padding: 1.25rem 2.35rem 6rem !important;
+}
+
+[data-testid="stSidebar"] {
+    min-width: 17rem !important;
+    max-width: 17rem !important;
+    border-right: 1px solid #202a35 !important;
+    background: #0a0e14 !important;
+}
+
+[data-testid="stSidebar"] > div:first-child { width: 17rem !important; }
+[data-testid="stSidebar"] [data-testid="stSidebarContent"] { padding: 1.35rem 1rem 1rem !important; }
+
+.metrora-sidebar-brand {
+    margin: .1rem .3rem 2rem;
+    padding: 0;
+}
+.metrora-sidebar-mark,
+.metrora-sidebar-mark .metrora-logo { width: 2.55rem; height: 2.55rem; }
+.metrora-sidebar-name {
+    color: #f4f7f9 !important;
+    font-family: 'Manrope', 'Outfit', sans-serif;
+    font-size: 1.02rem;
+    letter-spacing: -.035em;
+}
+.metrora-sidebar-subtitle { color: #778495 !important; font-size: .58rem; letter-spacing: .11em; }
+
+.metrora-sidebar-label {
+    margin: 1.4rem .55rem .65rem;
+    color: #657284 !important;
+    font-size: .58rem;
+    letter-spacing: .14em;
+}
+
+.metrora-sidebar-status {
+    margin: 0 .2rem .75rem;
+    padding: .9rem .85rem .8rem;
+    border: 1px solid #222d39 !important;
+    border-radius: .78rem !important;
+    background: linear-gradient(145deg, rgba(17, 24, 33, .94), rgba(12, 17, 24, .94)) !important;
+}
+.metrora-sidebar-status-line { display: grid; gap: .25rem; }
+.metrora-sidebar-status-line strong {
+    overflow: hidden;
+    color: #e9eef4 !important;
+    font-size: .79rem;
+    font-weight: 650;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.metrora-sidebar-status-line span { color: #79dbd0; font-size: .68rem; font-weight: 700; }
+.metrora-sidebar-status small { color: #667487 !important; font-size: .61rem; }
+.metrora-sidebar-progress {
+    height: 3px;
+    margin: .8rem 0 .6rem;
+    overflow: hidden;
+    border-radius: 999px;
+    background: #222c37;
+}
+.metrora-sidebar-progress i {
+    display: block;
+    height: 100%;
+    border-radius: inherit;
+    background: linear-gradient(90deg, #7da7ff, #55d6c7);
+}
+
+[data-testid="stSidebar"] .st-key-workspace_nav_home button,
+[data-testid="stSidebar"] .st-key-workspace_nav_cost_explorer button,
+[data-testid="stSidebar"] .st-key-workspace_nav_plans_alerts button,
+[data-testid="stSidebar"] .st-key-workspace_nav_reports button,
+[data-testid="stSidebar"] .st-key-workspace_nav_advanced button {
+    display: flex !important;
+    justify-content: flex-start !important;
+    min-height: 2.65rem !important;
+    margin: .08rem 0;
+    padding: 0 .72rem !important;
+    border: 0 !important;
+    border-radius: .58rem !important;
+    background: transparent !important;
+    color: #8f9baa !important;
+    font-size: .82rem !important;
+    font-weight: 550 !important;
+    text-align: left !important;
+}
+[data-testid="stSidebar"] .st-key-workspace_nav_home button::before,
+[data-testid="stSidebar"] .st-key-workspace_nav_cost_explorer button::before,
+[data-testid="stSidebar"] .st-key-workspace_nav_plans_alerts button::before,
+[data-testid="stSidebar"] .st-key-workspace_nav_reports button::before,
+[data-testid="stSidebar"] .st-key-workspace_nav_advanced button::before {
+    width: 1.45rem;
+    margin-right: .25rem;
+    color: #596779;
+    font-family: 'Manrope', sans-serif;
+    font-size: .58rem;
+    font-weight: 700;
+    letter-spacing: .04em;
+}
+[data-testid="stSidebar"] .st-key-workspace_nav_home button::before { content: '01'; }
+[data-testid="stSidebar"] .st-key-workspace_nav_cost_explorer button::before { content: '02'; }
+[data-testid="stSidebar"] .st-key-workspace_nav_plans_alerts button::before { content: '03'; }
+[data-testid="stSidebar"] .st-key-workspace_nav_reports button::before { content: '04'; }
+[data-testid="stSidebar"] .st-key-workspace_nav_advanced button::before { content: '05'; }
+
+[data-testid="stSidebar"] .st-key-workspace_nav_home button:hover,
+[data-testid="stSidebar"] .st-key-workspace_nav_cost_explorer button:hover,
+[data-testid="stSidebar"] .st-key-workspace_nav_plans_alerts button:hover,
+[data-testid="stSidebar"] .st-key-workspace_nav_reports button:hover,
+[data-testid="stSidebar"] .st-key-workspace_nav_advanced button:hover {
+    background: #111821 !important;
+    color: #dfe5ec !important;
+}
+
+[data-testid="stSidebar"] .st-key-workspace_nav_home button[kind="primary"],
+[data-testid="stSidebar"] .st-key-workspace_nav_cost_explorer button[kind="primary"],
+[data-testid="stSidebar"] .st-key-workspace_nav_plans_alerts button[kind="primary"],
+[data-testid="stSidebar"] .st-key-workspace_nav_reports button[kind="primary"],
+[data-testid="stSidebar"] .st-key-workspace_nav_advanced button[kind="primary"] {
+    border: 1px solid #252f3b !important;
+    background: linear-gradient(90deg, rgba(125, 167, 255, .11), rgba(85, 214, 199, .045)) !important;
+    color: #f2f5f8 !important;
+}
+
+.metrora-sidebar-guidance {
+    margin: 1rem .25rem .5rem;
+    padding: .9rem .75rem 0;
+    border: 0 !important;
+    border-top: 1px solid #202a35 !important;
+    border-radius: 0 !important;
+    background: transparent !important;
+    color: #6f7c8d !important;
+    font-size: .67rem;
+    line-height: 1.55;
+}
+.metrora-sidebar-guidance strong { display: block; margin-bottom: .28rem; color: #9eabb9 !important; }
+
+.metrora-workspace-topbar {
+    display: block;
+    margin: .45rem 0 2rem;
+    padding: .65rem 0 1.6rem;
+    border: 0;
+    border-bottom: 1px solid #202a35;
+    background: transparent;
+}
+.metrora-workspace-location {
+    display: flex;
+    align-items: center;
+    gap: .52rem;
+    min-height: 1.8rem;
+    color: #657385;
+    font-size: .67rem;
+}
+.metrora-workspace-location i { color: #394656; font-style: normal; }
+.metrora-workspace-location strong { color: #a1adbb; font-weight: 600; }
+.metrora-workspace-state {
+    display: inline-flex;
+    align-items: center;
+    gap: .38rem;
+    margin-left: auto;
+    padding: .35rem .58rem;
+    border: 1px solid rgba(85, 214, 199, .18) !important;
+    border-radius: 999px;
+    background: rgba(85, 214, 199, .055) !important;
+    color: #76dacf !important;
+    font-size: .61rem;
+    font-weight: 700;
+    letter-spacing: .04em;
+}
+.metrora-workspace-state::before {
+    width: .36rem;
+    height: .36rem;
+    border-radius: 50%;
+    background: #55d6c7;
+    content: '';
+}
+.metrora-workspace-title-row {
+    display: flex;
+    align-items: end;
+    justify-content: space-between;
+    gap: 2.6rem;
+    padding-top: 1.05rem;
+}
+.metrora-workspace-title-copy { min-width: 0; }
+.metrora-workspace-topbar h1 {
+    margin: 0;
+    color: #f3f6f8 !important;
+    font-family: 'Manrope', 'Outfit', sans-serif;
+    font-size: clamp(1.8rem, 2.7vw, 2.7rem) !important;
+    font-weight: 650;
+    letter-spacing: -.055em;
+    line-height: 1.08;
+}
+.metrora-workspace-topbar p {
+    max-width: 46rem;
+    margin: .72rem 0 0 !important;
+    color: #8794a4 !important;
+    font-size: .84rem !important;
+}
+.metrora-workspace-command-meta { gap: .25rem; flex-wrap: nowrap; }
+.metrora-workspace-context-item {
+    min-width: 5.8rem;
+    padding: .18rem 1rem;
+    border-left: 1px solid #222d39;
+}
+.metrora-workspace-context-item small { color: #647284 !important; font-size: .55rem !important; }
+.metrora-workspace-context-item strong { color: #cfd7e1 !important; font-size: .7rem; }
+
+.metrora-analysis-flow {
+    display: grid;
+    grid-template-columns: 9rem minmax(0, 1fr);
+    align-items: center;
+    gap: 1.15rem;
+    margin: 0 0 1.6rem;
+    padding: 1rem 1.1rem;
+    border: 1px solid #222d39;
+    border-radius: .9rem;
+    background: rgba(13, 19, 27, .88);
+    box-shadow: 0 18px 48px rgba(0,0,0,.12);
+}
+.metrora-flow-heading { display: grid; gap: .2rem; }
+.metrora-flow-heading span { color: #dce3eb; font-size: .72rem; font-weight: 700; }
+.metrora-flow-heading small { color: #657385; font-size: .57rem; letter-spacing: .08em; text-transform: uppercase; }
+.metrora-flow-track {
+    display: grid;
+    grid-template-columns: minmax(7rem, 1fr) 2rem minmax(7rem, 1fr) 2rem minmax(7rem, 1fr) 2rem minmax(7rem, 1fr);
+    align-items: center;
+}
+.metrora-flow-node { display: flex; align-items: center; gap: .62rem; min-width: 0; }
+.metrora-flow-node > span {
+    display: grid;
+    flex: 0 0 1.65rem;
+    width: 1.65rem;
+    height: 1.65rem;
+    place-items: center;
+    border: 1px solid #2a3542;
+    border-radius: .5rem;
+    background: #101720;
+    color: #677487;
+    font-size: .56rem;
+    font-weight: 800;
+}
+.metrora-flow-node > div { min-width: 0; }
+.metrora-flow-node strong,
+.metrora-flow-node small { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.metrora-flow-node strong { color: #b7c1cc; font-size: .69rem; }
+.metrora-flow-node small { margin-top: .16rem; color: #687587; font-size: .57rem; }
+.metrora-flow-node.is-ready > span {
+    border-color: rgba(85, 214, 199, .24);
+    background: rgba(85, 214, 199, .09);
+    color: #79ddd2;
+}
+.metrora-flow-node.is-ready strong { color: #e0e6ec; }
+.metrora-flow-link { position: relative; height: 1px; background: #2a3541; }
+.metrora-flow-link i {
+    position: absolute;
+    top: -2px;
+    left: 0;
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: #55d6c7;
+    opacity: .65;
+    animation: metrora-workspace-flow 5s ease-in-out infinite;
+}
+
+.st-key-workspace-kpi-strip,
+.st-key-explorer-kpi-strip {
+    margin: .2rem 0 0;
+    padding: .2rem;
+    overflow: hidden;
+    border: 1px solid #222d39;
+    border-radius: .92rem;
+    background: rgba(13, 19, 27, .92);
+}
+.st-key-workspace-kpi-strip [data-testid="stHorizontalBlock"],
+.st-key-explorer-kpi-strip [data-testid="stHorizontalBlock"] { gap: 0 !important; }
+.st-key-workspace-kpi-strip [data-testid="stColumn"],
+.st-key-explorer-kpi-strip [data-testid="stColumn"] { min-width: 0; }
+.st-key-workspace-kpi-strip [data-testid="stMetric"],
+.st-key-explorer-kpi-strip [data-testid="stMetric"] {
+    min-height: 7.2rem;
+    padding: 1rem 1.05rem !important;
+    border: 0 !important;
+    border-right: 1px solid #222d39 !important;
+    border-radius: 0 !important;
+    background: transparent !important;
+}
+.st-key-workspace-kpi-strip [data-testid="stColumn"]:last-child [data-testid="stMetric"],
+.st-key-explorer-kpi-strip [data-testid="stColumn"]:last-child [data-testid="stMetric"] { border-right: 0 !important; }
+[data-testid="stMetricLabel"] { color: #7f8c9c !important; font-size: .69rem !important; }
+[data-testid="stMetricValue"] {
+    max-width: 100%;
+    overflow: visible !important;
+    color: #f1f4f7 !important;
+    font-family: 'Manrope', 'Outfit', sans-serif !important;
+    font-size: clamp(1.25rem, 1.9vw, 1.9rem) !important;
+    letter-spacing: -.045em !important;
+    line-height: 1.15 !important;
+    white-space: normal !important;
+}
+[data-testid="stMetricDelta"] { font-size: .68rem !important; }
+
+.st-key-forecast_summary_metrics {
+    margin: 1.35rem 0 2rem;
+    padding: .2rem;
+    overflow: hidden;
+    border: 1px solid #222d39;
+    border-radius: .9rem;
+    background: rgba(12, 18, 26, .88);
+}
+.st-key-forecast_summary_metrics [data-testid="stHorizontalBlock"] { gap: 0 !important; }
+.st-key-forecast_summary_metrics [data-testid="stMetric"] {
+    min-height: 6.7rem;
+    padding: 1.1rem 1.2rem !important;
+    border-right: 1px solid #222d39;
+}
+.st-key-forecast_summary_metrics [data-testid="stColumn"]:last-child [data-testid="stMetric"] { border-right: 0; }
+
+.st-key-anomaly_summary_metric {
+    margin: 1.35rem 0 2rem;
+    padding: 1.15rem 1.3rem;
+    border: 1px solid #26384d;
+    border-radius: .85rem;
+    background: linear-gradient(90deg, rgba(125, 167, 255, .09), rgba(13, 19, 27, .84));
+}
+.st-key-anomaly_summary_metric [data-testid="stMetric"] { min-height: 4.4rem; }
+.st-key-anomaly_summary_metric [data-testid="stMetricLabel"] { margin-bottom: .5rem; }
+
+.metrora-period-context {
+    display: flex;
+    align-items: center;
+    gap: .62rem;
+    margin: .7rem .2rem 0;
+    color: #687587;
+    font-size: .65rem;
+}
+.metrora-period-context span { color: #8d9aaa; }
+.metrora-period-context strong { color: #c1cad4; font-weight: 600; }
+.metrora-period-context small { color: #657285; }
+
+.metrora-planning-strip {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(9rem, 1fr)) minmax(12rem, 1.35fr);
+    align-items: center;
+    gap: .8rem;
+    margin: .55rem 0 1.85rem;
+    padding: 1.15rem 1.3rem;
+    border: 1px solid #222d39;
+    border-radius: .82rem;
+    background: rgba(13, 19, 27, .82);
+}
+.metrora-planning-strip > div { display: grid; gap: .3rem; padding-right: 1.2rem; border-right: 1px solid #222d39; }
+.metrora-planning-strip span { color: #687587; font-size: .56rem; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; }
+.metrora-planning-strip strong { color: #d7dee6; font-size: .7rem; font-weight: 650; }
+.metrora-planning-strip small { padding-left: 1.2rem; color: #697688; font-size: .64rem; line-height: 1.5; }
+
+.metrora-decision-snapshot {
+    grid-template-columns: minmax(15rem, 1.45fr) repeat(3, minmax(10rem, 1fr));
+    margin: 1.45rem 0 2rem;
+    overflow: hidden;
+    border: 1px solid #222d39;
+    border-radius: .92rem;
+    background: rgba(12, 18, 26, .88);
+    box-shadow: 0 22px 54px rgba(0,0,0,.12);
+    animation: metrora-workspace-enter .55s ease both;
+}
+.metrora-snapshot-lead,
+.metrora-snapshot-signal { min-height: 8.4rem; padding: 1.15rem; }
+.metrora-snapshot-lead { background: linear-gradient(135deg, rgba(125,167,255,.09), rgba(85,214,199,.035)); }
+.metrora-snapshot-signal { border-left-color: #222d39; }
+.metrora-decision-snapshot span { color: #6e7b8d !important; font-size: .56rem !important; }
+.metrora-decision-snapshot strong { color: #e8edf2 !important; font-family: 'Manrope', sans-serif; font-size: .95rem; }
+.metrora-decision-snapshot p { color: #8794a4 !important; font-size: .72rem !important; }
+
+.metrora-subsection-label {
+    margin: 2.3rem 0 .8rem;
+    color: #6d7a8b !important;
+    font-size: .59rem;
+    letter-spacing: .14em;
+}
+
+.st-key-home-trend-surface,
+.st-key-home-attention-surface,
+.st-key-explorer-trend-surface,
+.st-key-explorer-breakdown-surface,
+.st-key-explorer-control-bar {
+    min-width: 0;
+    padding: 1.05rem 1.05rem .85rem;
+    border: 1px solid #222d39;
+    border-radius: .92rem;
+    background: rgba(12, 18, 26, .88);
+}
+.st-key-home-trend-surface,
+.st-key-explorer-trend-surface,
+.st-key-explorer-breakdown-surface { overflow: hidden; }
+.st-key-home-attention-surface { min-height: 100%; }
+.st-key-explorer-control-bar { margin-bottom: 1rem; padding: 1rem 1.15rem 1.15rem; }
+.metrora-panel-heading {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    margin: .05rem .1rem .65rem;
+}
+.metrora-panel-heading span { color: #dce3ea; font-family: 'Manrope', sans-serif; font-size: .78rem; font-weight: 700; }
+.metrora-panel-heading small { color: #657284; font-size: .6rem; }
+.stPlotlyChart, .js-plotly-plot, .plot-container { min-width: 0 !important; max-width: 100% !important; }
+
+.metrora-attention-item {
+    margin: 0;
+    padding: .9rem .1rem;
+    border: 0;
+    border-bottom: 1px solid #222d39;
+    border-radius: 0;
+    background: transparent;
+}
+.metrora-attention-item > span { width: .42rem; height: .42rem; margin-top: .26rem; }
+.metrora-attention-item strong { color: #dfe5eb !important; font-size: .75rem; }
+.metrora-attention-item p { color: #7f8c9c !important; font-size: .68rem !important; }
+.st-key-home_open_explorer button,
+.st-key-home_open_anomalies button,
+.st-key-home_open_budget button {
+    min-height: 2.15rem !important;
+    margin: .45rem 0 .25rem;
+    border: 0 !important;
+    background: #151d27 !important;
+    color: #bec8d3 !important;
+    font-size: .69rem !important;
+}
+
+[data-testid="stAppViewContainer"] [data-testid="stButton"] button[kind="primary"],
+[data-testid="stAppViewContainer"] [data-testid="stFormSubmitButton"] button,
+[data-testid="stFileUploaderDropzone"] button {
+    border-color: #86acff !important;
+    background: #86acff !important;
+    color: #08101a !important;
+    box-shadow: 0 10px 28px rgba(90, 131, 220, .17) !important;
+}
+[data-testid="stAppViewContainer"] [data-testid="stButton"] button[kind="primary"] *,
+[data-testid="stAppViewContainer"] [data-testid="stFormSubmitButton"] button *,
+[data-testid="stFileUploaderDropzone"] button * { color: #08101a !important; }
+
+.metrora-driver-list { overflow: hidden; border: 1px solid #222d39; border-radius: .9rem; background: rgba(12,18,26,.72); }
+.metrora-driver-row { padding: 1.15rem 1.2rem; border-bottom-color: #222d39; }
+.metrora-driver-head span { background: rgba(125,167,255,.1); color: #a9c1ee; }
+
+.metrora-report-decision {
+    margin: 1rem 0 1.25rem;
+    padding: 1.45rem 1.55rem 1.35rem;
+    border-left: 3px solid #7da7ff;
+    background: linear-gradient(90deg, rgba(125,167,255,.09), rgba(125,167,255,.015));
+}
+.metrora-report-decision.positive {
+    border-left-color: #55d6c7;
+    background: linear-gradient(90deg, rgba(85,214,199,.09), rgba(85,214,199,.012));
+}
+.metrora-report-decision.risk {
+    border-left-color: #ef927f;
+    background: linear-gradient(90deg, rgba(239,146,127,.10), rgba(239,146,127,.012));
+}
+.metrora-report-decision > span {
+    display: inline-flex;
+    margin-bottom: .9rem;
+    color: #9cbcff;
+    font-size: .61rem;
+    font-weight: 800;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+}
+.metrora-report-decision.positive > span { color: #79ddd2; }
+.metrora-report-decision.risk > span { color: #f3a697; }
+.metrora-report-decision h2 {
+    max-width: 55rem;
+    margin: 0;
+    color: #f2f5f8 !important;
+    font-family: 'Manrope', sans-serif;
+    font-size: clamp(1.45rem, 2.4vw, 2.25rem) !important;
+    line-height: 1.18;
+    letter-spacing: -.045em;
+}
+.metrora-report-decision p {
+    max-width: 48rem;
+    margin: .75rem 0 0 !important;
+    color: #91a0b0 !important;
+    font-size: .78rem !important;
+    line-height: 1.6;
+}
+.metrora-report-answers {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(14rem, 100%), 1fr));
+    margin-bottom: 2.6rem;
+    border-top: 1px solid #26313e;
+    border-bottom: 1px solid #26313e;
+}
+.metrora-report-answers article {
+    min-width: 0;
+    padding: 1.35rem 1.4rem 1.5rem 0;
+}
+.metrora-report-answers article + article {
+    padding-left: 1.4rem;
+    border-left: 1px solid #26313e;
+}
+.metrora-report-answers small {
+    display: block;
+    margin-bottom: .8rem;
+    color: #6f96e7;
+    font-size: .6rem;
+    font-weight: 800;
+    letter-spacing: .09em;
+    text-transform: uppercase;
+}
+.metrora-report-answers p {
+    margin: 0 !important;
+    color: #c5ced8 !important;
+    font-size: .78rem !important;
+    line-height: 1.66;
+}
+.metrora-report-action { padding: 1.25rem 1.3rem !important; }
+.metrora-report-action > div { min-width: 0; }
+.metrora-report-action small { margin-top: .48rem; line-height: 1.55; }
+
+.metrora-automation-note,
+.metrora-source-strip,
+.metrora-advanced-note {
+    padding: 1rem 1.1rem !important;
+}
+
+[data-testid="stExpander"] > details > summary {
+    min-height: 3rem;
+    padding: .75rem 1rem !important;
+}
+[data-testid="stExpander"] [data-testid="stExpanderDetails"] {
+    padding: .35rem 1rem 1rem !important;
+}
+
+.stTabs [data-baseweb="tab-list"] {
+    width: fit-content;
+    gap: .2rem !important;
+    margin: 0 0 1.55rem;
+    padding: .24rem !important;
+    border: 1px solid #222d39 !important;
+    border-radius: .7rem;
+    background: #0c1219;
+}
+.stTabs [data-baseweb="tab"] {
+    min-height: 2.45rem;
+    padding: 0 1rem;
+    border-radius: .5rem;
+    color: #7d8998 !important;
+    font-size: .72rem;
+}
+.stTabs [aria-selected="true"] { background: #18212c !important; color: #e7ecf1 !important; }
+.stTabs [data-baseweb="tab-highlight"] { display: none !important; }
+
+[data-testid="stExpander"] {
+    overflow: hidden;
+    border-color: #222d39 !important;
+    border-radius: .78rem !important;
+    background: #0d131b !important;
+}
+[data-testid="stExpander"] > details > summary,
+[data-testid="stExpander"] [data-testid="stExpanderToggleDetails"],
+[data-testid="stExpander"] [data-testid="stExpanderDetails"],
+[data-testid="stExpander"] > details > summary * { background: #0d131b !important; }
+
+[data-testid="stDataFrame"],
+.metrora-table-shell { border-color: #222d39 !important; background: #0d131b !important; }
+
+@keyframes metrora-workspace-flow {
+    0%, 15% { left: 0; opacity: 0; }
+    35%, 70% { opacity: .75; }
+    88%, 100% { left: calc(100% - 5px); opacity: 0; }
+}
+@keyframes metrora-workspace-enter {
+    from { opacity: 0; transform: translateY(6px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+@media (max-width: 1120px) {
+    .metrora-workspace-title-row { align-items: flex-start; flex-direction: column; }
+    .metrora-workspace-command-meta { flex-wrap: wrap; }
+    .metrora-analysis-flow { grid-template-columns: 1fr; }
+    .metrora-decision-snapshot { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .metrora-planning-strip { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    .metrora-planning-strip small { grid-column: 1 / -1; margin-top: .75rem; padding: .7rem 0 0; border-top: 1px solid #222d39; }
+}
+
+@media (max-width: 760px) {
+    .block-container { padding: 1rem 1rem 4rem !important; }
+    .metrora-flow-track { grid-template-columns: 1fr; gap: .55rem; }
+    .metrora-flow-link { display: none; }
+    .metrora-period-context { align-items: flex-start; flex-direction: column; }
+    .metrora-planning-strip { grid-template-columns: 1fr; }
+    .metrora-planning-strip > div { padding: .65rem 0; border-right: 0; border-bottom: 1px solid #222d39; }
+    .metrora-decision-snapshot { grid-template-columns: 1fr; }
+    .metrora-snapshot-signal { border-left: 0; border-top: 1px solid #222d39; }
+    .st-key-workspace-kpi-strip [data-testid="stHorizontalBlock"],
+    .st-key-explorer-kpi-strip [data-testid="stHorizontalBlock"] { gap: .35rem !important; }
+    .st-key-workspace-kpi-strip [data-testid="stMetric"],
+    .st-key-explorer-kpi-strip [data-testid="stMetric"] { border-right: 0 !important; border-bottom: 1px solid #222d39 !important; }
+    .metrora-report-answers { grid-template-columns: 1fr; }
+    .metrora-report-answers article,
+    .metrora-report-answers article + article {
+        padding: 1.15rem .2rem !important;
+        border-left: 0;
+        border-bottom: 1px solid #26313e;
+    }
+    .metrora-report-answers article:last-child { border-bottom: 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .metrora-flow-link i,
+    .metrora-decision-snapshot { animation: none !important; }
 }
 </style>
 """
@@ -2109,20 +2857,407 @@ def inject_styles() -> None:
     st.markdown(METRORA_CSS, unsafe_allow_html=True)
     st.markdown(METRORA_DARK_CSS, unsafe_allow_html=True)
     st.markdown(METRORA_REFINED_CSS, unsafe_allow_html=True)
+    st.markdown(METRORA_WORKSPACE_V2_CSS, unsafe_allow_html=True)
+    st.markdown(METRORA_SCROLL_REVEAL_CSS, unsafe_allow_html=True)
+
+
+METRORA_SCROLL_REVEAL_CSS = """
+<style>
+/* Applied only after the scroll observer has attached. This prevents below-the-fold
+   content from animating before a visitor reaches it. */
+.metrora-scroll-reveal {
+    opacity: 0;
+    transform: translate3d(0, 18px, 0);
+    transition: opacity .56s cubic-bezier(.2, .7, .2, 1), transform .56s cubic-bezier(.2, .7, .2, 1);
+    will-change: opacity, transform;
+}
+
+.metrora-scroll-reveal.metrora-scroll-reveal--visible {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .metrora-scroll-reveal,
+    .metrora-scroll-reveal.metrora-scroll-reveal--visible {
+        opacity: 1 !important;
+        transform: none !important;
+        transition: none !important;
+    }
+}
+</style>
+"""
+
+
+def enable_scroll_reveals() -> None:
+    """Attach one lightweight observer that reveals meaningful content on scroll."""
+    from streamlit.components.v1 import html
+
+    html(
+        """
+        <script>
+        (() => {
+          try {
+            const host = window.parent;
+            const doc = host.document;
+            const selector = [
+              '.metrora-premium-hero', '.metrora-product-section', '.metrora-model-map',
+              '.metrora-product-principle', '.metrora-product-story', '.metrora-evidence-visual',
+              '.metrora-product-step', '.metrora-product-output', '.metrora-product-card',
+              '.metrora-product-split', '.metrora-scenario-card', '.metrora-access-note',
+              '.metrora-workspace-topbar', '.metrora-analysis-flow', '.metrora-planning-strip',
+              '.metrora-decision-snapshot', '.metrora-report-decision', '.metrora-report-answers',
+              '.metrora-driver-list', '.metrora-table-shell', '.metrora-automation-note',
+              '.metrora-source-strip', '.metrora-advanced-note', '.st-key-workspace-kpi-strip',
+              '.st-key-explorer-kpi-strip', '.st-key-home-trend-surface',
+              '.st-key-home-attention-surface', '.st-key-explorer-trend-surface',
+              '.st-key-explorer-breakdown-surface', '.st-key-explorer-control-bar',
+              '.st-key-anomaly_summary_metric', '.st-key-forecast_summary_metrics'
+            ].join(',');
+
+            const reveal = (entry) => {
+              entry.target.classList.add('metrora-scroll-reveal--visible');
+              host.__metroraScrollObserver.unobserve(entry.target);
+            };
+
+            if (!host.__metroraScrollObserver) {
+              host.__metroraScrollObserver = new IntersectionObserver((entries) => {
+                entries.forEach((entry) => {
+                  if (entry.isIntersecting) reveal(entry);
+                });
+              }, { root: null, rootMargin: '0px 0px -8% 0px', threshold: 0.08 });
+            }
+
+            const scan = () => {
+              doc.querySelectorAll(selector).forEach((element) => {
+                if (element.dataset.metroraRevealAttached === 'true') return;
+                element.dataset.metroraRevealAttached = 'true';
+                element.classList.add('metrora-scroll-reveal');
+                host.__metroraScrollObserver.observe(element);
+              });
+            };
+
+            if (!host.__metroraScrollRevealWatch) {
+              host.__metroraScrollRevealWatch = new MutationObserver(scan);
+              host.__metroraScrollRevealWatch.observe(doc.body, { childList: true, subtree: true });
+            }
+            scan();
+          } catch (_) {
+            // The workspace remains fully usable if an embedding context blocks parent access.
+          }
+        })();
+        </script>
+        """,
+        height=0,
+        width=0,
+    )
+
+
+TOP_NAVIGATION_CSS = """
+<style>
+/* The application uses a single full-width canvas. Navigation lives above the work,
+   so content never competes with a persistent side rail. */
+[data-testid="stSidebar"],
+[data-testid="collapsedControl"] {
+    display: none !important;
+}
+
+.metrora-topbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1.25rem;
+    padding: .2rem 0 1rem;
+    border-bottom: 1px solid #202b38;
+}
+
+.metrora-topbar-brand {
+    display: inline-flex;
+    align-items: center;
+    gap: .7rem;
+    min-width: 0;
+}
+
+.metrora-topbar-mark {
+    display: inline-flex;
+    width: 2.1rem;
+    height: 2.1rem;
+    flex: 0 0 2.1rem;
+}
+
+.metrora-topbar-mark .metrora-logo { width: 100%; height: 100%; }
+
+.metrora-topbar-name {
+    color: #f4f7fb;
+    font-family: 'Outfit', 'DM Sans', sans-serif;
+    font-size: 1rem;
+    font-weight: 700;
+    line-height: 1.05;
+    letter-spacing: -.025em;
+}
+
+.metrora-topbar-subtitle,
+.metrora-topbar-context {
+    color: #8290a2;
+    font-size: .69rem;
+    font-weight: 650;
+    letter-spacing: .055em;
+    line-height: 1.35;
+    text-transform: uppercase;
+}
+
+.metrora-topbar-context {
+    display: inline-flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: .45rem;
+    text-align: right;
+}
+
+.metrora-topbar-context i {
+    width: .42rem;
+    height: .42rem;
+    border-radius: 50%;
+    background: #55d6c7;
+    box-shadow: 0 0 0 4px rgba(85, 214, 199, .1);
+}
+
+.st-key-metrora_top_nav {
+    margin: .7rem 0 1.8rem;
+}
+
+.st-key-metrora_top_nav [data-testid="stHorizontalBlock"] {
+    align-items: stretch;
+    gap: .45rem !important;
+}
+
+.st-key-metrora_top_nav [data-testid="stButton"] button {
+    min-height: 2.45rem;
+    padding: .48rem .68rem;
+    border: 1px solid transparent;
+    border-radius: .58rem;
+    background: transparent;
+    color: #9aa7b8;
+    font-size: .78rem;
+    font-weight: 650;
+    line-height: 1.2;
+    box-shadow: none;
+    transition: color .16s ease, background .16s ease, border-color .16s ease;
+}
+
+.st-key-metrora_top_nav [data-testid="stButton"] button:hover {
+    color: #eef4fb;
+    background: #121d2a;
+    border-color: #2a3a4d;
+}
+
+.st-key-metrora_top_nav [data-testid="stButton"] button[kind="primary"] {
+    color: #eaf5ff;
+    background: #162a3d;
+    border-color: #31516d;
+}
+
+.st-key-metrora_top_nav .st-key-top_workspace_new_analysis button,
+.st-key-metrora_top_nav .st-key-top_workspace_back_to_product button {
+    color: #b8c7d8;
+    background: #101a27;
+    border-color: #27384b;
+}
+
+.metrora-product-top-links {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    flex-wrap: wrap;
+    gap: .25rem;
+    margin: .75rem 0 2.1rem;
+    padding-bottom: .85rem;
+    border-bottom: 1px solid #202b38;
+}
+
+.metrora-product-top-links a {
+    padding: .52rem .72rem;
+    border: 1px solid transparent;
+    border-radius: .48rem;
+    color: #9aa7b8 !important;
+    font-size: .78rem;
+    font-weight: 650;
+    line-height: 1.2;
+    text-decoration: none !important;
+    transition: color .16s ease, background .16s ease, border-color .16s ease, transform .16s ease;
+}
+
+.metrora-product-top-links a:hover {
+    border-color: #2a3a4d;
+    background: #121d2a;
+    color: #edf4fb !important;
+    transform: translateY(-1px);
+}
+
+.metrora-product-top-links .metrora-product-demo-link {
+    margin-left: .35rem;
+    border-color: #31516d;
+    background: #162a3d;
+    color: #eaf5ff !important;
+}
+
+@media (max-width: 760px) {
+    .metrora-topbar { align-items: flex-start; }
+    .metrora-topbar-context { max-width: 12rem; }
+    .st-key-metrora_top_nav [data-testid="stHorizontalBlock"] { gap: .25rem !important; }
+    .st-key-metrora_top_nav [data-testid="stButton"] button { font-size: .69rem; padding: .42rem .25rem; }
+    .metrora-product-top-links { justify-content: flex-start; }
+}
+</style>
+"""
+
+
+def render_top_navigation(settings: Settings) -> None:
+    """Render the full-width navigation shared by product and workspace views."""
+    import streamlit as st
+
+    from .navigation import set_product_route, set_workspace_route
+
+    is_workspace = bool(st.session_state.get("demo_authenticated", False))
+    has_source = st.session_state.get("loaded_table") is not None
+    has_model = st.session_state.get("normalized_table") is not None
+    report = st.session_state.get("quality_report")
+    analysis_ready = bool(has_model and report is not None and report.ready_for_analysis)
+
+    if is_workspace:
+        workspace_label = st.session_state.get(
+            "demo_workspace", f"{settings.app_env.title()} workspace"
+        )
+        status_label = "Analysis ready" if analysis_ready else "Review needed"
+        context = f"<i></i>{escape(str(workspace_label))} / {status_label}"
+    else:
+        context = "Local product preview / no sign-in required"
+
+    st.markdown(TOP_NAVIGATION_CSS, unsafe_allow_html=True)
+    st.markdown(
+        f"""
+        <header class="metrora-topbar">
+            <div class="metrora-topbar-brand">
+                <span class="metrora-topbar-mark">{METRORA_LOGO_SVG}</span>
+                <div>
+                    <div class="metrora-topbar-name">Metrora</div>
+                    <div class="metrora-topbar-subtitle">Cloud FinOps intelligence</div>
+                </div>
+            </div>
+            <div class="metrora-topbar-context">{context}</div>
+        </header>
+        """,
+        unsafe_allow_html=True,
+    )
+
+    if not is_workspace:
+        if st.session_state.get("product_page", "Product") == "Demo":
+            st.markdown(
+                """
+                <nav class="metrora-product-top-links" aria-label="Product navigation">
+                    <a class="metrora-product-demo-link" href="?surface=product&amp;page=Product" target="_self">Back to product</a>
+                </nav>
+                """,
+                unsafe_allow_html=True,
+            )
+            return
+        st.markdown(
+            """
+            <nav class="metrora-product-top-links" aria-label="Product sections">
+                <a href="#metrora-overview">Overview</a>
+                <a href="#metrora-workflow">How it works</a>
+                <a href="#metrora-evidence">Trust &amp; evidence</a>
+                <a class="metrora-product-demo-link" href="?surface=product&amp;page=Demo" target="_self">Explore demos</a>
+            </nav>
+            """,
+            unsafe_allow_html=True,
+        )
+        return
+
+    pages = (
+        ("Overview", "Home", "home"),
+        ("Explore spend", "Cost explorer", "cost_explorer"),
+        ("Forecast & alerts", "Plans & alerts", "plans_alerts"),
+        ("Reports & exports", "Reports", "reports"),
+        ("Data settings", "Advanced", "advanced"),
+    )
+    legacy_pages = {
+        "Overview": "Home",
+        "Spend explorer": "Cost explorer",
+        "Forecast & alerts": "Plans & alerts",
+        "Reports & exports": "Reports",
+        "Data settings": "Advanced",
+        "Data & quality": "Advanced",
+        "Investigate": "Plans & alerts",
+    }
+    current_page = legacy_pages.get(
+        st.session_state.get("workspace_page", "Home"),
+        st.session_state.get("workspace_page", "Home"),
+    )
+    st.session_state["workspace_page"] = current_page
+
+    with st.container(key="metrora_top_nav"):
+        columns = st.columns([1, 1.25, 1.4, 1.35, 1.1, 1, 1], gap="small")
+        for column, (label, destination, slug) in zip(columns[:5], pages, strict=True):
+            with column:
+                if st.button(
+                    label,
+                    key=f"top_workspace_nav_{slug}",
+                    type="primary" if destination == current_page else "tertiary",
+                    width="stretch",
+                ):
+                    set_workspace_route(destination)
+                    st.rerun()
+        with columns[5]:
+            if st.button(
+                "New analysis",
+                key="top_workspace_new_analysis",
+                disabled=not (has_source or has_model),
+                width="stretch",
+                help="Clear the current data and start a new analysis.",
+            ):
+                reset_workspace_state()
+                for key in ("demo_mode", "demo_scenario", "demo_workspace"):
+                    st.session_state.pop(key, None)
+                set_workspace_route("Home", scenario_id=None)
+                st.rerun()
+        with columns[6]:
+            if st.button(
+                "Exit demo",
+                key="top_workspace_back_to_product",
+                width="stretch",
+                help="Return to the Metrora demo scenarios.",
+            ):
+                reset_workspace_state()
+                for key in (
+                    "demo_authenticated",
+                    "demo_mode",
+                    "demo_scenario",
+                    "demo_user_email",
+                    "demo_workspace",
+                ):
+                    st.session_state.pop(key, None)
+                set_product_route("Demo")
+                st.rerun()
 
 
 def apply_plotly_theme(figure):
     """Apply Metrora's fixed dark chart palette."""
-    text = "#f2f5fb"
-    muted = "#9eaabd"
-    grid = "rgba(158,170,189,.16)"
-    line = "#273347"
+    text = "#edf2f7"
+    muted = "#8794a4"
+    grid = "rgba(135,148,164,.14)"
+    line = "#222d39"
     figure.update_layout(
         paper_bgcolor="rgba(0,0,0,0)",
         plot_bgcolor="rgba(0,0,0,0)",
         font={"color": text, "family": "DM Sans"},
-        title_font={"color": text, "family": "Outfit"},
+        title_font={"color": text, "family": "Manrope"},
         legend={"font": {"color": muted}},
+        hoverlabel={
+            "bgcolor": "#111821",
+            "bordercolor": "#2b3744",
+            "font": {"color": text, "family": "DM Sans"},
+        },
         xaxis={
             "gridcolor": grid,
             "linecolor": line,
@@ -2227,9 +3362,70 @@ def render_brand_header() -> None:
             )
 
 
+def render_product_sidebar() -> None:
+    """Render the public-product navigation in the same persistent left rail."""
+    import streamlit as st
+
+    from .navigation import set_product_route
+
+    pages = (
+        ("Product overview", "Product", "product"),
+        ("How it works", "Workflow", "workflow"),
+        ("Trust & evidence", "Evidence", "evidence"),
+        ("Demo scenarios", "Demo", "demo"),
+    )
+    current_page = st.session_state.get("product_page", "Product")
+    destinations = {destination for _, destination, _ in pages}
+    if current_page not in destinations:
+        current_page = "Product"
+        st.session_state["product_page"] = current_page
+
+    with st.sidebar:
+        st.markdown(
+            f"""
+            <div class="metrora-sidebar-brand">
+                <span class="metrora-sidebar-mark">{METRORA_LOGO_SVG}</span>
+                <div>
+                    <div class="metrora-sidebar-name">Metrora</div>
+                    <div class="metrora-sidebar-subtitle">Cloud FinOps intelligence</div>
+                </div>
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
+        st.markdown(
+            '<div class="metrora-sidebar-label">Explore Metrora</div>', unsafe_allow_html=True
+        )
+        for label, destination, slug in pages:
+            if st.button(
+                label,
+                key=f"product_nav_{slug}",
+                type="primary" if current_page == destination else "tertiary",
+                width="stretch",
+            ):
+                set_product_route(destination)
+                st.rerun()
+        st.divider()
+        st.markdown(
+            """
+            <div class="metrora-sidebar-guidance">
+                <strong>Start with a scenario</strong>
+                Choose a ready-to-share baseline, a data-quality issue, or a future-risk case.
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
+        if st.button("Choose a demo scenario", key="product_nav_demo_cta", width="stretch"):
+            set_product_route("Demo")
+            st.rerun()
+        st.caption("Synthetic local data · no sign-in required")
+
+
 def render_sidebar(settings: Settings) -> None:
     """Render simple workspace navigation and current-source context."""
     import streamlit as st
+
+    from .navigation import set_product_route, set_workspace_route
 
     with st.sidebar:
         st.markdown(
@@ -2265,25 +3461,33 @@ def render_sidebar(settings: Settings) -> None:
         )
         if st.session_state.get("demo_mode"):
             workspace_label = "Guided demo workspace"
+        progress = 100 if analysis_ready else 66 if has_model else 33 if has_source else 8
         st.markdown(
             '<div class="metrora-sidebar-label">Current workspace</div>'
-            f'<div class="metrora-sidebar-status"><strong>● {status_label}</strong><br>'
-            f"{workspace_label}</div>",
+            '<div class="metrora-sidebar-status">'
+            f'<div class="metrora-sidebar-status-line"><strong>{escape(workspace_label)}</strong>'
+            f"<span>{escape(status_label)}</span></div>"
+            '<div class="metrora-sidebar-progress" aria-hidden="true">'
+            f'<i style="width:{progress}%"></i></div>'
+            "<small>Local analytical session</small></div>",
             unsafe_allow_html=True,
         )
 
         pages = (
-            ("Home", "home"),
-            ("Cost explorer", "cost_explorer"),
-            ("Plans & alerts", "plans_alerts"),
-            ("Reports", "reports"),
-            ("Advanced", "advanced"),
+            ("Overview", "Home", "home"),
+            ("Spend explorer", "Cost explorer", "cost_explorer"),
+            ("Forecast & alerts", "Plans & alerts", "plans_alerts"),
+            ("Reports & exports", "Reports", "reports"),
+            ("Data settings", "Advanced", "advanced"),
         )
         legacy_pages = {
             "Overview": "Home",
+            "Spend explorer": "Cost explorer",
+            "Forecast & alerts": "Plans & alerts",
+            "Reports & exports": "Reports",
+            "Data settings": "Advanced",
             "Data & quality": "Advanced",
             "Investigate": "Plans & alerts",
-            "Reports & exports": "Reports",
         }
         current_page = legacy_pages.get(
             st.session_state.get("workspace_page", "Home"),
@@ -2291,20 +3495,21 @@ def render_sidebar(settings: Settings) -> None:
         )
         st.session_state["workspace_page"] = current_page
         st.markdown('<div class="metrora-sidebar-label">Workspace</div>', unsafe_allow_html=True)
-        for label, slug in pages:
+        for label, destination, slug in pages:
             if st.button(
                 label,
                 key=f"workspace_nav_{slug}",
-                type="primary" if current_page == label else "tertiary",
+                type="primary" if current_page == destination else "tertiary",
                 width="stretch",
             ):
-                st.session_state["workspace_page"] = label
+                set_workspace_route(destination)
                 st.rerun()
         st.markdown(
             """
             <div class="metrora-sidebar-guidance">
-                Home handles the standard workflow automatically. Open Advanced only for
-                mapping exceptions, reconciliation detail, or model tuning.
+                <strong>Automated by default</strong>
+                Overview handles the standard workflow. Open Data settings only for mapping
+                exceptions, reconciliation detail, or model tuning.
             </div>
             """,
             unsafe_allow_html=True,
@@ -2319,7 +3524,9 @@ def render_sidebar(settings: Settings) -> None:
             help="Clear the current data and begin a new analysis.",
         ):
             reset_workspace_state()
-            st.session_state["workspace_page"] = "Home"
+            for key in ("demo_mode", "demo_scenario", "demo_workspace"):
+                st.session_state.pop(key, None)
+            set_workspace_route("Home", scenario_id=None)
             st.rerun()
         if st.button(
             "Back to product page",
@@ -2330,8 +3537,10 @@ def render_sidebar(settings: Settings) -> None:
             reset_workspace_state()
             st.session_state.pop("demo_authenticated", None)
             st.session_state.pop("demo_mode", None)
+            st.session_state.pop("demo_scenario", None)
             st.session_state.pop("demo_user_email", None)
             st.session_state.pop("demo_workspace", None)
+            set_product_route("Demo")
             st.rerun()
         st.caption(f"Local calculations · AI: {settings.ai_provider}")
 

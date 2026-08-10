@@ -48,10 +48,11 @@ def _render_forecast(
         f"Method: {summary.method.replace('_', ' ')} · history: {summary.history_start} to "
         f"{summary.history_end} · uncertainty uses residual variation from the fitted history."
     )
-    metric_columns = st.columns(3)
-    metric_columns[0].metric("Forecast total", f"{summary.forecast_total:,.2f}")
-    metric_columns[1].metric("Forecast days", f"{summary.horizon_days:,}")
-    metric_columns[2].metric("Residual standard deviation", f"{summary.residual_std:,.2f}")
+    with st.container(key="forecast_summary_metrics"):
+        metric_columns = st.columns(3)
+        metric_columns[0].metric("Forecast total", f"{summary.forecast_total:,.2f}")
+        metric_columns[1].metric("Forecast days", f"{summary.horizon_days:,}")
+        metric_columns[2].metric("Residual standard deviation", f"{summary.residual_std:,.2f}")
     figure = go.Figure()
     figure.add_trace(
         go.Scatter(
@@ -139,9 +140,11 @@ def _render_anomalies(
         return
     st.caption(
         f"Method: prior rolling median/MAD · window: {summary.window_days} days · "
-        f"minimum history: {summary.minimum_history_days} days."
+        f"minimum history: {summary.minimum_history_days} days. This scan uses the same "
+        "recent comparison history shown on Overview."
     )
-    st.metric("Meaningful anomalies", f"{summary.anomaly_count:,}")
+    with st.container(key="anomaly_summary_metric"):
+        st.metric("Meaningful anomalies", f"{summary.anomaly_count:,}")
     if diagnostics.empty:
         st.info("No valid daily history is available for anomaly detection.")
         return

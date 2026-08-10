@@ -1,6 +1,6 @@
 import pandas as pd
 
-from data.demo.generate_demo_data import build_demo_tables
+from data.demo.generate_demo_data import build_demo_scenarios, build_demo_tables
 
 
 def test_demo_tables_are_deterministic_and_cover_the_demo_workflow():
@@ -14,3 +14,29 @@ def test_demo_tables_are_deterministic_and_cover_the_demo_workflow():
     assert {"Customers", "Transactions"}.issubset(set(metrics_one["metric_name"]))
     assert billing_one["Dept"].isna().any()
     assert budget_one["scope_type"].eq("total").any()
+
+
+def test_demo_scenarios_cover_healthy_quality_and_forward_risk_stories():
+    scenarios = build_demo_scenarios(seed=42)
+
+    assert set(scenarios) == {"healthy", "quality_risk", "forecast_risk"}
+
+    healthy, _, _ = scenarios["healthy"]
+    assert not healthy[["UsageStartDate", "ProductName", "UnblendedCost"]].isna().any().any()
+    assert healthy["Currency"].nunique() == 1
+    assert not healthy.duplicated().any()
+
+    quality_risk, _, _ = scenarios["quality_risk"]
+    assert "not-a-date" in set(quality_risk["UsageStartDate"])
+    assert "not-a-cost" in set(quality_risk["UnblendedCost"])
+    assert quality_risk["Currency"].nunique() > 1
+    assert quality_risk.duplicated().any()
+
+    forecast_risk, _, _ = scenarios["forecast_risk"]
+    daily = (
+        forecast_risk.assign(UsageStartDate=pd.to_datetime(forecast_risk["UsageStartDate"]))
+        .groupby("UsageStartDate")["UnblendedCost"]
+        .sum()
+        .sort_index()
+    )
+    assert daily.tail(7).mean() > daily.iloc[-14:-7].mean()

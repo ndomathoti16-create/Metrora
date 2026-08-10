@@ -89,7 +89,26 @@ The market and workflow rationale is documented in
 
 ### Product preview
 
-The product opens with a clear explanation of the workflow, then a guided demo loads a deterministic billing scenario into the same workspace used for real files. The product and workspace use the original Metrora signal-ribbon mark above rather than a borrowed asset or stock logo.
+The product opens as one clear, scrolling story: what Metrora does, how its decision path
+works, and why each result is trustworthy. The separate demo page then offers three
+one-click, deterministic stories in the same workspace used for real files:
+
+<p align="center">
+  <img src="docs/screenshots/product-overview-dark.png" alt="Metrora product overview" width="900">
+</p>
+
+<p align="center">
+  <img src="docs/screenshots/guided-workspace.png" alt="Metrora guided FinOps workspace" width="900">
+</p>
+
+- **Healthy baseline** shows clean, stable, fully owned spend that is ready to share.
+- **Data needs review** contains invalid required values, mixed currency, duplicates, and
+  ownership gaps, so Metrora blocks unreliable analysis and explains what must be fixed.
+- **Hidden future risk** is reconciled and under its current budget, but its recent run rate
+  accelerates enough to create a clear forecast warning and action plan.
+
+The product and workspace use the original Metrora signal-ribbon mark above rather than a
+borrowed asset or stock logo.
 
 ### Start with any supported billing export
 
@@ -192,12 +211,16 @@ python data/demo/generate_demo_data.py
 python -m streamlit run app.py
 ```
 
-The app opens on the Metrora product experience, organized into four focused pages: **Product**, **Workflow**, **Evidence**, and **Demo**. Choose **Try interactive demo** to enter a preloaded guided workspace. The local preview uses synthetic data and does not require an account, password, cloud credentials, or external identity provider.
+The app opens on a single scrolling Metrora product experience. Use **Explore demos** to open
+the separate scenario chooser, then select **Healthy baseline**, **Data needs review**, or
+**Hidden future risk**. Each option loads its complete billing, budget, and business context in
+one click. The local preview uses synthetic data and does not require an account, password,
+cloud credentials, or external identity provider.
 
 When using the blank workspace, upload `data/demo/cloud_billing_demo.csv`. Metrora prepares
-the cost model and opens Home automatically. Add `data/demo/budget_demo.csv` or
-`data/demo/business_metrics_demo.csv` from **Plans & alerts** when needed. The demo data is
-synthetic and deterministic.
+the cost model and opens **Overview** automatically. Add `data/demo/budget_demo.csv` or
+`data/demo/business_metrics_demo.csv` from **Forecast & alerts** when needed. The complete
+scenario file list is documented in [data/demo/README.md](data/demo/README.md).
 
 If PowerShell says a command or file cannot be found, check that the prompt is inside the repository folder and that the virtual environment is activated. You can also run the app directly with `.venv\Scripts\python.exe -m streamlit run app.py`.
 

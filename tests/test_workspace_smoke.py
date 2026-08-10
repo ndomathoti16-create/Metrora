@@ -5,15 +5,30 @@ from pathlib import Path
 from streamlit.testing.v1 import AppTest
 
 
+def test_public_product_page_renders_the_complete_scrolling_story() -> None:
+    """The public site should combine the overview, workflow, and trust story."""
+    app = AppTest.from_file("app.py").run(timeout=30)
+    assert not app.exception
+
+    rendered_copy = " ".join(item.value for item in app.markdown)
+    assert "One defensible path from raw export to recommendation." in rendered_copy
+    assert "Numbers first. Narrative second." in rendered_copy
+    assert app.button(key="product_demo_hero")
+
+
 def test_guided_workspace_pages_render_without_errors() -> None:
     """The guided demo should open every primary workspace destination successfully."""
     app = AppTest.from_file("app.py").run(timeout=30)
     assert not app.exception
 
     app.button(key="product_demo_hero").click().run(timeout=30)
+    assert app.session_state["product_page"] == "Demo"
+    app.button(key="product_demo_scenario_forecast_risk").click().run(timeout=30)
     assert not app.exception
     # The product and workspace intentionally share one dark visual system.
     assert app.session_state["dark_mode"] is True
+    assert app.session_state["budget_table"] is not None
+    assert app.session_state["business_metrics_table"] is not None
     assert {metric.label for metric in app.metric} >= {
         "Current window spend",
         "Change vs prior",
@@ -22,11 +37,11 @@ def test_guided_workspace_pages_render_without_errors() -> None:
     }
 
     expected_content = (
-        ("workspace_nav_cost_explorer", "Total spend"),
-        ("workspace_nav_plans_alerts", "Forecast"),
-        ("workspace_nav_reports", "What leaders need to know"),
-        ("workspace_nav_advanced", "Automatic field mapping"),
-        ("workspace_nav_home", "Current window spend"),
+        ("top_workspace_nav_cost_explorer", "Total spend"),
+        ("top_workspace_nav_plans_alerts", "Forecast"),
+        ("top_workspace_nav_reports", "The decision in one minute"),
+        ("top_workspace_nav_advanced", "Automatic field mapping"),
+        ("top_workspace_nav_home", "Current window spend"),
     )
     for button_key, expected in expected_content:
         app.button(key=button_key).click().run(timeout=30)
@@ -43,7 +58,8 @@ def test_one_upload_opens_a_complete_analysis_automatically() -> None:
     """A first-time user should not need a separate mapping or validation action."""
     app = AppTest.from_file("app.py").run(timeout=30)
     app.button(key="product_demo_hero").click().run(timeout=30)
-    app.button(key="new_analysis").click().run(timeout=30)
+    app.button(key="product_demo_scenario_forecast_risk").click().run(timeout=30)
+    app.button(key="top_workspace_new_analysis").click().run(timeout=30)
 
     content = Path("data/demo/cloud_billing_demo.csv").read_bytes()
     app.file_uploader(key="billing_upload").upload(
@@ -61,3 +77,38 @@ def test_one_upload_opens_a_complete_analysis_automatically() -> None:
         "Next 14 days",
         "Anomalies to review",
     }
+
+
+def test_refresh_restores_the_selected_demo_workspace_page() -> None:
+    """A shared demo route should reconstruct the scenario and active workspace page."""
+    app = AppTest.from_file("app.py")
+    app.query_params.update(
+        {
+            "surface": "workspace",
+            "page": "Reports",
+            "scenario": "forecast_risk",
+        }
+    )
+    app.run(timeout=30)
+
+    assert not app.exception
+    assert app.session_state["demo_authenticated"] is True
+    assert app.session_state["demo_scenario"] == "forecast_risk"
+    assert app.session_state["workspace_page"] == "Reports"
+    assert "The decision in one minute" in {item.value for item in app.subheader}
+
+
+def test_hero_opens_the_scenario_chooser_not_a_preselected_workspace() -> None:
+    """The public CTA must let visitors choose their own demo story first."""
+    app = AppTest.from_file("app.py").run(timeout=30)
+
+    app.button(key="product_demo_hero").click().run(timeout=30)
+
+    assert not app.exception
+    assert app.session_state["product_page"] == "Demo"
+    assert "demo_authenticated" not in app.session_state
+    assert {
+        "product_demo_scenario_healthy",
+        "product_demo_scenario_quality_risk",
+        "product_demo_scenario_forecast_risk",
+    } <= {item.key for item in app.button}

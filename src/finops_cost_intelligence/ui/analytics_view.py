@@ -15,6 +15,7 @@ from ..analytics import (
     calculate_spend_summary,
     filter_billing_data,
     prepare_daily_spend,
+    select_comparable_anomaly_history,
 )
 from ..anomalies import detect_spend_anomalies
 from ..contracts.analytics import AnalyticsInputError
@@ -27,8 +28,8 @@ if TYPE_CHECKING:
     from ..config import Settings
 
 
-VIOLET = "#6658E8"
-MINT = "#2F9F83"
+VIOLET = "#7DA7FF"
+MINT = "#55D6C7"
 
 
 def _format_cost(value: float | None, currency: str) -> str:
@@ -97,6 +98,8 @@ def _render_home_kpis(
     prior: pd.DataFrame,
     *,
     window_days: int,
+    source_key: str,
+    anomaly_history: pd.DataFrame,
 ) -> tuple[object, int | None, object | None]:
     import streamlit as st
 
@@ -107,50 +110,135 @@ def _render_home_kpis(
     )
     anomaly_count: int | None = None
     try:
-        _, anomaly_summary = detect_spend_anomalies(pd.concat([prior, current]))
+        threshold = float(st.session_state.get(f"anomaly_threshold_{source_key}", 3.5))
+        _, anomaly_summary = detect_spend_anomalies(anomaly_history, threshold=threshold)
         anomaly_count = anomaly_summary.anomaly_count
     except (AnalyticsInputError, KeyError, ValueError):
         pass
 
     forecast_summary = None
     try:
-        _, forecast_summary = forecast_daily_spend(
-            pd.concat([prior, current]), horizon_days=14
-        )
+        _, forecast_summary = forecast_daily_spend(pd.concat([prior, current]), horizon_days=14)
     except (AnalyticsInputError, ForecastInputError, KeyError, ValueError):
         pass
 
     change_label = (
         f"{summary.change_pct:+.1%}" if summary.change_pct is not None else "No comparison"
     )
-    columns = st.columns(4)
-    columns[0].metric(
-        "Current window spend",
-        _format_cost(summary.total_cost, summary.currency),
-        help=f"Canonical cost in the latest {window_days}-day window.",
-    )
-    columns[1].metric(
-        "Change vs prior",
-        change_label,
-        delta=_format_cost_delta(summary.change_amount, summary.currency),
-        delta_color="inverse",
-        help="Current window compared with the immediately preceding equal window.",
-    )
-    columns[2].metric(
-        "Next 14 days",
-        (
-            _format_cost(forecast_summary.forecast_total, summary.currency)
-            if forecast_summary is not None
-            else "Unavailable"
-        ),
-        help="Deterministic forecast from the available daily history.",
-    )
-    columns[3].metric(
-        "Anomalies to review",
-        f"{anomaly_count:,}" if anomaly_count is not None else "Unavailable",
-        help="Historical days exceeding the deterministic rolling-baseline threshold.",
-    )
+    with st.container(key="workspace-kpi-strip"):
+        columns = st.columns(4, gap=None)
+        columns[0].metric(
+            "Current window spend",
+            _format_cost(summary.total_cost, summary.currency),
+            help=f"Canonical cost in the latest {window_days}-day window.",
+        )
+        columns[1].metric(
+            "Change vs prior",
+            change_label,
+            delta=_format_cost_delta(summary.change_amount, summary.currency),
+            delta_color="inverse",
+            help="Current window compared with the immediately preceding equal window.",
+        )
+        columns[2].metric(
+            "Next 14 days",
+            (
+                _format_cost(forecast_summary.forecast_total, summary.currency)
+                if forecast_summary is not None
+                else "Unavailable"
+            ),
+            help="Deterministic forecast from the available daily history.",
+        )
+        columns[3].metric(
+            "Anomalies to review",
+            f"{anomaly_count:,}" if anomaly_count is not None else "Unavailable",
+            help="Historical days exceeding the deterministic rolling-baseline threshold.",
+        )
     return summary, anomaly_count, forecast_summary
+
+
+def _render_decision_snapshot(
+    summary,
+    drivers: pd.DataFrame,
+    anomaly_count: int | None,
+    forecast_summary,
+) -> None:
+    """Render an evidence-backed, scan-friendly view of the current cost decision."""
+    import streamlit as st
+
+    if summary.change_amount is None or summary.change_pct is None:
+        movement_title = "Comparison is building"
+        movement_copy = "A prior equal window is not yet available for a period-over-period read."
+    elif summary.change_amount > 0:
+        movement_title = f"Spend increased {summary.change_pct:+.1%}"
+        movement_copy = (
+            f"The current window is {_format_cost(abs(summary.change_amount), summary.currency)} "
+            "above the immediately preceding equal window."
+        )
+    elif summary.change_amount < 0:
+        movement_title = f"Spend decreased {abs(summary.change_pct):.1%}"
+        movement_copy = (
+            f"The current window is {_format_cost(abs(summary.change_amount), summary.currency)} "
+            "below the immediately preceding equal window."
+        )
+    else:
+        movement_title = "Spend is flat"
+        movement_copy = "The current and prior equal windows have the same calculated total."
+
+    if drivers.empty:
+        driver_title = "No service driver ranked"
+        driver_copy = "There is not enough comparable service movement to identify a lead driver."
+    else:
+        mover = drivers.iloc[0]
+        driver_title = escape(str(mover.get("service", "Unallocated service")))
+        driver_copy = (
+            "Largest observed service movement: "
+            f"{escape(_format_cost(float(mover['change_amount']), summary.currency))}."
+        )
+
+    if forecast_summary is None:
+        forecast_title = "Outlook unavailable"
+        forecast_copy = (
+            "More daily history is needed before the baseline forecast can be calculated."
+        )
+    else:
+        forecast_title = _format_cost(forecast_summary.forecast_total, summary.currency)
+        forecast_copy = "Deterministic 14-day outlook from the available daily history."
+
+    anomaly_title = (
+        "No anomaly signal" if anomaly_count in {None, 0} else f"{anomaly_count:,} to review"
+    )
+    anomaly_copy = (
+        "No historical days exceeded the configured rolling baseline."
+        if anomaly_count in {None, 0}
+        else "Historical days exceeded the configured rolling baseline and remain reviewable."
+    )
+    st.markdown(
+        f"""
+        <section class="metrora-decision-snapshot" aria-label="Calculated decision snapshot">
+            <div class="metrora-snapshot-lead">
+                <span>Decision snapshot</span>
+                <strong>{escape(movement_title)}</strong>
+                <p>{escape(movement_copy)}</p>
+            </div>
+            <div class="metrora-snapshot-signal">
+                <span>Why it moved</span>
+                <strong>{driver_title}</strong>
+                <p>{driver_copy}</p>
+            </div>
+            <div class="metrora-snapshot-signal">
+                <span>14-day outlook</span>
+                <strong>{escape(forecast_title)}</strong>
+                <p>{escape(forecast_copy)}</p>
+            </div>
+            <div class="metrora-snapshot-signal">
+                <span>Exceptions</span>
+                <strong>{escape(anomaly_title)}</strong>
+                <p>{escape(anomaly_copy)}</p>
+            </div>
+        </section>
+        """,
+        unsafe_allow_html=True,
+    )
 
 
 def _render_trend(
@@ -192,11 +280,7 @@ def _render_trend(
         height=height,
         xaxis={"title": None, "automargin": True},
         yaxis={
-            "title": (
-                f"Cost ({currency})"
-                if currency not in {"Unspecified", "Mixed"}
-                else "Cost"
-            ),
+            "title": (f"Cost ({currency})" if currency not in {"Unspecified", "Mixed"} else "Cost"),
             "tickformat": ",.0f",
             "automargin": True,
         },
@@ -303,8 +387,10 @@ def _render_attention_item(title: str, detail: str, tone: str = "neutral") -> No
 def _navigate_button(label: str, page: str, key: str) -> None:
     import streamlit as st
 
+    from .navigation import set_workspace_route
+
     if st.button(label, key=key, width="stretch"):
-        st.session_state["workspace_page"] = page
+        set_workspace_route(page)
         st.rerun()
 
 
@@ -326,19 +412,26 @@ def render_home_view(
     dataframe = normalized.dataframe.copy()
     try:
         current, prior, bounds, window_days = _equal_periods(dataframe)
-        summary, anomaly_count, _ = _render_home_kpis(
+        anomaly_history = select_comparable_anomaly_history(dataframe)
+        summary, anomaly_count, forecast_summary = _render_home_kpis(
             current,
             prior,
             window_days=window_days,
+            source_key=source_key,
+            anomaly_history=anomaly_history,
         )
         daily = prepare_daily_spend(dataframe)
     except (AnalyticsInputError, KeyError, ValueError) as exc:
         st.error(f"The workspace could not calculate a spend overview: {exc}")
         return
 
-    st.caption(
-        f"Latest {window_days}-day window · {summary.date_start} to {summary.date_end} · "
-        f"{summary.row_count:,} cost rows · {summary.currency} · {normalized.source_name}"
+    st.markdown(
+        '<div class="metrora-period-context">'
+        f"<span>Latest {window_days}-day window</span>"
+        f"<strong>{escape(str(summary.date_start))} — {escape(str(summary.date_end))}</strong>"
+        f"<small>{summary.row_count:,} cost rows · {escape(summary.currency)} · "
+        f"{escape(normalized.source_name)}</small></div>",
+        unsafe_allow_html=True,
     )
 
     drivers = pd.DataFrame()
@@ -356,42 +449,57 @@ def render_home_view(
         except (AnalyticsInputError, KeyError, ValueError):
             pass
 
+    _render_decision_snapshot(summary, drivers, anomaly_count, forecast_summary)
     st.markdown(
         '<div class="metrora-subsection-label">Operating view</div>',
         unsafe_allow_html=True,
     )
     chart_column, attention_column = st.columns([1.55, 0.78], gap="large")
     with chart_column:
-        _render_trend(daily, summary.currency, title="Daily spend and short-term baseline")
+        with st.container(key="home-trend-surface"):
+            st.markdown(
+                '<div class="metrora-panel-heading"><span>Cost pulse</span>'
+                "<small>Daily spend and 7-day baseline</small></div>",
+                unsafe_allow_html=True,
+            )
+            _render_trend(
+                daily,
+                summary.currency,
+                title="Daily spend and short-term baseline",
+            )
     with attention_column:
-        st.markdown("#### Attention queue")
-        st.caption("The shortest path from signal to the next useful action.")
-        if not drivers.empty:
-            mover = drivers.iloc[0]
-            _render_attention_item(
-                f"Inspect {mover['service']}",
-                (
-                    f"{_format_cost(float(mover['change_amount']), summary.currency)} movement. "
-                    f"Observed mechanism: {mover['driver_type']}."
-                ),
-                "attention" if float(mover["change_amount"]) > 0 else "positive",
+        with st.container(key="home-attention-surface"):
+            st.markdown(
+                '<div class="metrora-panel-heading"><span>Attention queue</span>'
+                "<small>Recommended next review</small></div>",
+                unsafe_allow_html=True,
             )
-            _navigate_button("Open Cost explorer", "Cost explorer", "home_open_explorer")
-        if anomaly_count:
-            _render_attention_item(
-                "Review unusual spend days",
-                f"{anomaly_count:,} historical day(s) exceeded the rolling baseline.",
-                "attention",
-            )
-            _navigate_button("Review anomalies", "Plans & alerts", "home_open_anomalies")
-        if st.session_state.get("budget_table") is None:
-            _render_attention_item(
-                "Add plan context",
-                "No budget is connected, so forecast-to-plan risk is not yet available.",
-            )
-            _navigate_button("Connect a budget", "Plans & alerts", "home_open_budget")
-        if drivers.empty and not anomaly_count:
-            st.success("No material movement or anomaly requires immediate review.")
+            if not drivers.empty:
+                mover = drivers.iloc[0]
+                _render_attention_item(
+                    f"Inspect {mover['service']}",
+                    (
+                        f"{_format_cost(float(mover['change_amount']), summary.currency)} "
+                        f"movement. Observed mechanism: {mover['driver_type']}."
+                    ),
+                    "attention" if float(mover["change_amount"]) > 0 else "positive",
+                )
+                _navigate_button("Open Spend explorer", "Cost explorer", "home_open_explorer")
+            if anomaly_count:
+                _render_attention_item(
+                    "Review unusual spend days",
+                    f"{anomaly_count:,} historical day(s) exceeded the rolling baseline.",
+                    "attention",
+                )
+                _navigate_button("Review anomalies", "Plans & alerts", "home_open_anomalies")
+            if st.session_state.get("budget_table") is None:
+                _render_attention_item(
+                    "Add plan context",
+                    "No budget is connected, so forecast-to-plan risk is not yet available.",
+                )
+                _navigate_button("Connect a budget", "Plans & alerts", "home_open_budget")
+            if drivers.empty and not anomaly_count:
+                st.success("No material movement or anomaly requires immediate review.")
 
     if not drivers.empty:
         st.markdown("### What is moving spend")
@@ -400,9 +508,6 @@ def render_home_view(
             "unconfirmed until usage, pricing, or deployment evidence supports it."
         )
         _render_driver_rows(drivers, summary.currency)
-
-    st.session_state["analytics_filtered_table"] = current
-    st.session_state["analytics_source_key"] = source_key
 
 
 def render_cost_explorer_view(
@@ -441,32 +546,38 @@ def render_cost_explorer_view(
 
     available_dimensions = _available_dimensions(dataframe)
     default_start = max(minimum_date, maximum_date - timedelta(days=29))
-    controls = st.columns([1.15, 0.85])
-    with controls[0]:
-        selected_dates = st.date_input(
-            "Analysis period",
-            value=(default_start, maximum_date),
-            min_value=minimum_date,
-            max_value=maximum_date,
-            key=f"analysis_dates_{source_key}",
+    with st.container(key="explorer-control-bar"):
+        st.markdown(
+            '<div class="metrora-panel-heading"><span>View controls</span>'
+            "<small>Choose a period and comparison lens</small></div>",
+            unsafe_allow_html=True,
         )
-    with controls[1]:
-        preferred_dimension = st.session_state.get(
-            f"default_breakdown_dimension_{source_key}", "service"
-        )
-        dimension_index = (
-            available_dimensions.index(preferred_dimension)
-            if preferred_dimension in available_dimensions
-            else 0
-        )
-        dimension = st.selectbox(
-            "Group spend by",
-            available_dimensions,
-            index=dimension_index,
-            format_func=lambda value: value.replace("_", " ").title(),
-            key=f"breakdown_dimension_{source_key}",
-            disabled=not available_dimensions,
-        )
+        controls = st.columns([1.15, 0.85])
+        with controls[0]:
+            selected_dates = st.date_input(
+                "Analysis period",
+                value=(default_start, maximum_date),
+                min_value=minimum_date,
+                max_value=maximum_date,
+                key=f"analysis_dates_{source_key}",
+            )
+        with controls[1]:
+            preferred_dimension = st.session_state.get(
+                f"default_breakdown_dimension_{source_key}", "service"
+            )
+            dimension_index = (
+                available_dimensions.index(preferred_dimension)
+                if preferred_dimension in available_dimensions
+                else 0
+            )
+            dimension = st.selectbox(
+                "Group spend by",
+                available_dimensions,
+                index=dimension_index,
+                format_func=lambda value: value.replace("_", " ").title(),
+                key=f"breakdown_dimension_{source_key}",
+                disabled=not available_dimensions,
+            )
     date_start, date_end = _date_range(selected_dates)
 
     selections: dict[str, list[object]] = {}
@@ -487,9 +598,7 @@ def render_cost_explorer_view(
             st.caption("Optional. Empty selections include the complete analysis period.")
             filter_columns = st.columns(3)
             for index, dimension_name in enumerate(filter_dimensions):
-                options = sorted(
-                    dataframe[dimension_name].dropna().astype(str).unique().tolist()
-                )
+                options = sorted(dataframe[dimension_name].dropna().astype(str).unique().tolist())
                 with filter_columns[index % len(filter_columns)]:
                     selections[dimension_name] = st.multiselect(
                         dimension_name.replace("_", " ").title(),
@@ -529,23 +638,20 @@ def render_cost_explorer_view(
         top_dimension="service" if "service" in filtered else None,
     )
     top_share = summary.top_dimension_share
-    change_label = (
-        "No prior period" if summary.change_pct is None else f"{summary.change_pct:+.1%}"
-    )
-    kpis = st.columns(4)
-    kpis[0].metric("Total spend", _format_cost(summary.total_cost, summary.currency))
-    kpis[1].metric(
-        "Period change",
-        change_label,
-        delta=_format_cost_delta(summary.change_amount, summary.currency),
-        delta_color="inverse",
-    )
-    kpis[2].metric(
-        "Average per day", _format_cost(summary.average_daily_cost, summary.currency)
-    )
-    kpis[3].metric(
-        "Top service share", f"{top_share:.1%}" if top_share is not None else "—"
-    )
+    change_label = "No prior period" if summary.change_pct is None else f"{summary.change_pct:+.1%}"
+    with st.container(key="explorer-kpi-strip"):
+        kpis = st.columns(4, gap=None)
+        kpis[0].metric("Total spend", _format_cost(summary.total_cost, summary.currency))
+        kpis[1].metric(
+            "Period change",
+            change_label,
+            delta=_format_cost_delta(summary.change_amount, summary.currency),
+            delta_color="inverse",
+        )
+        kpis[2].metric(
+            "Average per day", _format_cost(summary.average_daily_cost, summary.currency)
+        )
+        kpis[3].metric("Top service share", f"{top_share:.1%}" if top_share is not None else "—")
     active_filters = sum(bool(values) for values in selections.values())
     st.caption(
         f"{summary.date_start} to {summary.date_end} · {summary.row_count:,} cost rows · "
@@ -556,26 +662,26 @@ def render_cost_explorer_view(
     daily = prepare_daily_spend(filtered)
     chart_columns = st.columns([1.22, 1], gap="large")
     with chart_columns[0]:
-        _render_trend(daily, summary.currency)
+        with st.container(key="explorer-trend-surface"):
+            _render_trend(daily, summary.currency)
     with chart_columns[1]:
-        breakdown = (
-            _render_breakdown(
-                filtered,
-                summary.currency,
-                dimension,
-                top_n=top_n,
+        with st.container(key="explorer-breakdown-surface"):
+            breakdown = (
+                _render_breakdown(
+                    filtered,
+                    summary.currency,
+                    dimension,
+                    top_n=top_n,
+                )
+                if available_dimensions and dimension
+                else pd.DataFrame()
             )
-            if available_dimensions and dimension
-            else pd.DataFrame()
-        )
 
     if not breakdown.empty:
         with st.expander("Exact breakdown values", expanded=False):
             display = breakdown.copy()
             display["cost"] = display["cost"].round(2)
-            display["share_of_total"] = display["share_of_total"].map(
-                lambda value: f"{value:.1%}"
-            )
+            display["share_of_total"] = display["share_of_total"].map(lambda value: f"{value:.1%}")
             render_compact_table(display, max_rows=max(top_n, 15))
 
     if "service" in filtered.columns and not prior.empty:

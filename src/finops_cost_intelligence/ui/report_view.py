@@ -126,6 +126,143 @@ def _kpi_html(fact_pack) -> str:
     return f'<div class="metrora-report-kpis">{rendered}</div>'
 
 
+def _numeric_fact(facts: dict[str, object], fact_id: str) -> float | None:
+    fact = facts.get(fact_id)
+    if fact is None or fact.value is None:
+        return None
+    try:
+        return float(fact.value)
+    except (TypeError, ValueError):
+        return None
+
+
+def _plain_language_brief(fact_pack, summary) -> dict[str, str]:
+    """Translate calculated facts into a three-question, non-technical decision view."""
+    facts = _fact_map(fact_pack)
+    total = facts.get("total_spend")
+    currency = total.unit if total is not None else ""
+    change = _numeric_fact(facts, "spend_change_amount")
+    change_pct = _numeric_fact(facts, "spend_change_pct")
+    window = _numeric_fact(facts, "comparison_window_days")
+    forecast = _numeric_fact(facts, "forecast_total")
+    forecast_change = _numeric_fact(facts, "forecast_change_pct")
+    budget_variance = _numeric_fact(facts, "budget_variance_amount")
+    mover = facts.get("service_mover_1_name")
+    mover_change = _numeric_fact(facts, "service_mover_1_change_amount")
+    mover_explanation = facts.get("service_mover_1_explanation")
+
+    if not fact_pack.quality_ready:
+        status, tone = "Data review required", "risk"
+        headline = "Do not use these numbers yet."
+        why = (
+            "At least one blocking quality check failed, so totals, comparisons, and "
+            "recommendations should not be shared until the source is corrected."
+        )
+    elif budget_variance is not None and budget_variance > 0:
+        status, tone = "Action required", "risk"
+        headline = "Spend is above the supplied plan."
+        why = (
+            f"Actual spend is {_amount(budget_variance, currency)} above the matched budget. "
+            "Confirm the scope and owner before the next review."
+        )
+    elif forecast_change is not None and forecast_change >= 0.10:
+        status, tone = "Watch the outlook", "watch"
+        headline = "Spend is controlled now, but the near-term outlook is rising."
+        forecast_text = _amount(forecast, currency) if forecast is not None else "higher"
+        why = (
+            f"The forecast is {forecast_text}, {forecast_change:.1%} above the latest "
+            "comparable run rate. This is forward-looking risk, not a confirmed overrun."
+        )
+    elif change_pct is not None and abs(change_pct) >= 0.05:
+        status, tone = "Movement detected", "watch"
+        direction = "increased" if change_pct > 0 else "decreased"
+        headline = f"Spend {direction} enough to review the driver."
+        why = (
+            "The latest comparable window moved materially. Validate the main service driver "
+            "before treating the change as structural."
+        )
+    else:
+        status, tone = "On track", "positive"
+        headline = "Spend is stable within the available planning context."
+        why = (
+            "No calculated budget, forecast, or data-quality signal currently requires an "
+            "urgent response. Continue normal monitoring."
+        )
+
+    if total is not None:
+        happened = f"Selected spend was {_amount(total.value, currency)}"
+        if change is not None and change_pct is not None:
+            days = int(window) if window is not None else None
+            period = f" latest {days}-day window" if days else " latest comparison"
+            direction = "up" if change > 0 else "down"
+            happened += (
+                f". The{period} was {direction} {_amount(abs(change), currency)} "
+                f"({abs(change_pct):.1%})."
+            )
+        else:
+            happened += ". There is not enough comparable history to measure movement."
+    else:
+        happened = summary.headline
+
+    if mover is not None and mover_change is not None:
+        explanation = (
+            str(mover_explanation.value)
+            if mover_explanation is not None
+            else "The operational root cause still needs confirmation."
+        )
+        happened += (
+            f" The largest service movement was {mover.value}: "
+            f"{_amount(mover_change, currency, signed=True)}. {explanation}"
+        )
+
+    if fact_pack.recommendations:
+        recommendation = fact_pack.recommendations[0]
+        next_step = (
+            f"{recommendation.action} Owner: {recommendation.owner}. "
+            f"Timing: {recommendation.timeframe}."
+        )
+    else:
+        next_step = "Continue monitoring and confirm the planning context at the next review."
+
+    return {
+        "status": status,
+        "tone": tone,
+        "headline": headline,
+        "happened": happened,
+        "why": why,
+        "next": next_step,
+    }
+
+
+def _render_decision_brief(fact_pack, summary) -> None:
+    brief = _plain_language_brief(fact_pack, summary)
+    st.markdown(
+        f"""
+        <section class="metrora-report-decision {escape(brief["tone"])}">
+            <span>{escape(brief["status"])}</span>
+            <h2>{escape(brief["headline"])}</h2>
+            <p>Read the three answers below first. Open the evidence only when you need to
+            verify or hand off the decision.</p>
+        </section>
+        <div class="metrora-report-answers">
+            <article>
+                <small>01 / What happened?</small>
+                <p>{escape(brief["happened"])}</p>
+            </article>
+            <article>
+                <small>02 / Why does it matter?</small>
+                <p>{escape(brief["why"])}</p>
+            </article>
+            <article>
+                <small>03 / What should happen next?</small>
+                <p>{escape(brief["next"])}</p>
+            </article>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
+
 def _service_mover_frame(fact_pack) -> pd.DataFrame:
     facts = _fact_map(fact_pack)
     total = facts.get("total_spend")
@@ -159,18 +296,14 @@ def _service_mover_frame(fact_pack) -> pd.DataFrame:
                     else "Unavailable"
                 ),
                 "Effective rate / mix": (
-                    f"{float(rate_change.value):+.1%}"
-                    if rate_change is not None
-                    else "Unavailable"
+                    f"{float(rate_change.value):+.1%}" if rate_change is not None else "Unavailable"
                 ),
                 "Why": (
                     str(explanation.value)
                     if explanation is not None
                     else "More operational context is required."
                 ),
-                "Evidence": (
-                    str(evidence_level.value) if evidence_level is not None else "Low"
-                ),
+                "Evidence": (str(evidence_level.value) if evidence_level is not None else "Low"),
             }
         )
     return pd.DataFrame(rows)
@@ -182,8 +315,7 @@ def _render_service_movers(movers: pd.DataFrame) -> None:
     for _, mover in movers.head(3).iterrows():
         comparison = f"{mover['Prior window']} → {mover['Latest window']}"
         usage_rate = (
-            f"{escape(str(mover['Usage signal']))} / "
-            f"{escape(str(mover['Effective rate / mix']))}"
+            f"{escape(str(mover['Usage signal']))} / {escape(str(mover['Effective rate / mix']))}"
         )
         rows.append(
             f'<article class="metrora-driver-row">'
@@ -206,10 +338,10 @@ def _render_service_movers(movers: pd.DataFrame) -> None:
 
 
 def _render_actions(fact_pack) -> None:
-    st.markdown("### Recommended next actions")
+    st.markdown("### Action plan")
     st.caption(
-        "Prioritized from calculated evidence. Owners and timing are suggested operating "
-        "defaults and can be changed before the brief is shared."
+        "The highest-priority response comes first. Suggested owners and timing can be changed "
+        "before the brief is shared."
     )
     for recommendation in fact_pack.recommendations:
         priority = recommendation.priority.lower()
@@ -285,38 +417,29 @@ def _render_summary(fact_pack, summary) -> None:
         '<div class="metrora-section-kicker">Executive decision brief</div>',
         unsafe_allow_html=True,
     )
-    st.subheader("What leaders need to know")
+    st.subheader("The decision in one minute")
     st.caption(
-        "Answer-first view of movement, drivers, risk, and accountability. Every financial "
-        "value below is calculated before the narrative is written."
+        "Plain-language answers first. Supporting calculations and audit detail remain attached."
     )
+    _render_decision_brief(fact_pack, summary)
+    st.markdown("### Key numbers")
     st.markdown(_kpi_html(fact_pack), unsafe_allow_html=True)
-    st.markdown(
-        f"""
-        <div class="metrora-report-bottom-line">
-            <span>Bottom line</span>
-            <p>{escape(summary.headline)}</p>
-        </div>
-        """,
-        unsafe_allow_html=True,
-    )
-    st.markdown("### Key findings")
-    st.markdown("\n".join(f"- {bullet}" for bullet in summary.bullets))
 
     movers = _service_mover_frame(fact_pack)
     if not movers.empty:
-        st.markdown("### What changed and why")
+        st.markdown("### What moved the bill")
         st.caption(
-            "Metrora separates the observed billing driver from the still-unconfirmed "
-            "operational root cause. Usage and effective-rate signals appear only when the "
-            "source contains comparable usage units."
+            "These are observed billing mechanisms. Where the source cannot prove an operational "
+            "root cause, Metrora says so instead of guessing."
         )
         _render_service_movers(movers)
 
     _render_actions(fact_pack)
-    st.markdown("### Questions for the next review")
-    st.caption("Missing context that would materially improve the next decision.")
-    st.markdown("\n".join(f"- {question}" for question in _review_questions(fact_pack)))
+    with st.expander("More calculated findings", expanded=False):
+        st.markdown("\n".join(f"- {bullet}" for bullet in summary.bullets))
+    with st.expander("Questions to resolve before the next review", expanded=False):
+        st.caption("Missing context that would materially improve the next decision.")
+        st.markdown("\n".join(f"- {question}" for question in _review_questions(fact_pack)))
     _render_evidence(fact_pack, summary)
 
 
@@ -394,48 +517,59 @@ def render_report_view(
         _render_summary(fact_pack, summary)
 
     st.divider()
-    st.subheader("Download artifacts")
+    st.subheader("Share or continue the analysis")
     st.caption(
-        "Exports reflect the current canonical selection and include the fact pack or "
-        "quality status needed to reproduce the narrative."
+        "Choose the human-readable brief for a review meeting or the cleaned CSV for further "
+        "analysis. Technical audit files are available below."
     )
+    primary_exports = st.columns(2, gap="large")
     if summary is not None:
-        st.download_button(
-            "Download executive HTML report",
+        primary_exports[0].download_button(
+            "Download decision brief",
             data=executive_report_html(fact_pack, summary).encode("utf-8"),
             file_name="metrora_executive_brief.html",
             mime="text/html",
             key=f"download_report_{source_key}",
+            type="primary",
+            width="stretch",
         )
-    columns = st.columns(4)
-    columns[0].download_button(
-        "Cleaned CSV",
+    primary_exports[1].download_button(
+        "Download cleaned data (CSV)",
         data=cleaned_csv_bytes(normalized),
         file_name="metrora_canonical_cloud_cost.csv",
         mime="text/csv",
         key=f"download_csv_{source_key}",
+        width="stretch",
     )
-    columns[1].download_button(
-        "Cleaned Parquet",
-        data=cleaned_parquet_bytes(normalized),
-        file_name="metrora_canonical_cloud_cost.parquet",
-        mime="application/octet-stream",
-        key=f"download_parquet_{source_key}",
-    )
-    columns[2].download_button(
-        "Fact pack JSON",
-        data=fact_pack_json_bytes(fact_pack),
-        file_name="metrora_fact_pack.json",
-        mime="application/json",
-        key=f"download_fact_pack_{source_key}",
-    )
-    columns[3].download_button(
-        "Quality JSON",
-        data=quality_report_json_bytes(quality_report),
-        file_name="metrora_quality_report.json",
-        mime="application/json",
-        key=f"download_quality_{source_key}",
-    )
+    with st.expander("Analyst and audit files", expanded=False):
+        st.caption(
+            "Use these formats for data pipelines, reproducibility, or a detailed quality review."
+        )
+        technical_exports = st.columns(3)
+        technical_exports[0].download_button(
+            "Cleaned Parquet",
+            data=cleaned_parquet_bytes(normalized),
+            file_name="metrora_canonical_cloud_cost.parquet",
+            mime="application/octet-stream",
+            key=f"download_parquet_{source_key}",
+            width="stretch",
+        )
+        technical_exports[1].download_button(
+            "Calculated fact pack",
+            data=fact_pack_json_bytes(fact_pack),
+            file_name="metrora_fact_pack.json",
+            mime="application/json",
+            key=f"download_fact_pack_{source_key}",
+            width="stretch",
+        )
+        technical_exports[2].download_button(
+            "Quality report",
+            data=quality_report_json_bytes(quality_report),
+            file_name="metrora_quality_report.json",
+            mime="application/json",
+            key=f"download_quality_{source_key}",
+            width="stretch",
+        )
     if settings.s3_bucket:
         with st.expander("AWS export", expanded=False):
             st.caption(
