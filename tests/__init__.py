@@ -1,1 +1,1 @@
-"""Tests for SpendArc."""
+"""Tests for Metrora."""

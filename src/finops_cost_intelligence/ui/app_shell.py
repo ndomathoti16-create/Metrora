@@ -1,10 +1,14 @@
-"""Streamlit application shell for the SpendArc analytical workspace."""
+"""Streamlit application shell for the Metrora analytical workspace."""
 
 from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from .branding import inject_styles, render_brand_header, render_sidebar
+from .branding import (
+    inject_styles,
+    render_sidebar,
+)
+from .product_page import render_product_page
 from .workspace_view import render_workspace
 
 if TYPE_CHECKING:
@@ -22,14 +26,20 @@ def render_app_shell(settings: Settings) -> None:
         ) from exc
 
     st.set_page_config(
-        page_title="SpendArc | Cloud FinOps Intelligence",
-        page_icon="◒",
+        page_title="Metrora | Cloud FinOps Intelligence",
+        page_icon="M",
         layout="wide",
         initial_sidebar_state="expanded",
     )
 
-    inject_styles(st.session_state.get("dark_mode", False))
-    render_sidebar(settings)
-    render_brand_header()
+    # Metrora has one intentional workspace appearance. Keeping the state true also
+    # gives the analytical charts a single, deterministic visual palette.
+    st.session_state["dark_mode"] = True
+    inject_styles()
 
+    if not st.session_state.get("demo_authenticated", False):
+        render_product_page(settings)
+        return
+
+    render_sidebar(settings)
     render_workspace(settings)

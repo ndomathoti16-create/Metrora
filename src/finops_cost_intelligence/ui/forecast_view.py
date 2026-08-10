@@ -9,23 +9,35 @@ from ..anomalies import detect_spend_anomalies
 from ..contracts.analytics import AnalyticsInputError
 from ..contracts.forecasting import ForecastInputError
 from ..forecasting import forecast_daily_spend
+from .branding import apply_plotly_theme, render_compact_table
 
-BLUE = "#2878F0"
-GOLD = "#D9F36B"
-RED = "#FF816B"
+BLUE = "#9BB8FF"
+RED = "#F2C58E"
 
 
-def _render_forecast(actual: pd.DataFrame, source_key: str) -> None:
+def _render_forecast(
+    actual: pd.DataFrame,
+    source_key: str,
+    *,
+    show_settings: bool,
+) -> None:
     import plotly.graph_objects as go
     import streamlit as st
 
-    horizon = st.select_slider(
-        "Forecast horizon",
-        options=[7, 14, 30],
-        value=14,
-        format_func=lambda value: f"{value} days",
-        key=f"forecast_horizon_{source_key}",
-    )
+    forecast_color = "#7EE0D0"
+    forecast_fill = "rgba(126,224,208,0.14)"
+
+    if show_settings:
+        with st.expander("Forecast settings", expanded=False):
+            horizon = st.select_slider(
+                "Forecast horizon",
+                options=[7, 14, 30],
+                value=14,
+                format_func=lambda value: f"{value} days",
+                key=f"forecast_horizon_{source_key}",
+            )
+    else:
+        horizon = int(st.session_state.get(f"forecast_horizon_{source_key}", 14))
     try:
         forecast, summary = forecast_daily_spend(actual, horizon_days=horizon)
         history = prepare_daily_spend(actual)
@@ -57,7 +69,7 @@ def _render_forecast(actual: pd.DataFrame, source_key: str) -> None:
             y=forecast["upper_bound"],
             mode="lines",
             name="Upper bound",
-            line={"color": GOLD, "dash": "dot", "width": 1},
+            line={"color": forecast_color, "dash": "dot", "width": 1},
         )
     )
     figure.add_trace(
@@ -66,9 +78,9 @@ def _render_forecast(actual: pd.DataFrame, source_key: str) -> None:
             y=forecast["lower_bound"],
             mode="lines",
             name="Lower bound",
-            line={"color": GOLD, "dash": "dot", "width": 1},
+            line={"color": forecast_color, "dash": "dot", "width": 1},
             fill="tonexty",
-            fillcolor="rgba(217,164,65,0.14)",
+            fillcolor=forecast_fill,
         )
     )
     figure.add_trace(
@@ -77,37 +89,49 @@ def _render_forecast(actual: pd.DataFrame, source_key: str) -> None:
             y=forecast["forecast_cost"],
             mode="lines+markers",
             name="Forecast",
-            line={"color": GOLD, "width": 2},
+            line={"color": forecast_color, "width": 2.5},
             marker={"size": 5},
         )
     )
     figure.update_layout(
-        title="Daily spend forecast",
-        xaxis_title="Usage date",
-        yaxis_title="Cost",
+        title={"text": "Daily spend forecast", "x": 0, "xanchor": "left"},
+        height=410,
+        xaxis={"title": "Usage date", "automargin": True},
+        yaxis={"title": "Cost", "tickformat": ",.0f", "automargin": True},
         hovermode="x unified",
-        margin={"l": 10, "r": 10, "t": 55, "b": 10},
+        margin={"l": 82, "r": 28, "t": 72, "b": 62},
     )
-    st.plotly_chart(figure, width="stretch")
+    apply_plotly_theme(figure)
+    st.plotly_chart(figure, width="stretch", theme=None)
     display = forecast.copy()
     for column in ("forecast_cost", "lower_bound", "upper_bound"):
         display[column] = display[column].round(2)
-    st.dataframe(display, width="stretch", hide_index=True)
+    with st.expander("View forecast values", expanded=False):
+        render_compact_table(display, max_rows=30)
 
 
-def _render_anomalies(actual: pd.DataFrame, source_key: str) -> None:
+def _render_anomalies(
+    actual: pd.DataFrame,
+    source_key: str,
+    *,
+    show_settings: bool,
+) -> None:
     import plotly.graph_objects as go
     import streamlit as st
 
-    threshold = st.slider(
-        "Anomaly sensitivity",
-        min_value=2.5,
-        max_value=6.0,
-        value=3.5,
-        step=0.5,
-        key=f"anomaly_threshold_{source_key}",
-        help="Lower values flag more deviations from the prior rolling baseline.",
-    )
+    if show_settings:
+        with st.expander("Anomaly settings", expanded=False):
+            threshold = st.slider(
+                "Anomaly sensitivity",
+                min_value=2.5,
+                max_value=6.0,
+                value=3.5,
+                step=0.5,
+                key=f"anomaly_threshold_{source_key}",
+                help="Lower values flag more deviations from the prior rolling baseline.",
+            )
+    else:
+        threshold = float(st.session_state.get(f"anomaly_threshold_{source_key}", 3.5))
     try:
         diagnostics, summary = detect_spend_anomalies(actual, threshold=threshold)
     except AnalyticsInputError as exc:
@@ -143,13 +167,15 @@ def _render_anomalies(actual: pd.DataFrame, source_key: str) -> None:
         )
     )
     figure.update_layout(
-        title="Historical daily spend anomalies",
-        xaxis_title="Usage date",
-        yaxis_title="Cost",
+        title={"text": "Historical daily spend anomalies", "x": 0, "xanchor": "left"},
+        height=410,
+        xaxis={"title": "Usage date", "automargin": True},
+        yaxis={"title": "Cost", "tickformat": ",.0f", "automargin": True},
         hovermode="x unified",
-        margin={"l": 10, "r": 10, "t": 55, "b": 10},
+        margin={"l": 82, "r": 28, "t": 72, "b": 62},
     )
-    st.plotly_chart(figure, width="stretch")
+    apply_plotly_theme(figure)
+    st.plotly_chart(figure, width="stretch", theme=None)
     if anomalies.empty:
         st.success("No anomalies exceeded the selected threshold.")
         return
@@ -173,20 +199,38 @@ def _render_anomalies(actual: pd.DataFrame, source_key: str) -> None:
     display["anomaly_score"] = display["anomaly_score"].map(
         lambda value: "∞" if value == float("inf") else f"{value:.2f}"
     )
-    st.dataframe(display, width="stretch", hide_index=True)
+    with st.expander("View flagged dates", expanded=False):
+        render_compact_table(display, max_rows=30)
 
 
-def render_forecast_view(actual: pd.DataFrame, source_key: str) -> None:
+def render_forecast_view(
+    actual: pd.DataFrame,
+    source_key: str,
+    *,
+    show_header: bool = True,
+    show_settings: bool = False,
+) -> None:
     """Render forecasting and anomaly detection over the filtered billing view."""
     import streamlit as st
 
-    st.header("Plan ahead")
-    st.write(
-        "Use transparent historical methods to estimate future spend and surface unusual "
-        "changes, with the evidence behind every flag."
-    )
+    if show_header:
+        st.header("Plan ahead")
+        st.write(
+            "Use transparent historical methods to estimate future spend and surface unusual "
+            "changes, with the evidence behind every flag."
+        )
     forecast_tab, anomaly_tab = st.tabs(["Forecast", "Anomalies"])
     with forecast_tab:
-        _render_forecast(actual, source_key)
+        _render_forecast(actual, source_key, show_settings=show_settings)
     with anomaly_tab:
-        _render_anomalies(actual, source_key)
+        _render_anomalies(actual, source_key, show_settings=show_settings)
+
+
+def render_forecast_panel(actual: pd.DataFrame, source_key: str) -> None:
+    """Render the standard forecast without exposing model controls."""
+    _render_forecast(actual, source_key, show_settings=False)
+
+
+def render_anomaly_panel(actual: pd.DataFrame, source_key: str) -> None:
+    """Render anomaly monitoring with the workspace's saved sensitivity."""
+    _render_anomalies(actual, source_key, show_settings=False)

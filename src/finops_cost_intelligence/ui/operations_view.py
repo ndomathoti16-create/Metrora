@@ -16,6 +16,7 @@ from ..contracts.normalization import NormalizedTable
 from ..ingestion.readers import IngestionError, load_table
 from ..normalization.budgets import normalize_budget_dataframe
 from ..normalization.business_metrics import normalize_business_metrics
+from .branding import apply_plotly_theme, render_compact_table
 
 if TYPE_CHECKING:
     from ..config import Settings
@@ -90,7 +91,8 @@ def _render_budget_view(actual: pd.DataFrame, source_key: str) -> None:
         display[column] = display[column].map(
             lambda value: f"{value:.1%}" if pd.notna(value) else "—"
         )
-    st.dataframe(display, width="stretch", hide_index=True)
+    with st.expander("View budget comparison values", expanded=False):
+        render_compact_table(display, max_rows=30)
     chart_data = comparison.assign(
         label=comparison["period_start"].dt.strftime("%Y-%m-%d")
         + " · "
@@ -112,8 +114,15 @@ def _render_budget_view(actual: pd.DataFrame, source_key: str) -> None:
         labels={"label": "Budget row", "amount": "Amount", "series": "Series"},
         title="Actual versus budget",
     )
-    figure.update_layout(margin={"l": 10, "r": 10, "t": 55, "b": 10})
-    st.plotly_chart(figure, width="stretch")
+    figure.update_layout(
+        title={"text": "Actual versus budget", "x": 0, "xanchor": "left"},
+        height=410,
+        xaxis={"automargin": True},
+        yaxis={"tickformat": ",.0f", "automargin": True},
+        margin={"l": 82, "r": 28, "t": 72, "b": 90},
+    )
+    apply_plotly_theme(figure)
+    st.plotly_chart(figure, width="stretch", theme=None)
 
 
 def _render_allocation_view(actual: pd.DataFrame) -> None:
@@ -155,7 +164,8 @@ def _render_allocation_view(actual: pd.DataFrame) -> None:
         lambda value: f"{value:.1%}" if pd.notna(value) else "—"
     )
     display["allocated_positive_cost"] = display["allocated_positive_cost"].round(2)
-    st.dataframe(display, width="stretch", hide_index=True)
+    with st.expander("View coverage values", expanded=False):
+        render_compact_table(display, max_rows=20)
 
 
 def _render_business_metric_view(actual: pd.DataFrame, source_key: str) -> None:
@@ -216,9 +226,21 @@ def _render_business_metric_view(actual: pd.DataFrame, source_key: str) -> None:
         labels={"usage_date": "Metric date", "cost_per_unit": "Cost per unit"},
         title=f"Cost per unit over time · {metric_name}",
     )
-    figure.update_layout(margin={"l": 10, "r": 10, "t": 55, "b": 10})
-    st.plotly_chart(figure, width="stretch")
-    st.dataframe(joined, width="stretch", hide_index=True)
+    figure.update_layout(
+        title={
+            "text": f"Cost per unit over time · {metric_name}",
+            "x": 0,
+            "xanchor": "left",
+        },
+        height=410,
+        xaxis={"automargin": True},
+        yaxis={"tickformat": ",.2f", "automargin": True},
+        margin={"l": 82, "r": 28, "t": 72, "b": 62},
+    )
+    apply_plotly_theme(figure)
+    st.plotly_chart(figure, width="stretch", theme=None)
+    with st.expander("View business metric values", expanded=False):
+        render_compact_table(joined, max_rows=30)
 
 
 def render_operations_view(
@@ -226,16 +248,19 @@ def render_operations_view(
     normalized: NormalizedTable,
     source_key: str,
     actual: pd.DataFrame,
+    *,
+    show_header: bool = True,
 ) -> None:
     """Render optional planning and business-context analyses."""
     del settings
     import streamlit as st
 
-    st.header("Connect spend to the business")
-    st.write(
-        "Layer budgets, ownership coverage, and business metrics onto the current view "
-        "without changing the canonical billing table."
-    )
+    if show_header:
+        st.header("Connect spend to the business")
+        st.write(
+            "Layer budgets, ownership coverage, and business metrics onto the current view "
+            "without changing the canonical billing table."
+        )
     budget_tab, allocation_tab, business_tab = st.tabs(
         ["Budget variance", "Allocation coverage", "Business efficiency"]
     )
@@ -245,3 +270,18 @@ def render_operations_view(
         _render_allocation_view(actual)
     with business_tab:
         _render_business_metric_view(actual, source_key)
+
+
+def render_budget_panel(actual: pd.DataFrame, source_key: str) -> None:
+    """Render budget connection and variance as a standalone planning panel."""
+    _render_budget_view(actual, source_key)
+
+
+def render_allocation_panel(actual: pd.DataFrame) -> None:
+    """Render ownership coverage as a standalone accountability panel."""
+    _render_allocation_view(actual)
+
+
+def render_business_metric_panel(actual: pd.DataFrame, source_key: str) -> None:
+    """Render business-volume and unit-cost context as a standalone panel."""
+    _render_business_metric_view(actual, source_key)

@@ -1,18 +1,40 @@
-"""Tabbed SpendArc workspace orchestration."""
+"""Task-focused Metrora workspace orchestration."""
 
 from __future__ import annotations
 
+from html import escape
 from typing import TYPE_CHECKING
 
-from .analytics_view import render_analytics_view
-from .forecast_view import render_forecast_view
+from ..analytics import DEFAULT_BREAKDOWN_DIMENSIONS
+from .analytics_view import render_cost_explorer_view, render_home_view
+from .forecast_view import render_anomaly_panel, render_forecast_panel
 from .ingestion_view import render_ingestion_view
 from .mapping_view import source_key_for
-from .operations_view import render_operations_view
+from .operations_view import (
+    render_allocation_panel,
+    render_budget_panel,
+    render_business_metric_panel,
+)
 from .report_view import render_report_view
 
 if TYPE_CHECKING:
     from ..config import Settings
+
+
+WORKSPACE_PAGES = (
+    "Home",
+    "Cost explorer",
+    "Plans & alerts",
+    "Reports",
+    "Advanced",
+)
+
+LEGACY_PAGE_ALIASES = {
+    "Overview": "Home",
+    "Data & quality": "Advanced",
+    "Investigate": "Plans & alerts",
+    "Reports & exports": "Reports",
+}
 
 
 def _context() -> tuple[object | None, str | None]:
@@ -26,30 +48,56 @@ def _context() -> tuple[object | None, str | None]:
     return normalized, source_key_for(loaded_table, profile)
 
 
-def _render_progress() -> None:
+def _render_page_header(page: str) -> None:
     import streamlit as st
 
-    loaded = st.session_state.get("loaded_table") is not None
-    normalized = st.session_state.get("normalized_table") is not None
+    copy = {
+        "Home": (
+            "Workspace home",
+            "Start with the current cost position, what needs attention, and the next action.",
+        ),
+        "Cost explorer": (
+            "Cost explorer",
+            "Filter the trusted cost model, compare periods, and inspect the exact drivers.",
+        ),
+        "Plans & alerts": (
+            "Plans & alerts",
+            "Monitor forecast and anomaly risk, then connect budgets and business context.",
+        ),
+        "Reports": (
+            "Reports",
+            "Package the calculated decision brief and export its supporting evidence.",
+        ),
+        "Advanced": (
+            "Advanced",
+            "Review source internals, semantic mappings, reconciliation, and model defaults.",
+        ),
+    }
+    title, description = copy[page]
+    loaded = st.session_state.get("loaded_table")
+    profile = st.session_state.get("data_profile")
     quality = st.session_state.get("quality_report")
-    filtered = st.session_state.get("analytics_filtered_table") is not None
-    stages = [
-        ("01", "Source", loaded),
-        ("02", "Model", normalized),
-        ("03", "Quality", quality is not None and quality.ready_for_analysis),
-        ("04", "Insights", filtered),
-    ]
-    pills = "".join(
-        f'<span class="spendarc-step {"is-ready" if ready else ""}">'
-        f'<b>{number}</b>{label}</span>'
-        for number, label, ready in stages
+    if loaded is None or profile is None:
+        status = "Waiting for data"
+    elif quality is None:
+        status = "Preparing analysis"
+    elif quality.ready_for_analysis:
+        status = "Analysis ready"
+    else:
+        status = "Review needed"
+    st.markdown(
+        f"""
+        <div class="metrora-workspace-topbar">
+            <div>
+                <small>Metrora workspace</small>
+                <h1>{escape(title)}</h1>
+                <p>{escape(description)}</p>
+            </div>
+            <span class="metrora-workspace-state">{escape(status)}</span>
+        </div>
+        """,
+        unsafe_allow_html=True,
     )
-    stepbar = (
-        '<div class="spendarc-stepbar">'
-        '<span class="spendarc-stepbar-label">WORKSPACE PROGRESS</span>'
-        f"{pills}</div>"
-    )
-    st.markdown(stepbar, unsafe_allow_html=True)
 
 
 def _render_empty_state(title: str, message: str, next_step: str) -> None:
@@ -57,12 +105,12 @@ def _render_empty_state(title: str, message: str, next_step: str) -> None:
 
     st.markdown(
         f"""
-        <div class="spendarc-empty-state">
-            <div class="spendarc-empty-icon">+</div>
+        <div class="metrora-empty-state">
+            <div class="metrora-empty-icon">+</div>
             <div>
-                <h3>{title}</h3>
-                <p>{message}</p>
-                <span class="spendarc-next-step">Next step · {next_step}</span>
+                <h3>{escape(title)}</h3>
+                <p>{escape(message)}</p>
+                <span class="metrora-next-step">{escape(next_step)}</span>
             </div>
         </div>
         """,
@@ -70,105 +118,216 @@ def _render_empty_state(title: str, message: str, next_step: str) -> None:
     )
 
 
-def _render_prepare(settings: Settings) -> None:
+def _current_analysis_table(normalized, source_key: str):
     import streamlit as st
 
-    st.subheader("Build a trusted cost model")
-    st.caption(
-        "Start here. SpendArc keeps the raw upload, mapping decisions, and validation results "
-        "together before showing financial insights."
-    )
-    render_ingestion_view(settings, include_mapping=False)
-    loaded_table = st.session_state.get("loaded_table")
-    profile = st.session_state.get("data_profile")
-    if loaded_table is not None and profile is not None:
-        from .mapping_view import render_mapping_view
+    filtered = st.session_state.get("analytics_filtered_table")
+    if filtered is not None and st.session_state.get("analytics_source_key") == source_key:
+        return filtered
+    return normalized.dataframe.copy()
 
-        render_mapping_view(
-            settings,
-            loaded_table,
-            profile,
-            include_analytics=False,
+
+def _render_home(settings: Settings) -> None:
+    normalized, source_key = _context()
+    if normalized is None or source_key is None:
+        import streamlit as st
+
+        st.markdown(
+            """
+            <div class="metrora-automation-note">
+                <strong>Drop in one billing export.</strong>
+                <span>Metrora detects the fields, builds the cost model, reconciles the total,
+                and opens the completed analysis automatically.</span>
+            </div>
+            """,
+            unsafe_allow_html=True,
         )
+        render_ingestion_view(settings, include_mapping=False)
+        return
+    render_home_view(settings, normalized, source_key)
 
 
-def _render_explore(settings: Settings) -> None:
+def _render_cost_explorer(settings: Settings) -> None:
     normalized, source_key = _context()
     if normalized is None or source_key is None:
         _render_empty_state(
-            "Your spend view will appear here",
-            "Upload and normalize a billing file before exploring costs, drivers, and trends.",
-            "Open Prepare data",
+            "No cost model yet",
+            "Add a billing source on Home before exploring spend.",
+            "Home → Billing source",
         )
         return
-    render_analytics_view(
+    render_cost_explorer_view(settings, normalized, source_key)
+
+
+def _render_plans(settings: Settings) -> None:
+    import streamlit as st
+
+    normalized, source_key = _context()
+    if normalized is None or source_key is None:
+        _render_empty_state(
+            "No cost model yet",
+            "Add a billing source before forecasting or connecting planning data.",
+            "Home → Billing source",
+        )
+        return
+    quality = st.session_state.get("quality_report")
+    if quality is not None and not quality.ready_for_analysis:
+        st.warning(
+            "Planning is paused because a blocking data-quality check needs attention. "
+            "Open Advanced to review it."
+        )
+        return
+
+    actual = _current_analysis_table(normalized, source_key)
+    st.caption(
+        "Uses the current Cost explorer selection when one exists; otherwise uses the full "
+        "trusted cost model. Model tuning is available under Advanced."
+    )
+    forecast_tab, anomaly_tab, budget_tab, ownership_tab, unit_tab = st.tabs(
+        ["Forecast", "Anomalies", "Budgets", "Ownership", "Unit economics"]
+    )
+    with forecast_tab:
+        render_forecast_panel(actual, source_key)
+    with anomaly_tab:
+        render_anomaly_panel(actual, source_key)
+    with budget_tab:
+        render_budget_panel(actual, source_key)
+    with ownership_tab:
+        render_allocation_panel(actual)
+    with unit_tab:
+        render_business_metric_panel(actual, source_key)
+
+
+def _render_reports(settings: Settings) -> None:
+    normalized, source_key = _context()
+    if normalized is None or source_key is None:
+        _render_empty_state(
+            "Nothing to report yet",
+            "Add a billing source so Metrora can calculate and package the evidence.",
+            "Home → Billing source",
+        )
+        return
+    actual = _current_analysis_table(normalized, source_key)
+    render_report_view(
         settings,
         normalized,
         source_key,
-        include_operations=False,
-        include_forecast=False,
-        include_report=False,
+        actual,
+        show_header=False,
     )
 
 
-def _render_plan(settings: Settings) -> None:
+def _render_analysis_defaults(normalized, source_key: str) -> None:
+    import streamlit as st
+
+    st.subheader("Analysis defaults")
+    st.write(
+        "These controls tune the workspace for experienced analysts. Most users can leave "
+        "the defaults unchanged and work entirely from Home, Cost explorer, and Plans & alerts."
+    )
+    horizon_key = f"forecast_horizon_{source_key}"
+    anomaly_key = f"anomaly_threshold_{source_key}"
+    top_n_key = f"breakdown_top_n_{source_key}"
+    dimension_key = f"default_breakdown_dimension_{source_key}"
+    st.session_state.setdefault(horizon_key, 14)
+    st.session_state.setdefault(anomaly_key, 3.5)
+    st.session_state.setdefault(top_n_key, 8)
+
+    available_dimensions = [
+        dimension
+        for dimension in DEFAULT_BREAKDOWN_DIMENSIONS
+        if dimension in normalized.dataframe.columns
+        and normalized.dataframe[dimension].notna().any()
+    ]
+    if available_dimensions:
+        preferred = st.session_state.get(dimension_key, "service")
+        if preferred not in available_dimensions:
+            st.session_state[dimension_key] = available_dimensions[0]
+        else:
+            st.session_state.setdefault(dimension_key, preferred)
+
+    left, right = st.columns(2, gap="large")
+    with left:
+        st.select_slider(
+            "Forecast horizon",
+            options=[7, 14, 30],
+            key=horizon_key,
+            format_func=lambda value: f"{value} days",
+            help="Applied to the forecast panel under Plans & alerts.",
+        )
+        st.slider(
+            "Anomaly sensitivity",
+            min_value=2.5,
+            max_value=6.0,
+            step=0.5,
+            key=anomaly_key,
+            help="Lower values flag more deviations from the prior rolling baseline.",
+        )
+    with right:
+        st.slider(
+            "Breakdown rows",
+            min_value=5,
+            max_value=15,
+            step=1,
+            key=top_n_key,
+            help="Maximum number of categories shown in a Cost explorer chart.",
+        )
+        if available_dimensions:
+            st.selectbox(
+                "Default cost dimension",
+                available_dimensions,
+                key=dimension_key,
+                format_func=lambda value: value.replace("_", " ").title(),
+            )
+    st.info(
+        "Metrora still calculates financial values deterministically. These settings only "
+        "change the analytical view, not the source data or reconciliation result."
+    )
+
+
+def _render_advanced(settings: Settings) -> None:
     import streamlit as st
 
     normalized, source_key = _context()
-    actual = st.session_state.get("analytics_filtered_table")
-    if normalized is None or source_key is None or actual is None:
-        _render_empty_state(
-            "Planning comes after exploration",
-            "SpendArc applies planning and anomaly analysis to the same filtered view "
-            "used by your spend dashboard.",
-            "Open Explore spend and confirm your filters",
-        )
+    st.markdown(
+        """
+        <div class="metrora-advanced-note">
+            <strong>Power-user area</strong>
+            <span>Use this page to inspect or override automation. It is not required for a
+            standard analysis unless Metrora flags an exception.</span>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+    if normalized is None or source_key is None:
+        render_ingestion_view(settings, include_mapping=True)
         return
-    render_operations_view(settings, normalized, source_key, actual)
-    render_forecast_view(actual, source_key)
-
-
-def _render_report(settings: Settings) -> None:
-    import streamlit as st
-
-    normalized, source_key = _context()
-    actual = st.session_state.get("analytics_filtered_table")
-    if normalized is None or source_key is None or actual is None:
-        _render_empty_state(
-            "Your executive brief will appear here",
-            "Complete the data preparation and spend exploration steps before exporting a report.",
-            "Open Explore spend",
-        )
-        return
-    render_report_view(settings, normalized, source_key, actual)
+    data_tab, defaults_tab = st.tabs(["Data source & model", "Analysis defaults"])
+    with data_tab:
+        render_ingestion_view(settings, include_mapping=True)
+    with defaults_tab:
+        _render_analysis_defaults(normalized, source_key)
 
 
 def render_workspace(settings: Settings) -> None:
-    """Render the product workspace as a progressive, four-stage journey."""
+    """Render one task-focused workspace destination inside an application shell."""
     import streamlit as st
 
-    workspace_heading = (
-        '<div class="spendarc-workspace-heading">'
-        '<span>WORKSPACE</span>'
-        '<h2>Make the next cost decision easier.</h2>'
-        '<p>Move from source data to a concise, defensible point of view.</p>'
-        '</div>'
-    )
-    st.markdown(workspace_heading, unsafe_allow_html=True)
-    _render_progress()
-    prepare_tab, explore_tab, plan_tab, report_tab = st.tabs(
-        [
-            "01  Prepare data",
-            "02  Explore spend",
-            "03  Plan & investigate",
-            "04  Executive brief",
-        ]
-    )
-    with prepare_tab:
-        _render_prepare(settings)
-    with explore_tab:
-        _render_explore(settings)
-    with plan_tab:
-        _render_plan(settings)
-    with report_tab:
-        _render_report(settings)
+    requested_page = st.session_state.get("workspace_page", "Home")
+    page = LEGACY_PAGE_ALIASES.get(requested_page, requested_page)
+    if page not in WORKSPACE_PAGES:
+        page = "Home"
+    st.session_state["workspace_page"] = page
+
+    with st.container(key="workspace-shell"):
+        _render_page_header(page)
+        if page == "Home":
+            _render_home(settings)
+        elif page == "Cost explorer":
+            _render_cost_explorer(settings)
+        elif page == "Plans & alerts":
+            _render_plans(settings)
+        elif page == "Reports":
+            _render_reports(settings)
+        else:
+            _render_advanced(settings)

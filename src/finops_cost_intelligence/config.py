@@ -75,7 +75,7 @@ class Settings:
             )
 
         data_dir = _resolve_path(values.get("DATA_DIR", "./data"), "DATA_DIR", root)
-        db_path = _resolve_path(values.get("DB_PATH", "./data/spendarc.duckdb"), "DB_PATH", root)
+        db_path = _resolve_path(values.get("DB_PATH", "./data/metrora.duckdb"), "DB_PATH", root)
         max_upload_mb = _read_positive_int(values.get("MAX_UPLOAD_MB", "200"), "MAX_UPLOAD_MB")
 
         ai_provider = values.get("AI_PROVIDER", "none").strip().lower()

@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" role="img" aria-labelledby="title">
+  <title id="title">Metrora logo</title>
+  <defs>
+    <linearGradient id="ribbon" x1="8" x2="39" y1="35" y2="10" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#91A8FF"/>
+      <stop offset="1" stop-color="#6FE2D3"/>
+    </linearGradient>
+  </defs>
+  <rect x="1" y="1" width="46" height="46" rx="14" fill="#0E1522" stroke="#2B3A51"/>
+  <path d="M9 32.5H39" fill="none" stroke="#EAF0FA" stroke-linecap="round" stroke-width="1.6" opacity=".25"/>
+  <path d="M10 29.5 17.2 20 23.5 27.6 33.8 13 39 19.3" fill="none" stroke="url(#ribbon)" stroke-linecap="round" stroke-linejoin="round" stroke-width="3.25"/>
+  <path d="M10 29.5 17.2 20 23.5 27.6" fill="none" stroke="#EAF0FA" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.25" opacity=".58"/>
+  <circle cx="33.8" cy="13" r="3" fill="#0E1522" stroke="#6FE2D3" stroke-width="1.6"/>
+</svg>

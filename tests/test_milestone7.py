@@ -73,6 +73,13 @@ def test_fact_pack_contains_calculated_facts_and_evidence_bounded_recommendation
     fact_ids = {fact.fact_id for fact in fact_pack.facts}
     assert fact_pack.schema_version == "1.0"
     assert "total_spend" in fact_ids
+    assert "spend_change_amount" in fact_ids
+    assert "service_mover_1_name" in fact_ids
+    assert "service_mover_1_explanation" in fact_ids
+    assert "service_mover_1_evidence_level" in fact_ids
+    assert "forecast_lower_total" in fact_ids
+    assert "forecast_upper_total" in fact_ids
+    assert "anomaly_estimated_increase_total" in fact_ids
     assert "budget_variance_amount" in fact_ids
     assert any(
         recommendation.recommendation_id == "budget_overrun_investigation"
@@ -90,7 +97,14 @@ def test_deterministic_summary_and_html_report_use_fact_pack_values():
 
     assert summary.provider == "deterministic_fallback"
     assert "Selected cloud spend" in summary.headline
+    assert "Latest 8-day spend" in summary.headline
+    assert any("Primary driver" in bullet for bullet in summary.bullets)
+    assert any("Why:" in bullet for bullet in summary.bullets)
     report = executive_report_html(fact_pack, summary)
+    assert "Executive decision brief" in report
+    assert "What changed and why" in report
+    assert "Questions for the next review" in report
+    assert "Owner" in report
     assert "Calculated evidence" in report
     assert "budget_overrun_investigation" not in report
     assert "Actual minus budget" in report

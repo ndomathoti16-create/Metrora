@@ -14,13 +14,19 @@ from ..contracts.quality import QualityReport
 
 def cleaned_csv_bytes(normalized: NormalizedTable | pd.DataFrame) -> bytes:
     """Return canonical rows as UTF-8 CSV bytes."""
-    dataframe = normalized.dataframe if isinstance(normalized, NormalizedTable) else normalized
+    # Attribute-based unwrapping stays reliable across Streamlit hot reloads, where an
+    # instance can outlive the exact imported class object used by ``isinstance``.
+    dataframe = getattr(normalized, "dataframe", normalized)
+    if not isinstance(dataframe, pd.DataFrame):
+        raise TypeError("Cleaned CSV export requires a normalized pandas dataframe.")
     return dataframe.to_csv(index=False).encode("utf-8")
 
 
 def cleaned_parquet_bytes(normalized: NormalizedTable | pd.DataFrame) -> bytes:
     """Return canonical rows as Parquet bytes."""
-    dataframe = normalized.dataframe if isinstance(normalized, NormalizedTable) else normalized
+    dataframe = getattr(normalized, "dataframe", normalized)
+    if not isinstance(dataframe, pd.DataFrame):
+        raise TypeError("Cleaned Parquet export requires a normalized pandas dataframe.")
     buffer = io.BytesIO()
     dataframe.to_parquet(buffer, index=False)
     return buffer.getvalue()

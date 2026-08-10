@@ -3,13 +3,13 @@ requires = ["setuptools>=69"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "spendarc"
+name = "metrora"
 version = "0.1.0"
-description = "SpendArc: a local-first cloud FinOps analytics platform."
+description = "Metrora: a local-first cloud FinOps analytics platform."
 readme = "README.md"
 requires-python = ">=3.11"
 authors = [
-    { name = "SpendArc Project" },
+    { name = "Metrora Project" },
 ]
 dependencies = [
     "boto3>=1.34,<2",
@@ -34,7 +34,7 @@ dev = [
 ]
 
 [project.scripts]
-spendarc-check = "finops_cost_intelligence.cli:main"
+metrora-check = "finops_cost_intelligence.cli:main"
 
 [tool.setuptools]
 package-dir = { "" = "src" }

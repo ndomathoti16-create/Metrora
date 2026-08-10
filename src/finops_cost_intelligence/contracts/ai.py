@@ -31,6 +31,8 @@ class Recommendation:
     rationale: str
     evidence_strength: str
     fact_ids: tuple[str, ...]
+    owner: str = "FinOps analyst"
+    timeframe: str = "Before the next cost review"
 
     def to_dict(self) -> dict[str, Any]:
         return asdict(self) | {"fact_ids": list(self.fact_ids)}

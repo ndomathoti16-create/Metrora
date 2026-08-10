@@ -1,22 +1,26 @@
-# SpendArc
+# Metrora
+
+<p align="left">
+  <img src="docs/assets/metrora-mark.svg" width="54" alt="Metrora logo">
+</p>
 
 ## Cloud financial intelligence for modern cloud teams
 
-SpendArc helps finance, FinOps, and engineering leaders understand where cloud money is going, what changed, and what deserves attention next.
+Metrora helps finance, FinOps, and engineering leaders understand where cloud money is going, what changed, and what deserves attention next.
 
 It brings billing data, budgets, ownership, business context, forecasts, and evidence-backed recommendations into one decision workspace.
 
-**SpendArc** · Cloud FinOps analytics · Local-first reference implementation
+**Metrora** · Cloud FinOps analytics · Local-first reference implementation
 
 > Validate the data. Find the signal. Move with confidence.
 
-[Product capabilities](#what-spendarc-delivers) · [How it works](#how-spendarc-works) · [Technical appendix](#technical-appendix)
+[Product capabilities](#what-metrora-delivers) · [How it works](#how-metrora-works) · [Technical appendix](#technical-appendix)
 
 ## The cloud cost visibility gap
 
 Cloud spend is easy to generate and difficult to explain. Provider exports use different structures, ownership information is often incomplete, and the most important business questions rarely stop at a billing total.
 
-SpendArc is designed for teams that need to answer questions such as:
+Metrora is designed for teams that need to answer questions such as:
 
 - Which services, accounts, projects, departments, environments, or regions are driving spend?
 - What changed compared with the prior period?
@@ -25,7 +29,7 @@ SpendArc is designed for teams that need to answer questions such as:
 - What does cloud cost look like relative to customers, revenue, transactions, or usage?
 - Which actions are supported by the available evidence?
 
-## What SpendArc delivers
+## What Metrora delivers
 
 | Product area | Business value |
 | --- | --- |
@@ -46,20 +50,20 @@ SpendArc is designed for teams that need to answer questions such as:
 
 **Business and product leaders** can connect infrastructure cost to the outcomes their teams are responsible for delivering.
 
-## How SpendArc works
+## How Metrora works
 
-1. **Bring in the data** — upload a cloud billing export and optionally add budget or business-metric data.
-2. **Make the meaning explicit** — review detected columns and confirm the mapping to SpendArc's canonical model.
-3. **Trust the numbers** — inspect missing values, duplicates, invalid records, currency consistency, and reconciliation.
-4. **Understand the movement** — explore spend by service, account, department, project, environment, and region.
-5. **Plan and prioritize** — review budgets, allocation coverage, unit economics, forecasts, anomalies, and supported next steps.
-6. **Share the decision** — generate an evidence-backed executive brief and export the supporting data.
+1. **Bring in the data** — upload a cloud billing export in CSV, Excel, or Parquet format.
+2. **Let Metrora prepare it** — field detection, mapping, normalization, reconciliation, and quality checks run automatically.
+3. **Start with the answer** — Home opens on the current cost position, movement, forecast, anomalies, and attention queue.
+4. **Investigate when needed** — Cost explorer supports filtering and driver analysis; Plans & alerts connects forecasts, anomalies, budgets, ownership, and business metrics.
+5. **Review exceptions, not every setting** — manual mapping, reconciliation evidence, and model controls stay under Advanced.
+6. **Share the decision** — export an evidence-backed brief, fact pack, quality report, or cleaned dataset.
 
 ## A decision layer built on traceable data
 
 ```mermaid
 flowchart LR
-    SOURCES[Billing, budget, and business data] --> WORKSPACE[SpendArc workspace]
+    SOURCES[Billing, budget, and business data] --> WORKSPACE[Metrora workspace]
     WORKSPACE --> TRUST[Profile, map, normalize, reconcile]
     TRUST --> INSIGHT[Spend, budget, ownership, and business insight]
     INSIGHT --> OUTLOOK[Forecasts and anomaly signals]
@@ -68,13 +72,28 @@ flowchart LR
     ACTION --> BRIEF
 ```
 
-SpendArc keeps the analytical path explainable: source data is profiled and normalized before metrics are calculated, and every summary is grounded in those calculated facts.
+Metrora keeps the analytical path explainable: source data is profiled and normalized before metrics are calculated, and every summary is grounded in those calculated facts.
+
+The authenticated workspace is organized as business software rather than a long-form site:
+
+- **Home** — automated operating position and prioritized attention queue.
+- **Cost explorer** — date, dimension, and ownership filtering with exact drilldown values.
+- **Plans & alerts** — forecast, anomalies, budgets, allocation coverage, and unit economics.
+- **Reports** — executive decision brief and reproducible exports.
+- **Advanced** — source inspection, mapping corrections, reconciliation, and analytical defaults.
+
+The market and workflow rationale is documented in
+[docs/PRODUCT_UX_RESEARCH.md](docs/PRODUCT_UX_RESEARCH.md).
 
 ## The product experience
 
+### Product preview
+
+The product opens with a clear explanation of the workflow, then a guided demo loads a deterministic billing scenario into the same workspace used for real files. The product and workspace use the original Metrora signal-ribbon mark above rather than a borrowed asset or stock logo.
+
 ### Start with any supported billing export
 
-SpendArc accepts CSV, Excel, and Parquet files, then profiles their structure before analysis begins. Users can review detected dates, services, costs, accounts, regions, departments, projects, environments, usage fields, currencies, and tags.
+Metrora accepts CSV, Excel, and Parquet files, then profiles their structure before analysis begins. Users can review detected dates, services, costs, accounts, regions, departments, projects, environments, usage fields, currencies, and tags.
 
 ### See the cost story, not just the total
 
@@ -86,7 +105,7 @@ Optional budgets provide actual-versus-budget comparisons. Ownership analysis me
 
 ### Look forward without hiding uncertainty
 
-SpendArc provides a transparent baseline forecast and historical anomaly detection. Each result includes its method, history, threshold, and caveats so a forecast is not mistaken for certainty.
+Metrora provides a transparent baseline forecast and historical anomaly detection. Each result includes its method, history, threshold, and caveats so a forecast is not mistaken for certainty.
 
 ### Use AI where it adds value
 
@@ -94,7 +113,7 @@ AI helps explain validated results and prioritize follow-up actions. It does not
 
 ## Delivery model
 
-SpendArc is structured as a SaaS-ready product: a clear data contract, modular analytical services, a Streamlit workspace, local persistence, and optional AWS storage and query adapters.
+Metrora is structured as a SaaS-ready product: a clear data contract, modular analytical services, a Streamlit workspace, local persistence, and optional AWS storage and query adapters.
 
 The current reference implementation runs locally and can operate without cloud credentials or an AI API key. The same canonical Parquet model provides a path to S3, Glue, and Athena for a hosted deployment.
 
@@ -119,14 +138,14 @@ The local MVP covers milestones 0-9. The application works without AWS credentia
 ### Detailed data workflow
 
 1. Upload a CSV, Excel, or Parquet billing file.
-2. Inspect row counts, columns, inferred types, null rates, distinct values, and sample values.
-3. Review and correct semantic mappings.
-4. Normalize into the canonical cloud-cost model with source-row lineage.
-5. Review blocking errors, warnings, and source-to-canonical reconciliation.
-6. Save the run to the local DuckDB warehouse.
-7. Apply dashboard filters consistently across KPIs, charts, and tables.
-8. Add budget and business-metric files when available.
-9. Review forecasts, anomaly evidence, recommendations, and exports.
+2. Metrora profiles, maps, normalizes, reconciles, and quality-checks the source automatically.
+3. **Home** opens with the current position and prioritized attention queue.
+4. Open **Cost explorer** to change the date range, grouping dimension, or optional filters.
+5. Add budget and business-metric files from **Plans & alerts** when available.
+6. Open **Advanced** only to replace a source, correct a flagged mapping exception, inspect reconciliation, or tune analytical defaults.
+7. Review forecasts, anomaly evidence, allocation coverage, and operating context.
+8. Open **Reports** for the calculated brief, fact pack, quality report, and cleaned data.
+9. Optionally persist the run to DuckDB or configured S3 storage.
 
 ### Minimum billing fields
 
@@ -142,18 +161,29 @@ See [docs/DATA_DICTIONARY.md](docs/DATA_DICTIONARY.md) for the canonical schema 
 
 ### Data-quality requirements
 
-SpendArc checks for missing required fields, duplicates, invalid dates, invalid costs, unsupported or mixed currencies, blank ownership dimensions, normalization issues, row-count changes, and reconciliation differences. Blocking errors pause analysis; warnings remain visible as caveats.
+Metrora checks for missing required fields, duplicates, invalid dates, invalid costs, unsupported or mixed currencies, blank ownership dimensions, normalization issues, row-count changes, and reconciliation differences. Blocking errors pause analysis; warnings remain visible as caveats.
 
 Metric formulas, denominators, and caveats are documented in [docs/METRIC_DEFINITIONS.md](docs/METRIC_DEFINITIONS.md).
 
 ### Quickstart
 
-Run these commands from the SpendArc repository root. Replace the example path with the folder where you cloned the repository.
+The shortest deployment path is Docker. From the repository root:
+
+```powershell
+docker compose up --build
+```
+
+Open `http://localhost:8501`. The included health check, production defaults, and persistent
+local `data` volume are configured in `compose.yaml`. Stop the service with
+`docker compose down`.
+
+For a Python development environment, run these commands from the Metrora repository root.
+Replace the example path with the folder where you cloned the repository.
 
 PowerShell:
 
 ```powershell
-cd "C:\path\to\spendarc"
+cd "C:\path\to\metrora"
 python -m venv .venv
 .venv\Scripts\Activate.ps1
 python -m pip install --upgrade pip
@@ -162,9 +192,16 @@ python data/demo/generate_demo_data.py
 python -m streamlit run app.py
 ```
 
-Upload `data/demo/cloud_billing_demo.csv`, then add `data/demo/budget_demo.csv` and `data/demo/business_metrics_demo.csv` from the optional analysis tabs. The demo data is synthetic and deterministic.
+The app opens on the Metrora product experience, organized into four focused pages: **Product**, **Workflow**, **Evidence**, and **Demo**. Choose **Try interactive demo** to enter a preloaded guided workspace. The local preview uses synthetic data and does not require an account, password, cloud credentials, or external identity provider.
+
+When using the blank workspace, upload `data/demo/cloud_billing_demo.csv`. Metrora prepares
+the cost model and opens Home automatically. Add `data/demo/budget_demo.csv` or
+`data/demo/business_metrics_demo.csv` from **Plans & alerts** when needed. The demo data is
+synthetic and deterministic.
 
 If PowerShell says a command or file cannot be found, check that the prompt is inside the repository folder and that the virtual environment is activated. You can also run the app directly with `.venv\Scripts\python.exe -m streamlit run app.py`.
+
+Metrora uses one deliberate dark visual system across the product page and analytical workspace. This keeps the visual hierarchy, charts, evidence tables, and interactive controls consistent in every view.
 
 ### Validation and testing
 
@@ -180,11 +217,11 @@ GitHub Actions runs tests, linting, and compilation checks on Python 3.11 and 3.
 
 Python and pandas calculate all financial values before the AI boundary. The AI receives a versioned fact pack containing calculated facts, definitions, quality status, caveats, and recommendation IDs.
 
-The optional provider must return structured JSON. Unsupported fact references or numeric claims cause SpendArc to use the deterministic fallback summary.
+The optional provider must return structured JSON. Unsupported fact references or numeric claims cause Metrora to use the deterministic fallback summary.
 
 ### AWS extension
 
-When configured, SpendArc can upload canonical Parquet to S3 under `standardized/cloud_cost/{ingestion_id}.parquet`. `AthenaWarehouse` can run bounded SQL against a Glue/Athena table and return a DataFrame.
+When configured, Metrora can upload canonical Parquet to S3 under `standardized/cloud_cost/{ingestion_id}.parquet`. `AthenaWarehouse` can run bounded SQL against a Glue/Athena table and return a DataFrame.
 
 See [docs/AWS_ARCHITECTURE.md](docs/AWS_ARCHITECTURE.md) and [infra/aws/README.md](infra/aws/README.md).
 

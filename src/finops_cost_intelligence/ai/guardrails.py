@@ -40,9 +40,12 @@ def validate_numeric_claims(text: str, fact_pack: FactPack) -> None:
     back to its deterministic summary.
     """
     allowed: set[float] = set()
+    allowed_percentages: set[float] = set()
     for fact in fact_pack.facts:
         if isinstance(fact.value, (int, float)) and not isinstance(fact.value, bool):
             allowed.add(float(fact.value))
+            if fact.unit == "share":
+                allowed_percentages.add(float(fact.value) * 100)
     number_pattern = re.compile(r"(?<![A-Za-z])[-+]?\d[\d,]*(?:\.\d+)?%?")
     for token in number_pattern.findall(text):
         normalized = token.replace(",", "").removesuffix("%")
@@ -50,9 +53,9 @@ def validate_numeric_claims(text: str, fact_pack: FactPack) -> None:
             value = float(normalized)
         except ValueError:
             continue
+        candidates = allowed_percentages if token.endswith("%") else allowed
         grounded = any(
-            abs(value - candidate) <= max(0.01, abs(candidate) * 1e-6)
-            for candidate in allowed
+            abs(value - candidate) <= max(0.01, abs(candidate) * 1e-6) for candidate in candidates
         )
         if not grounded:
             raise AIResponseValidationError(

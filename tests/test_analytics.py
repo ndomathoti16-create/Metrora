@@ -5,6 +5,7 @@ import pytest
 
 from finops_cost_intelligence.analytics import (
     aggregate_spend,
+    analyze_service_cost_drivers,
     calculate_spend_summary,
     filter_billing_data,
     prepare_daily_spend,
@@ -89,3 +90,50 @@ def test_summary_rejects_invalid_costs(billing_data):
 
     with pytest.raises(AnalyticsInputError, match="cost contains"):
         calculate_spend_summary(billing_data)
+
+
+def test_service_drivers_separate_usage_from_effective_rate_mix():
+    dataframe = pd.DataFrame(
+        {
+            "usage_date": ["2025-01-01", "2025-01-02"] * 2,
+            "service": ["Compute", "Compute", "Storage", "Storage"],
+            "cost": [200.0, 300.0, 100.0, 150.0],
+            "usage_quantity": [100.0, 150.0, 100.0, 100.0],
+            "usage_unit": ["hours"] * 4,
+        }
+    )
+
+    drivers = analyze_service_cost_drivers(
+        dataframe,
+        recent_start="2025-01-02",
+        recent_end="2025-01-02",
+        prior_start="2025-01-01",
+        prior_end="2025-01-01",
+    ).set_index("service")
+
+    assert drivers.loc["Compute", "driver_type"] == "Usage-driven"
+    assert drivers.loc["Compute", "usage_change_pct"] == pytest.approx(0.5)
+    assert drivers.loc["Compute", "effective_rate_change_pct"] == pytest.approx(0.0)
+    assert drivers.loc["Storage", "driver_type"] == "Effective rate/mix-driven"
+    assert drivers.loc["Storage", "usage_change_pct"] == pytest.approx(0.0)
+    assert drivers.loc["Storage", "effective_rate_change_pct"] == pytest.approx(0.5)
+
+
+def test_service_driver_does_not_invent_cause_without_comparable_usage():
+    drivers = analyze_service_cost_drivers(
+        pd.DataFrame(
+            {
+                "usage_date": ["2025-01-01", "2025-01-02"],
+                "service": ["Compute", "Compute"],
+                "cost": [100.0, 150.0],
+            }
+        ),
+        recent_start="2025-01-02",
+        recent_end="2025-01-02",
+        prior_start="2025-01-01",
+        prior_end="2025-01-01",
+    )
+
+    assert drivers.iloc[0]["driver_type"] == "Billing-only"
+    assert drivers.iloc[0]["evidence_level"].startswith("Low")
+    assert "confirm root cause" in drivers.iloc[0]["explanation"]

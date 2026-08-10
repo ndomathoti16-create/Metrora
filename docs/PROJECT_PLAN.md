@@ -1,4 +1,4 @@
-# SpendArc
+# Metrora
 
 Cloud FinOps analytics and cost intelligence platform.
 
@@ -123,7 +123,7 @@ The AI layer will receive a versioned, structured fact pack containing calculate
 
 ```mermaid
 flowchart LR
-    U[Analyst] --> UI[SpendArc Streamlit application]
+    U[Analyst] --> UI[Metrora Streamlit application]
     UI --> ING[Ingestion and profiling]
     ING --> MAP[Column mapping review]
     MAP --> NORM[Canonical normalization]
@@ -246,7 +246,7 @@ The pipeline will compare source total and canonical total using the selected co
 The project will be created as a new repository with business logic separated from the UI:
 
 ```text
-spendarc/
+metrora/
 ├── app.py
 ├── pyproject.toml
 ├── README.md

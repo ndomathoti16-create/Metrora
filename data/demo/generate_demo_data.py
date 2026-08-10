@@ -1,4 +1,4 @@
-"""Generate safe, deterministic demo inputs for SpendArc."""
+"""Generate safe, deterministic demo inputs for Metrora."""
 
 from __future__ import annotations
 
