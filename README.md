@@ -94,11 +94,11 @@ works, and why each result is trustworthy. The separate demo page then offers th
 one-click, deterministic stories in the same workspace used for real files:
 
 <p align="center">
-  <img src="docs/screenshots/product-overview-dark.png" alt="Metrora product overview" width="900">
+  <img src="docs/screenshots/metrora-product-current.png" alt="Current Metrora product experience" width="900">
 </p>
 
 <p align="center">
-  <img src="docs/screenshots/guided-workspace.png" alt="Metrora guided FinOps workspace" width="900">
+  <img src="docs/screenshots/metrora-demo-scenarios.png" alt="Metrora demo scenario chooser" width="900">
 </p>
 
 - **Healthy baseline** shows clean, stable, fully owned spend that is ready to share.
@@ -106,6 +106,12 @@ one-click, deterministic stories in the same workspace used for real files:
   ownership gaps, so Metrora blocks unreliable analysis and explains what must be fixed.
 - **Hidden future risk** is reconciled and under its current budget, but its recent run rate
   accelerates enough to create a clear forecast warning and action plan.
+
+<p align="center">
+  <img src="docs/screenshots/metrora-workspace-current.png" alt="Current Metrora analytical workspace" width="900">
+</p>
+
+The screenshots above are fresh captures from the current release.
 
 The product and workspace use the original Metrora signal-ribbon mark above rather than a
 borrowed asset or stock logo.
