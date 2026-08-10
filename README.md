@@ -10,6 +10,8 @@ Metrora helps finance, FinOps, and engineering leaders understand where cloud mo
 
 It brings billing data, budgets, ownership, business context, forecasts, and evidence-backed recommendations into one decision workspace.
 
+**Live product preview:** [metrora.streamlit.app](https://metrora.streamlit.app/)
+
 **Metrora** · Cloud FinOps analytics · Local-first reference implementation
 
 > Validate the data. Find the signal. Move with confidence.
@@ -190,7 +192,15 @@ Metrora checks for missing required fields, duplicates, invalid dates, invalid c
 
 Metric formulas, denominators, and caveats are documented in [docs/METRIC_DEFINITIONS.md](docs/METRIC_DEFINITIONS.md).
 
-### Quickstart
+## Try Metrora
+
+### Hosted preview
+
+Open [metrora.streamlit.app](https://metrora.streamlit.app/) to explore the hosted product
+experience. The public preview uses synthetic data only and does not require an account, cloud
+credentials, or an API key.
+
+### Run locally
 
 The shortest deployment path is Docker. From the repository root:
 
