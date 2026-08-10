@@ -4,10 +4,14 @@ from pathlib import Path
 
 from streamlit.testing.v1 import AppTest
 
+PROJECT_ROOT = Path(__file__).resolve().parents[1]
+APP_PATH = PROJECT_ROOT / "app.py"
+DEMO_BILLING_PATH = PROJECT_ROOT / "data" / "demo" / "cloud_billing_demo.csv"
+
 
 def test_public_product_page_renders_the_complete_scrolling_story() -> None:
     """The public site should combine the overview, workflow, and trust story."""
-    app = AppTest.from_file("app.py").run(timeout=30)
+    app = AppTest.from_file(APP_PATH).run(timeout=30)
     assert not app.exception
 
     rendered_copy = " ".join(item.value for item in app.markdown)
@@ -18,7 +22,7 @@ def test_public_product_page_renders_the_complete_scrolling_story() -> None:
 
 def test_guided_workspace_pages_render_without_errors() -> None:
     """The guided demo should open every primary workspace destination successfully."""
-    app = AppTest.from_file("app.py").run(timeout=30)
+    app = AppTest.from_file(APP_PATH).run(timeout=30)
     assert not app.exception
 
     app.button(key="product_demo_hero").click().run(timeout=30)
@@ -56,12 +60,12 @@ def test_guided_workspace_pages_render_without_errors() -> None:
 
 def test_one_upload_opens_a_complete_analysis_automatically() -> None:
     """A first-time user should not need a separate mapping or validation action."""
-    app = AppTest.from_file("app.py").run(timeout=30)
+    app = AppTest.from_file(APP_PATH).run(timeout=30)
     app.button(key="product_demo_hero").click().run(timeout=30)
     app.button(key="product_demo_scenario_forecast_risk").click().run(timeout=30)
     app.button(key="top_workspace_new_analysis").click().run(timeout=30)
 
-    content = Path("data/demo/cloud_billing_demo.csv").read_bytes()
+    content = DEMO_BILLING_PATH.read_bytes()
     app.file_uploader(key="billing_upload").upload(
         "billing.csv",
         content,
@@ -81,7 +85,7 @@ def test_one_upload_opens_a_complete_analysis_automatically() -> None:
 
 def test_refresh_restores_the_selected_demo_workspace_page() -> None:
     """A shared demo route should reconstruct the scenario and active workspace page."""
-    app = AppTest.from_file("app.py")
+    app = AppTest.from_file(APP_PATH)
     app.query_params.update(
         {
             "surface": "workspace",
@@ -100,7 +104,7 @@ def test_refresh_restores_the_selected_demo_workspace_page() -> None:
 
 def test_hero_opens_the_scenario_chooser_not_a_preselected_workspace() -> None:
     """The public CTA must let visitors choose their own demo story first."""
-    app = AppTest.from_file("app.py").run(timeout=30)
+    app = AppTest.from_file(APP_PATH).run(timeout=30)
 
     app.button(key="product_demo_hero").click().run(timeout=30)
 
