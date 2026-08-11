@@ -3,13 +3,14 @@
 from __future__ import annotations
 
 from html import escape
-from pathlib import Path
 from typing import TYPE_CHECKING
 
 import pandas as pd
 
 from ..ingestion import IngestionError, load_table, profile_table
+from ..ingestion.readers import LoadedTable
 from ..mapping import MappingValidationError
+from ..runtime import resource_path
 from .branding import render_compact_table
 from .mapping_view import build_automatic_model, render_mapping_view, source_key_for
 
@@ -114,6 +115,48 @@ def _prepare_source_automatically(loaded_table, profile) -> str:
     return source_key
 
 
+def activate_loaded_table(loaded_table: LoadedTable) -> tuple[object, str, bool]:
+    """Install any trusted file or cloud source into the shared analytical workflow.
+
+    Cloud connectors call this same boundary as the file uploader. That keeps mapping,
+    normalization, reconciliation, quality checks, and all downstream calculations
+    identical regardless of where the billing rows came from.
+    """
+    import streamlit as st
+
+    profile = profile_table(loaded_table)
+    existing_loaded = st.session_state.get("loaded_table")
+    existing_profile = st.session_state.get("data_profile")
+    incoming_key = source_key_for(loaded_table, profile)
+    current_key = (
+        source_key_for(existing_loaded, existing_profile)
+        if existing_loaded is not None and existing_profile is not None
+        else None
+    )
+    was_new_source = incoming_key != current_key
+    if was_new_source:
+        for key in (
+            "column_mapping",
+            "normalized_table",
+            "normalized_source_key",
+            "quality_report",
+            "quality_source_key",
+            "warehouse_summary",
+            "warehouse_source_key",
+            "analytics_filtered_table",
+            "analytics_source_key",
+            "fact_pack",
+            "summary_result",
+            "summary_source_key",
+            "auto_attempted_source_key",
+        ):
+            st.session_state.pop(key, None)
+    st.session_state["loaded_table"] = loaded_table
+    st.session_state["data_profile"] = profile
+    source_key = _prepare_source_automatically(loaded_table, profile)
+    return profile, source_key, was_new_source
+
+
 def render_ingestion_view(settings: Settings, *, include_mapping: bool = True) -> None:
     """Render one-step ingestion with automated mapping, normalization, and checks."""
     import streamlit as st
@@ -153,12 +196,7 @@ def render_ingestion_view(settings: Settings, *, include_mapping: bool = True) -
                 "No billing source is loaded. Upload your own file, or open the guided demo "
                 "from the product page."
             )
-            demo_path = (
-                Path(__file__).resolve().parents[3]
-                / "data"
-                / "demo"
-                / "cloud_billing_demo.csv"
-            )
+            demo_path = resource_path("data", "demo", "cloud_billing_demo.csv")
             if demo_path.is_file():
                 st.download_button(
                     "Download sample billing CSV",
@@ -172,36 +210,10 @@ def render_ingestion_view(settings: Settings, *, include_mapping: bool = True) -
         max_bytes = settings.max_upload_mb * 1024 * 1024
         try:
             loaded_table = load_table(uploaded_file, max_bytes=max_bytes)
-            profile = profile_table(loaded_table)
         except IngestionError as exc:
             st.error(str(exc))
             return
-
-        incoming_key = source_key_for(loaded_table, profile)
-        current_key = (
-            source_key_for(existing_loaded, existing_profile)
-            if existing_loaded is not None and existing_profile is not None
-            else None
-        )
-        if incoming_key != current_key:
-            was_new_source = True
-            for key in (
-                "column_mapping",
-                "normalized_table",
-                "normalized_source_key",
-                "quality_report",
-                "quality_source_key",
-                "warehouse_summary",
-                "warehouse_source_key",
-                "analytics_filtered_table",
-                "analytics_source_key",
-                "fact_pack",
-                "summary_result",
-                "summary_source_key",
-            ):
-                st.session_state.pop(key, None)
-        st.session_state["loaded_table"] = loaded_table
-        st.session_state["data_profile"] = profile
+        profile, _, was_new_source = activate_loaded_table(loaded_table)
 
     _prepare_source_automatically(loaded_table, profile)
     quality_report = st.session_state.get("quality_report")

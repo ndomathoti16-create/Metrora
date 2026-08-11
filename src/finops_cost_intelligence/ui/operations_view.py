@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from datetime import datetime
+from html import escape
 from typing import TYPE_CHECKING
 
 import pandas as pd
@@ -246,6 +248,216 @@ def _render_business_metric_view(actual: pd.DataFrame, source_key: str) -> None:
     st.plotly_chart(figure, width="stretch", theme=None)
     with st.expander("View business metric values", expanded=False):
         render_compact_table(joined, max_rows=30)
+
+
+def _governance_row(
+    policy: str,
+    status: str,
+    evidence: str,
+    action: str,
+    *,
+    tone: str,
+) -> str:
+    return (
+        f'<article class="metrora-governance-row {escape(tone)}">'
+        f'<div><span>{escape(status)}</span><strong>{escape(policy)}</strong></div>'
+        f'<p>{escape(evidence)}</p><small>{escape(action)}</small></article>'
+    )
+
+
+def render_governance_panel(actual: pd.DataFrame, source_key: str) -> None:
+    """Translate FinOps controls into a plain-language policy and action review."""
+    import streamlit as st
+
+    target_key = f"allocation_target_{source_key}"
+    st.session_state.setdefault(target_key, 0.90)
+    allocation_target = float(st.session_state[target_key])
+    report = st.session_state.get("quality_report")
+    budget = st.session_state.get("budget_table")
+    business_metrics = st.session_state.get("business_metrics_table")
+    sync = st.session_state.get("connection_sync") or {}
+    rows: list[str] = []
+    needs_attention = 0
+    not_configured = 0
+
+    quality_ready = bool(report is not None and report.ready_for_analysis)
+    reconciliation = getattr(report, "reconciliation", None)
+    difference = getattr(reconciliation, "absolute_difference", None)
+    if quality_ready:
+        rows.append(
+            _governance_row(
+                "Trusted cost model",
+                "Met",
+                "Source and canonical totals reconcile with a "
+                f"{float(difference or 0):,.2f} difference.",
+                "No action required unless the source changes.",
+                tone="met",
+            )
+        )
+    else:
+        needs_attention += 1
+        rows.append(
+            _governance_row(
+                "Trusted cost model",
+                "Needs attention",
+                "At least one blocking data-quality or reconciliation check is unresolved.",
+                "Open Data settings and resolve the blocking evidence before sharing results.",
+                tone="attention",
+            )
+        )
+
+    ownership_fields = [
+        field
+        for field in ("account_id", "department", "project", "environment")
+        if field in actual.columns
+    ]
+    if ownership_fields:
+        try:
+            coverage = calculate_allocation_coverage(actual, ownership_fields)
+            any_row = coverage.loc[coverage["field"].eq("any ownership field")].iloc[0]
+            cost_coverage = float(any_row["cost_coverage"] or 0.0)
+            unallocated = max(
+                0.0,
+                float(any_row["positive_cost"])
+                - float(any_row["allocated_positive_cost"]),
+            )
+        except (AnalyticsInputError, KeyError, ValueError):
+            cost_coverage = 0.0
+            unallocated = float(pd.to_numeric(actual["cost"], errors="coerce").clip(lower=0).sum())
+        if cost_coverage >= allocation_target:
+            rows.append(
+                _governance_row(
+                    "Cost ownership",
+                    "Met",
+                    f"{cost_coverage:.1%} of positive spend has at least one ownership field.",
+                    f"Maintain coverage at or above the {allocation_target:.0%} policy target.",
+                    tone="met",
+                )
+            )
+        else:
+            needs_attention += 1
+            rows.append(
+                _governance_row(
+                    "Cost ownership",
+                    "Needs attention",
+                    f"{cost_coverage:.1%} is allocated; {unallocated:,.2f} of positive "
+                    "spend has no owner.",
+                    "Assign missing cost centers, projects, or environments to reach "
+                    f"{allocation_target:.0%}.",
+                    tone="attention",
+                )
+            )
+    else:
+        needs_attention += 1
+        rows.append(
+            _governance_row(
+                "Cost ownership",
+                "Needs attention",
+                "No account, department, project, or environment field is available.",
+                "Add an ownership dimension to enable accountability and showback.",
+                tone="attention",
+            )
+        )
+
+    if budget is not None:
+        rows.append(
+            _governance_row(
+                "Budget accountability",
+                "Met",
+                "A budget is connected to the current workspace.",
+                "Review Budget variance for scope-level utilization and exceptions.",
+                tone="met",
+            )
+        )
+    else:
+        not_configured += 1
+        rows.append(
+            _governance_row(
+                "Budget accountability",
+                "Not configured",
+                "Current cost and forecast cannot yet be compared with an approved plan.",
+                "Upload a budget in this workspace to activate plan-risk monitoring.",
+                tone="neutral",
+            )
+        )
+
+    if business_metrics is not None:
+        rows.append(
+            _governance_row(
+                "Business value linkage",
+                "Met",
+                "Business-volume data is connected for unit-cost analysis.",
+                "Review Unit economics and track cost per outcome over time.",
+                tone="met",
+            )
+        )
+    else:
+        not_configured += 1
+        rows.append(
+            _governance_row(
+                "Business value linkage",
+                "Not configured",
+                "Cloud cost is not yet connected to customers, revenue, transactions, or usage.",
+                "Add a business metric to measure cost per outcome.",
+                tone="neutral",
+            )
+        )
+
+    modified_text = sync.get("latest_modified")
+    if modified_text:
+        try:
+            modified = datetime.fromisoformat(str(modified_text)).astimezone()
+            age_hours = max(
+                0.0,
+                (datetime.now().astimezone() - modified).total_seconds() / 3600,
+            )
+        except ValueError:
+            age_hours = 999.0
+        if age_hours <= 48:
+            rows.append(
+                _governance_row(
+                    "Source freshness",
+                    "Met",
+                    f"The connected cloud export is {age_hours:.1f} hours old.",
+                    "Refresh-on-open will check for a newer complete export.",
+                    tone="met",
+                )
+            )
+        else:
+            needs_attention += 1
+            rows.append(
+                _governance_row(
+                    "Source freshness",
+                    "Needs attention",
+                    f"The latest connected cloud export is {age_hours / 24:.1f} days old.",
+                    "Check the provider export schedule and run Sync latest in Data sources.",
+                    tone="attention",
+                )
+            )
+    else:
+        not_configured += 1
+        rows.append(
+            _governance_row(
+                "Source freshness",
+                "Manual source",
+                "This file upload has no provider refresh timestamp.",
+                "Connect a scheduled cloud export if automated freshness monitoring is required.",
+                tone="neutral",
+            )
+        )
+
+    status_columns = st.columns(3)
+    status_columns[0].metric("Policies reviewed", len(rows))
+    status_columns[1].metric("Needs attention", needs_attention)
+    status_columns[2].metric("Not configured", not_configured)
+    st.caption(
+        "Default ownership target: "
+        f"{allocation_target:.0%}. Change it under Data settings → Analysis defaults."
+    )
+    st.markdown(
+        f'<section class="metrora-governance-list">{"".join(rows)}</section>',
+        unsafe_allow_html=True,
+    )
 
 
 def render_operations_view(

@@ -43,7 +43,9 @@ def test_guided_workspace_pages_render_without_errors() -> None:
     expected_content = (
         ("top_workspace_nav_cost_explorer", "Total spend"),
         ("top_workspace_nav_plans_alerts", "Forecast"),
+        ("top_workspace_nav_decisions", "Priority queue"),
         ("top_workspace_nav_reports", "The decision in one minute"),
+        ("top_workspace_nav_connections", "Upload a file"),
         ("top_workspace_nav_advanced", "Automatic field mapping"),
         ("top_workspace_nav_home", "Current window spend"),
     )
@@ -56,6 +58,21 @@ def test_guided_workspace_pages_render_without_errors() -> None:
             | {item.label for item in app.tabs}
         )
         assert expected in visible_labels
+
+
+def test_desktop_mode_opens_real_workspace_and_restores_data_sources(monkeypatch) -> None:
+    """The packaged app should skip the product site and preserve its workspace route."""
+    monkeypatch.setenv("METRORA_DESKTOP", "1")
+    app = AppTest.from_file(APP_PATH)
+    app.query_params.update({"surface": "workspace", "page": "Connections"})
+    app.run(timeout=30)
+
+    assert not app.exception
+    assert app.session_state["desktop_mode"] is True
+    assert app.session_state["demo_authenticated"] is True
+    assert app.session_state["workspace_page"] == "Connections"
+    assert "Upload a file" in {item.label for item in app.tabs}
+    assert "top_workspace_back_to_product" not in {item.key for item in app.button}
 
 
 def test_one_upload_opens_a_complete_analysis_automatically() -> None:

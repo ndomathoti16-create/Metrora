@@ -18,7 +18,8 @@ MIN_SUGGESTION_SCORE = 0.55
 
 
 def _normalize_label(value: str) -> str:
-    return re.sub(r"[^a-z0-9]+", " ", value.casefold()).strip()
+    separated = re.sub(r"([a-z0-9])([A-Z])", r"\1 \2", value)
+    return re.sub(r"[^a-z0-9]+", " ", separated.casefold()).strip()
 
 
 def _tokens(value: str) -> set[str]:

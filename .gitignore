@@ -24,6 +24,7 @@ htmlcov/
 data/uploads/
 data/outputs/
 data/generated/
+data/state/
 *.duckdb
 *.duckdb.wal
 *.db

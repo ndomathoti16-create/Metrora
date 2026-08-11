@@ -19,6 +19,7 @@ from ..normalization import normalize_billing_table
 from ..normalization.budgets import normalize_budget_dataframe
 from ..normalization.business_metrics import normalize_business_metrics
 from ..quality import run_quality_checks
+from ..runtime import resource_path
 from .branding import METRORA_LOGO_SVG, reset_workspace_state
 from .mapping_view import source_key_for
 from .navigation import set_product_route, set_workspace_route
@@ -1631,6 +1632,98 @@ html { scroll-behavior: smooth; }
 .metrora-evidence-title b { color: var(--metrora-teal-v2); }
 .metrora-evidence-row i::before { background: linear-gradient(90deg, var(--metrora-teal-v2), var(--metrora-blue-v2)); }
 
+.metrora-native-bridge {
+    margin: 8rem 0 2rem;
+    padding: clamp(2.2rem, 5vw, 4.5rem);
+    border: 1px solid #253241;
+    border-radius: 1.35rem;
+    background:
+        radial-gradient(circle at 84% 12%, rgba(85, 214, 199, .08), transparent 20rem),
+        linear-gradient(140deg, rgba(16, 24, 34, .94), rgba(8, 13, 19, .9));
+}
+.metrora-native-bridge header { max-width: 47rem; margin-bottom: 2.8rem; }
+.metrora-native-bridge header > span {
+    color: var(--metrora-teal-v2);
+    font-size: .66rem;
+    font-weight: 800;
+    letter-spacing: .13em;
+    text-transform: uppercase;
+}
+.metrora-native-bridge h2 {
+    margin: 1rem 0 1.2rem;
+    color: #f1f5f8 !important;
+    font-family: 'Manrope', 'Outfit', sans-serif;
+    font-size: clamp(2.35rem, 4.4vw, 4.35rem) !important;
+    letter-spacing: -.065em;
+    line-height: 1.02;
+}
+.metrora-native-bridge header p { color: #98a5b4 !important; line-height: 1.75; }
+.metrora-native-lanes {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1px;
+    overflow: hidden;
+    border: 1px solid #263444;
+    border-radius: 1rem;
+    background: #263444;
+}
+.metrora-native-lane { padding: 1.7rem; background: #0c121a; }
+.metrora-native-lane.metrora { background: linear-gradient(145deg, #101a25, #0d151e); }
+.metrora-native-lane small {
+    color: #718197;
+    font-size: .62rem;
+    font-weight: 800;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+}
+.metrora-native-lane.metrora small { color: #6ed9cc; }
+.metrora-native-lane h3 {
+    margin: .85rem 0 1.1rem;
+    color: #eaf0f6 !important;
+    font-family: 'Manrope', sans-serif;
+}
+.metrora-native-lane ul {
+    display: grid;
+    gap: .65rem;
+    margin: 0;
+    padding-left: 1.15rem;
+    color: #98a6b6;
+    font-size: .82rem;
+    line-height: 1.55;
+}
+.metrora-accountability-loop {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    margin-top: 1.25rem;
+    border-top: 1px solid #273646;
+    border-bottom: 1px solid #273646;
+}
+.metrora-accountability-loop div {
+    position: relative;
+    padding: 1.25rem 1.4rem 1.25rem 0;
+}
+.metrora-accountability-loop div:not(:last-child)::after {
+    position: absolute;
+    top: 50%;
+    right: .65rem;
+    color: #4d647e;
+    content: '→';
+}
+.metrora-accountability-loop span {
+    display: block;
+    color: #68d9cc;
+    font-size: .58rem;
+    font-weight: 800;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+}
+.metrora-accountability-loop strong {
+    display: block;
+    margin-top: .55rem;
+    color: #dfe7f0;
+    font-size: .8rem;
+}
+
 @keyframes metrora-enter {
     from { opacity: 0; transform: translateY(14px); }
     to { opacity: 1; transform: translateY(0); }
@@ -1679,6 +1772,8 @@ html { scroll-behavior: smooth; }
         border-bottom: 1px solid #222c38 !important;
     }
     .metrora-model-node:last-child { border-bottom: 0 !important; }
+    .metrora-native-lanes { grid-template-columns: 1fr; }
+    .metrora-accountability-loop { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -1702,6 +1797,94 @@ html { scroll-behavior: smooth; }
     .metrora-chart-trace { stroke-dashoffset: 0 !important; }
     .metrora-chart-area { opacity: 1 !important; }
 }
+
+.metrora-live-connections {
+    max-width: 78rem;
+    margin: 7rem auto 1rem;
+    padding: 0 1rem;
+}
+
+.metrora-live-connections > header {
+    max-width: 45rem;
+    margin-bottom: 2.4rem;
+}
+
+.metrora-live-connections > header span {
+    color: #55d6c7;
+    font-size: .68rem;
+    font-weight: 800;
+    letter-spacing: .13em;
+    text-transform: uppercase;
+}
+
+.metrora-live-connections h2 {
+    margin: .75rem 0 1rem;
+    color: #f3f6fa;
+    font-family: Manrope, sans-serif;
+    font-size: clamp(2.1rem, 4vw, 4.2rem);
+    letter-spacing: -.055em;
+    line-height: 1.02;
+}
+
+.metrora-live-connections header p {
+    color: #9aa7b8;
+    font-size: 1rem;
+    line-height: 1.7;
+}
+
+.metrora-connection-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    border-top: 1px solid #273441;
+    border-bottom: 1px solid #273441;
+}
+
+.metrora-connection-grid article {
+    min-height: 13rem;
+    padding: 1.65rem 1.4rem;
+    border-right: 1px solid #1e2a36;
+    background: linear-gradient(180deg, rgba(18,28,39,.66), rgba(10,16,23,.12));
+}
+
+.metrora-connection-grid article:last-child { border-right: 0; }
+.metrora-connection-grid small {
+    color: #7da7ff;
+    font-size: .66rem;
+    font-weight: 800;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+}
+
+.metrora-connection-grid h3 {
+    margin: 1.6rem 0 .7rem;
+    color: #eef3f8;
+    font-size: 1.05rem;
+}
+
+.metrora-connection-grid p {
+    margin: 0;
+    color: #8f9dad;
+    font-size: .82rem;
+    line-height: 1.65;
+}
+
+.metrora-connection-footnote {
+    margin: 1.3rem 0 0;
+    color: #7f8c9c;
+    font-size: .78rem;
+    line-height: 1.6;
+}
+
+@media (max-width: 900px) {
+    .metrora-connection-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .metrora-connection-grid article:nth-child(2) { border-right: 0; }
+    .metrora-connection-grid article:nth-child(-n+2) { border-bottom: 1px solid #1e2a36; }
+}
+
+@media (max-width: 600px) {
+    .metrora-connection-grid { grid-template-columns: 1fr; }
+    .metrora-connection-grid article { min-height: auto; border-right: 0; border-bottom: 1px solid #1e2a36; }
+}
 </style>
 """
 
@@ -1722,7 +1905,7 @@ def _demo_path(scenario_id: str = DEFAULT_DEMO_SCENARIO) -> Path:
 
 def _demo_supporting_path(filename: str) -> Path:
     """Return one of the checked-in supporting files used by the guided demo."""
-    return Path(__file__).resolve().parents[3] / "data" / "demo" / filename
+    return resource_path("data", "demo", filename)
 
 
 def _load_demo_planning_context(settings: Settings, scenario_id: str):
@@ -1954,13 +2137,63 @@ def _render_model_map() -> None:
             </div>
             <div class="metrora-model-node">
                 <small>04 / Action</small>
-                <strong>Evidence-backed brief</strong>
-                <p>Clear next steps with the numbers and caveats attached.</p>
+                <strong>Owned decision</strong>
+                <p>Owner, due date, disposition, and evidence in one operating record.</p>
+            </div>
+            <div class="metrora-model-node">
+                <small>05 / Outcome</small>
+                <strong>Verified value</strong>
+                <p>Before-and-after actuals prove what changed after implementation.</p>
             </div>
         </div>
         <p class="metrora-centered-caption metrora-model-caption">
             Calculated first. Explained second. Traceable throughout.
         </p>
+        """,
+        unsafe_allow_html=True,
+    )
+
+
+def _render_native_bridge() -> None:
+    """Explain why Metrora complements provider-native cost products."""
+    st.markdown(
+        """
+        <section class="metrora-native-bridge metrora-scroll-reveal">
+            <header>
+                <span>Designed to complement the cloud</span>
+                <h2>Native tools find opportunities. Metrora closes the loop.</h2>
+                <p>AWS, Azure, and Google Cloud remain the best source for provider-specific
+                billing and resource recommendations. Metrora gives finance and engineering a
+                neutral place to validate the evidence, assign the decision, and verify the
+                result across providers.</p>
+            </header>
+            <div class="metrora-native-lanes">
+                <article class="metrora-native-lane">
+                    <small>Native cloud platforms</small>
+                    <h3>Provider depth</h3>
+                    <ul>
+                        <li>Detailed billing and resource telemetry</li>
+                        <li>Provider-specific optimization recommendations</li>
+                        <li>Commitment, rightsizing, and service expertise</li>
+                    </ul>
+                </article>
+                <article class="metrora-native-lane metrora">
+                    <small>Metrora decision layer</small>
+                    <h3>Cross-provider accountability</h3>
+                    <ul>
+                        <li>Reconciled evidence and one provider-neutral cost model</li>
+                        <li>Budget, ownership, and business-unit context</li>
+                        <li>Owner, decision, due date, rejection reason, and verified outcome</li>
+                    </ul>
+                </article>
+            </div>
+            <div class="metrora-accountability-loop" aria-label="Decision accountability loop">
+                <div><span>01</span><strong>Detect</strong></div>
+                <div><span>02</span><strong>Prove</strong></div>
+                <div><span>03</span><strong>Assign</strong></div>
+                <div><span>04</span><strong>Verify</strong></div>
+            </div>
+        </section>
         """,
         unsafe_allow_html=True,
     )
@@ -2037,7 +2270,9 @@ def _render_overview(settings: Settings) -> None:
         )
     with button_columns[2]:
         st.markdown(
-            '<a class="metrora-hero-secondary-link" href="#metrora-workflow">See how it works</a>',
+            '<a class="metrora-hero-secondary-link" '
+            'href="https://github.com/ndomathoti16-create/SpendArc/releases/latest" '
+            'target="_blank" rel="noopener">Download for Windows</a>',
             unsafe_allow_html=True,
         )
     st.markdown(
@@ -2055,6 +2290,38 @@ def _render_overview(settings: Settings) -> None:
         "detail only when a reviewer needs it.",
     )
     _render_model_map()
+    st.markdown(
+        """
+        <section class="metrora-live-connections metrora-scroll-reveal" id="metrora-connections">
+            <header>
+                <span>Live cost data</span>
+                <h2>Connect the exports you already schedule.</h2>
+                <p>The desktop workspace imports the newest complete provider export, then
+                applies the same mapping, reconciliation, quality, and decision pipeline used
+                for every file.</p>
+            </header>
+            <div class="metrora-connection-grid">
+                <article><small>01 / AWS</small><h3>Data Exports &amp; CUR</h3>
+                <p>Read the latest complete CSV.GZ or Parquet batch from an S3 prefix through
+                AWS SSO or an IAM role.</p></article>
+                <article><small>02 / Azure</small><h3>Cost Management</h3>
+                <p>Refresh recurring ActualCost or AmortizedCost exports from Blob Storage
+                through Entra ID.</p></article>
+                <article><small>03 / Google Cloud</small><h3>Cloud Billing</h3>
+                <p>Query a BigQuery billing export with Application Default Credentials and
+                include credits in effective cost.</p></article>
+                <article><small>04 / Portable</small><h3>Files &amp; FOCUS</h3>
+                <p>Open CSV, Excel, Parquet, or FOCUS-shaped exports from other cloud and
+                technology providers.</p></article>
+            </div>
+            <p class="metrora-connection-footnote">Read-only by design. Metrora stores export
+            locations and refresh history—not passwords, access keys, tokens, or cloud resource
+            controls.</p>
+        </section>
+        """,
+        unsafe_allow_html=True,
+    )
+    _render_native_bridge()
     principles = [
         (
             "01",
@@ -2153,6 +2420,11 @@ def _render_pipeline() -> None:
             "Decide",
             "Forecast, investigate anomalies, connect business metrics, and export the brief.",
         ),
+        (
+            "06",
+            "Verify",
+            "Assign the owner, record the disposition, and measure the result against actuals.",
+        ),
     ]
     for number, title, copy in steps:
         st.markdown(
@@ -2193,8 +2465,13 @@ def _render_pipeline() -> None:
             "Evidence-backed brief",
             "A concise explanation of what changed, why it matters, and what to investigate next.",
         ),
+        (
+            "D",
+            "Decision record",
+            "An accountable owner, disposition, due date, and actual verified outcome.",
+        ),
     ]
-    output_columns = st.columns(3, gap="large")
+    output_columns = st.columns(len(outputs), gap="large")
     for column, (mark, title, copy) in zip(output_columns, outputs, strict=True):
         with column:
             st.markdown(
@@ -2232,9 +2509,9 @@ def _render_trust() -> None:
         ),
         (
             "03",
-            "Portable access",
-            "The local preview uses synthetic data. A production deployment can add S3, "
-            "Athena, and real identity controls later.",
+            "Read-only access",
+            "Cloud exports and native AWS recommendations are imported through least-privilege "
+            "identities; Metrora does not change resources.",
         ),
     ]
     for column, (number, title, copy) in zip(columns, trust_cards, strict=True):
@@ -2253,13 +2530,11 @@ def _render_trust() -> None:
     st.markdown(
         """
         <div class="metrora-product-split">
-            <h3>Preview now, production path later</h3>
+            <h3>Provider depth, neutral accountability</h3>
             <p>
-                The current product preview keeps data local and uses a guided demo workspace.
-                The architecture is designed so a future hosted deployment can add cloud storage,
-                query services, workspace permissions, and audited identity without changing
-                the core
-                analytical model.
+                Use AWS, Azure, and Google Cloud for their native telemetry and optimization
+                engines. Use Metrora to reconcile the cost story, connect it to business context,
+                record what people decided, and verify the outcome from actual billing.
             </p>
         </div>
         """,

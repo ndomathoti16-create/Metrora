@@ -2,10 +2,11 @@
 
 from __future__ import annotations
 
-from pathlib import Path
+import os
 from typing import TYPE_CHECKING
 
 from ..ingestion import IngestionError
+from ..runtime import resource_path
 from .branding import (
     enable_scroll_reveals,
     inject_styles,
@@ -47,6 +48,10 @@ def _restore_route(settings: Settings) -> None:
         if st.session_state.get("demo_authenticated", False):
             # The current session can keep an uploaded source even though a fresh
             # browser session cannot reconstruct it from a URL.
+            requested_page = route.get("page", "Home")
+            st.session_state["workspace_page"] = (
+                requested_page if requested_page in WORKSPACE_PAGES else "Home"
+            )
             return
         # A local upload cannot be reconstructed from a URL. Send a fresh browser
         # session to the scenario chooser instead of showing a misleading blank view.
@@ -80,7 +85,7 @@ def render_app_shell(settings: Settings) -> None:
             "before starting the application."
         ) from exc
 
-    page_icon = Path(__file__).resolve().parents[3] / "docs" / "assets" / "metrora-mark.svg"
+    page_icon = resource_path("docs", "assets", "metrora-mark.svg")
     st.set_page_config(
         page_title="Metrora | Cloud FinOps Intelligence",
         page_icon=str(page_icon) if page_icon.is_file() else "M",
@@ -91,6 +96,12 @@ def render_app_shell(settings: Settings) -> None:
     # Metrora has one intentional workspace appearance. Keeping the state true also
     # gives the analytical charts a single, deterministic visual palette.
     st.session_state["dark_mode"] = True
+    desktop_mode = os.environ.get("METRORA_DESKTOP", "").strip() == "1"
+    st.session_state["desktop_mode"] = desktop_mode
+    if desktop_mode:
+        st.session_state["demo_authenticated"] = True
+        st.session_state["demo_mode"] = False
+        st.session_state.setdefault("demo_workspace", "Desktop workspace")
     inject_styles()
     enable_scroll_reveals()
     _restore_route(settings)

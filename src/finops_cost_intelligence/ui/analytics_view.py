@@ -500,6 +500,11 @@ def render_home_view(
                 _navigate_button("Connect a budget", "Plans & alerts", "home_open_budget")
             if drivers.empty and not anomaly_count:
                 st.success("No material movement or anomaly requires immediate review.")
+            _navigate_button(
+                "Open decision register",
+                "Decisions",
+                "home_open_decisions",
+            )
 
     if not drivers.empty:
         st.markdown("### What is moving spend")

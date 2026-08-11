@@ -3101,12 +3101,208 @@ TOP_NAVIGATION_CSS = """
     color: #eaf5ff !important;
 }
 
+.metrora-connection-row {
+    display: grid;
+    grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
+    gap: 2rem;
+    padding: 1.15rem 1.25rem;
+    margin-top: .85rem;
+    border-top: 1px solid #253242;
+    border-bottom: 1px solid #182331;
+    background: linear-gradient(90deg, rgba(18,29,42,.72), rgba(11,18,27,.25));
+}
+
+.metrora-connection-row > div {
+    display: grid;
+    gap: .32rem;
+    min-width: 0;
+}
+
+.metrora-connection-row span {
+    color: #55d6c7;
+    font-size: .65rem;
+    font-weight: 800;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+}
+
+.metrora-connection-row strong {
+    color: #eef3f8;
+    font-size: .98rem;
+    overflow-wrap: anywhere;
+}
+
+.metrora-connection-row small {
+    color: #8794a4;
+    font-size: .78rem;
+    line-height: 1.55;
+    overflow-wrap: anywhere;
+}
+
+.metrora-governance-list {
+    display: grid;
+    gap: 0;
+    margin-top: 1.15rem;
+    border-top: 1px solid #263545;
+}
+
+.metrora-governance-row {
+    display: grid;
+    grid-template-columns: minmax(12rem, .7fr) minmax(18rem, 1.2fr) minmax(18rem, 1fr);
+    gap: 1.5rem;
+    align-items: center;
+    padding: 1.15rem .25rem;
+    border-bottom: 1px solid #1d2936;
+}
+
+.metrora-governance-row > div {
+    display: grid;
+    gap: .32rem;
+}
+
+.metrora-governance-row span {
+    width: fit-content;
+    padding: .2rem .46rem;
+    border-radius: 999px;
+    color: #99a7b8;
+    background: #151f2b;
+    font-size: .63rem;
+    font-weight: 800;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+}
+
+.metrora-governance-row.met span {
+    color: #6fe2d3;
+    background: rgba(85,214,199,.1);
+}
+
+.metrora-governance-row.attention span {
+    color: #ff9c8d;
+    background: rgba(255,124,107,.11);
+}
+
+.metrora-governance-row strong {
+    color: #eef3f8;
+    font-size: .94rem;
+}
+
+.metrora-governance-row p,
+.metrora-governance-row small {
+    margin: 0;
+    color: #9aa7b8;
+    font-size: .8rem;
+    line-height: 1.55;
+}
+
+.metrora-governance-row small { color: #c4ced9; }
+
+.metrora-decision-list {
+    display: grid;
+    gap: .7rem;
+    margin: 1.2rem 0 1.8rem;
+}
+
+.metrora-decision-row {
+    display: grid;
+    grid-template-columns: 4.6rem minmax(18rem, 1.2fr) minmax(30rem, 1fr);
+    gap: 1.35rem;
+    align-items: center;
+    padding: 1.15rem 1.25rem;
+    border: 1px solid #243243;
+    border-radius: .85rem;
+    background: linear-gradient(110deg, rgba(18, 29, 42, .88), rgba(10, 16, 24, .72));
+}
+
+.metrora-decision-score {
+    display: grid;
+    min-height: 3.7rem;
+    align-content: center;
+    justify-items: center;
+    border-right: 1px solid #283647;
+}
+
+.metrora-decision-score span {
+    color: #8ae2d7;
+    font-family: 'Manrope', 'DM Sans', sans-serif;
+    font-size: 1.35rem;
+    font-weight: 750;
+}
+
+.metrora-decision-score small,
+.metrora-decision-meta small {
+    color: #718095;
+    font-size: .58rem;
+    font-weight: 800;
+    letter-spacing: .11em;
+    text-transform: uppercase;
+}
+
+.metrora-decision-main {
+    display: grid;
+    gap: .38rem;
+    min-width: 0;
+}
+
+.metrora-decision-main > span {
+    color: #6fd9cc;
+    font-size: .63rem;
+    font-weight: 800;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+}
+
+.metrora-decision-main strong {
+    color: #eff4fa;
+    font-size: 1rem;
+}
+
+.metrora-decision-main p {
+    display: -webkit-box;
+    margin: 0;
+    overflow: hidden;
+    color: #96a3b3 !important;
+    font-size: .78rem !important;
+    line-height: 1.5 !important;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+}
+
+.metrora-decision-meta {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: .9rem;
+    min-width: 0;
+}
+
+.metrora-decision-meta > div {
+    display: grid;
+    gap: .24rem;
+    min-width: 0;
+    padding-left: .8rem;
+    border-left: 1px solid #253343;
+}
+
+.metrora-decision-meta strong,
+.metrora-decision-meta span {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.metrora-decision-meta strong { color: #d8e1eb; font-size: .75rem; }
+.metrora-decision-meta span { color: #8795a7; font-size: .7rem; }
+
 @media (max-width: 760px) {
     .metrora-topbar { align-items: flex-start; }
     .metrora-topbar-context { max-width: 12rem; }
     .st-key-metrora_top_nav [data-testid="stHorizontalBlock"] { gap: .25rem !important; }
     .st-key-metrora_top_nav [data-testid="stButton"] button { font-size: .69rem; padding: .42rem .25rem; }
     .metrora-product-top-links { justify-content: flex-start; }
+    .metrora-connection-row { grid-template-columns: 1fr; gap: 1rem; }
+    .metrora-governance-row { grid-template-columns: 1fr; gap: .65rem; }
+    .metrora-decision-row { grid-template-columns: 3.5rem 1fr; }
+    .metrora-decision-meta { grid-column: 1 / -1; }
 }
 </style>
 """
@@ -3178,7 +3374,9 @@ def render_top_navigation(settings: Settings) -> None:
         ("Overview", "Home", "home"),
         ("Explore spend", "Cost explorer", "cost_explorer"),
         ("Forecast & alerts", "Plans & alerts", "plans_alerts"),
+        ("Decisions", "Decisions", "decisions"),
         ("Reports & exports", "Reports", "reports"),
+        ("Data sources", "Connections", "connections"),
         ("Data settings", "Advanced", "advanced"),
     )
     legacy_pages = {
@@ -3186,6 +3384,7 @@ def render_top_navigation(settings: Settings) -> None:
         "Spend explorer": "Cost explorer",
         "Forecast & alerts": "Plans & alerts",
         "Reports & exports": "Reports",
+        "Data sources": "Connections",
         "Data settings": "Advanced",
         "Data & quality": "Advanced",
         "Investigate": "Plans & alerts",
@@ -3196,9 +3395,13 @@ def render_top_navigation(settings: Settings) -> None:
     )
     st.session_state["workspace_page"] = current_page
 
+    desktop_mode = bool(st.session_state.get("desktop_mode", False))
     with st.container(key="metrora_top_nav"):
-        columns = st.columns([1, 1.25, 1.4, 1.35, 1.1, 1, 1], gap="small")
-        for column, (label, destination, slug) in zip(columns[:5], pages, strict=True):
+        weights = [1, 1.1, 1.25, .9, 1.2, 1, .95, 1]
+        if not desktop_mode:
+            weights.append(1)
+        columns = st.columns(weights, gap="small")
+        for column, (label, destination, slug) in zip(columns[:7], pages, strict=True):
             with column:
                 if st.button(
                     label,
@@ -3208,7 +3411,7 @@ def render_top_navigation(settings: Settings) -> None:
                 ):
                     set_workspace_route(destination)
                     st.rerun()
-        with columns[5]:
+        with columns[7]:
             if st.button(
                 "New analysis",
                 key="top_workspace_new_analysis",
@@ -3221,24 +3424,25 @@ def render_top_navigation(settings: Settings) -> None:
                     st.session_state.pop(key, None)
                 set_workspace_route("Home", scenario_id=None)
                 st.rerun()
-        with columns[6]:
-            if st.button(
-                "Exit demo",
-                key="top_workspace_back_to_product",
-                width="stretch",
-                help="Return to the Metrora demo scenarios.",
-            ):
-                reset_workspace_state()
-                for key in (
-                    "demo_authenticated",
-                    "demo_mode",
-                    "demo_scenario",
-                    "demo_user_email",
-                    "demo_workspace",
+        if not desktop_mode:
+            with columns[8]:
+                if st.button(
+                    "Exit demo",
+                    key="top_workspace_back_to_product",
+                    width="stretch",
+                    help="Return to the Metrora demo scenarios.",
                 ):
-                    st.session_state.pop(key, None)
-                set_product_route("Demo")
-                st.rerun()
+                    reset_workspace_state()
+                    for key in (
+                        "demo_authenticated",
+                        "demo_mode",
+                        "demo_scenario",
+                        "demo_user_email",
+                        "demo_workspace",
+                    ):
+                        st.session_state.pop(key, None)
+                    set_product_route("Demo")
+                    st.rerun()
 
 
 def apply_plotly_theme(figure):
@@ -3477,6 +3681,7 @@ def render_sidebar(settings: Settings) -> None:
             ("Overview", "Home", "home"),
             ("Spend explorer", "Cost explorer", "cost_explorer"),
             ("Forecast & alerts", "Plans & alerts", "plans_alerts"),
+            ("Decision register", "Decisions", "decisions"),
             ("Reports & exports", "Reports", "reports"),
             ("Data settings", "Advanced", "advanced"),
         )
@@ -3562,6 +3767,7 @@ def reset_workspace_state() -> None:
         "warehouse_source_key",
         "fact_pack",
         "summary_result",
+        "decision_register",
         "analytics_filtered_table",
         "analytics_source_key",
         "budget_table",

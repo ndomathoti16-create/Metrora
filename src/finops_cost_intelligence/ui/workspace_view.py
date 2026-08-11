@@ -7,6 +7,8 @@ from typing import TYPE_CHECKING
 
 from ..analytics import DEFAULT_BREAKDOWN_DIMENSIONS, select_comparable_anomaly_history
 from .analytics_view import render_cost_explorer_view, render_home_view
+from .connections_view import maybe_refresh_active_connection, render_connections_view
+from .decision_view import render_decision_view
 from .forecast_view import render_anomaly_panel, render_forecast_panel
 from .ingestion_view import render_ingestion_view
 from .mapping_view import source_key_for
@@ -14,6 +16,7 @@ from .operations_view import (
     render_allocation_panel,
     render_budget_panel,
     render_business_metric_panel,
+    render_governance_panel,
 )
 from .report_view import render_report_view
 
@@ -25,7 +28,9 @@ WORKSPACE_PAGES = (
     "Home",
     "Cost explorer",
     "Plans & alerts",
+    "Decisions",
     "Reports",
+    "Connections",
     "Advanced",
 )
 
@@ -64,9 +69,17 @@ def _render_page_header(page: str) -> None:
             "Forecast & alerts",
             "Monitor forecast and anomaly risk, then connect budgets and business context.",
         ),
+        "Decisions": (
+            "Decision register",
+            "Assign every material signal, record the disposition, and verify the outcome.",
+        ),
         "Reports": (
             "Reports & exports",
             "Package the calculated decision brief and export its supporting evidence.",
+        ),
+        "Connections": (
+            "Data sources",
+            "Upload files or securely refresh provider-managed cloud billing exports.",
         ),
         "Advanced": (
             "Data settings",
@@ -94,6 +107,14 @@ def _render_page_header(page: str) -> None:
         verification = (
             "Verified" if quality is not None and quality.ready_for_analysis else "In review"
         )
+        sync = st.session_state.get("connection_sync") or {}
+        provider = sync.get("provider")
+        connection_context = (
+            '<span class="metrora-workspace-context-item"><small>Connection</small>'
+            f"<strong>{escape(str(provider))}</strong></span>"
+            if provider
+            else ""
+        )
         context = (
             '<span class="metrora-workspace-context-item"><small>Source</small>'
             f"<strong>{escape(loaded.source_name)}</strong></span>"
@@ -101,6 +122,7 @@ def _render_page_header(page: str) -> None:
             f"<strong>{profile.row_count:,}</strong></span>"
             '<span class="metrora-workspace-context-item"><small>Model</small>'
             f"<strong>{verification}</strong></span>"
+            f"{connection_context}"
         )
     st.markdown(
         f"""
@@ -276,8 +298,15 @@ def _render_plans(settings: Settings) -> None:
         "<small>Model tuning lives in Data settings.</small></div>",
         unsafe_allow_html=True,
     )
-    forecast_tab, anomaly_tab, budget_tab, ownership_tab, unit_tab = st.tabs(
-        ["Forecast", "Anomalies", "Budgets", "Ownership", "Unit economics"]
+    forecast_tab, anomaly_tab, budget_tab, ownership_tab, unit_tab, governance_tab = st.tabs(
+        [
+            "Forecast",
+            "Anomalies",
+            "Budgets",
+            "Ownership",
+            "Unit economics",
+            "Governance",
+        ]
     )
     with forecast_tab:
         render_forecast_panel(actual, source_key)
@@ -289,6 +318,8 @@ def _render_plans(settings: Settings) -> None:
         render_allocation_panel(actual)
     with unit_tab:
         render_business_metric_panel(actual, source_key)
+    with governance_tab:
+        render_governance_panel(actual, source_key)
 
 
 def _render_reports(settings: Settings) -> None:
@@ -322,10 +353,12 @@ def _render_analysis_defaults(normalized, source_key: str) -> None:
     horizon_key = f"forecast_horizon_{source_key}"
     anomaly_key = f"anomaly_threshold_{source_key}"
     top_n_key = f"breakdown_top_n_{source_key}"
+    allocation_key = f"allocation_target_{source_key}"
     dimension_key = f"default_breakdown_dimension_{source_key}"
     st.session_state.setdefault(horizon_key, 14)
     st.session_state.setdefault(anomaly_key, 3.5)
     st.session_state.setdefault(top_n_key, 8)
+    st.session_state.setdefault(allocation_key, 0.90)
 
     available_dimensions = [
         dimension
@@ -373,6 +406,13 @@ def _render_analysis_defaults(normalized, source_key: str) -> None:
                 key=dimension_key,
                 format_func=lambda value: value.replace("_", " ").title(),
             )
+        st.select_slider(
+            "Allocation policy target",
+            options=[0.70, 0.75, 0.80, 0.85, 0.90, 0.95, 1.0],
+            key=allocation_key,
+            format_func=lambda value: f"{value:.0%}",
+            help="Minimum positive-spend ownership coverage used by the Governance panel.",
+        )
     st.info(
         "Metrora still calculates financial values deterministically. These settings only "
         "change the analytical view, not the source data or reconciliation result."
@@ -407,6 +447,7 @@ def render_workspace(settings: Settings) -> None:
     """Render one task-focused workspace destination inside an application shell."""
     import streamlit as st
 
+    maybe_refresh_active_connection(settings)
     requested_page = st.session_state.get("workspace_page", "Home")
     page = LEGACY_PAGE_ALIASES.get(requested_page, requested_page)
     if page not in WORKSPACE_PAGES:
@@ -421,7 +462,12 @@ def render_workspace(settings: Settings) -> None:
             _render_cost_explorer(settings)
         elif page == "Plans & alerts":
             _render_plans(settings)
+        elif page == "Decisions":
+            normalized, source_key = _context()
+            render_decision_view(settings, normalized, source_key)
         elif page == "Reports":
             _render_reports(settings)
+        elif page == "Connections":
+            render_connections_view(settings)
         else:
             _render_advanced(settings)
