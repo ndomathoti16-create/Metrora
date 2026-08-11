@@ -12,7 +12,7 @@ It brings provider billing data, native optimization recommendations, budgets, o
 
 **Live product preview:** [metrora.streamlit.app](https://metrora.streamlit.app/)
 
-**Windows desktop app:** [download the latest portable release](https://github.com/ndomathoti16-create/SpendArc/releases/latest)
+**Windows desktop app:** [download the latest portable release](https://github.com/ndomathoti16-create/Metrora/releases/latest)
 
 **Metrora** · Cloud FinOps analytics · Local-first reference implementation
 
@@ -237,7 +237,7 @@ Metric formulas, denominators, and caveats are documented in [docs/METRIC_DEFINI
 
 ### Download the Windows app
 
-Open the [latest Metrora release](https://github.com/ndomathoti16-create/SpendArc/releases/latest),
+Open the [latest Metrora release](https://github.com/ndomathoti16-create/Metrora/releases/latest),
 download `Metrora-Windows-x64.zip`, extract the folder, and run `Metrora.exe`. Python is not
 required. The app opens directly into a private local workspace and stores its database and
 non-secret connection profiles under the current Windows user's local application-data folder.

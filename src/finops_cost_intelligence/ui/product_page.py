@@ -2271,7 +2271,7 @@ def _render_overview(settings: Settings) -> None:
     with button_columns[2]:
         st.markdown(
             '<a class="metrora-hero-secondary-link" '
-            'href="https://github.com/ndomathoti16-create/SpendArc/releases/latest" '
+            'href="https://github.com/ndomathoti16-create/Metrora/releases/latest" '
             'target="_blank" rel="noopener">Download for Windows</a>',
             unsafe_allow_html=True,
         )
