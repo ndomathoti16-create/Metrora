@@ -1500,8 +1500,11 @@ html { scroll-behavior: smooth; }
     transform: translateY(-1px);
 }
 
-.metrora-centered-caption { color: #738091 !important; }
-.metrora-product-section { margin: 8rem auto 3.4rem; }
+.metrora-centered-caption {
+    margin: 1rem 0 4.25rem !important;
+    color: #738091 !important;
+}
+.metrora-product-section { margin: 6.5rem auto 3.1rem; }
 .metrora-product-section-kicker { color: var(--metrora-teal-v2) !important; }
 .metrora-product-section h2 {
     font-family: 'Manrope', 'Outfit', sans-serif;
@@ -1643,7 +1646,7 @@ html { scroll-behavior: smooth; }
 .metrora-evidence-row i::before { background: linear-gradient(90deg, var(--metrora-teal-v2), var(--metrora-blue-v2)); }
 
 .metrora-native-bridge {
-    margin: 8rem auto 2rem;
+    margin: 6.5rem auto 2rem;
     padding: clamp(2.2rem, 5vw, 4.5rem);
     border: 1px solid #253241;
     border-radius: 1.35rem;
@@ -1793,12 +1796,41 @@ html { scroll-behavior: smooth; }
 }
 
 @media (max-width: 620px) {
-    .block-container { padding: 1.1rem 1rem 4.5rem !important; }
-    .metrora-premium-hero { padding: 2.4rem 1.35rem !important; border-radius: 1.2rem !important; }
-    .metrora-product-hero h1 { font-size: clamp(3rem, 15vw, 4.4rem) !important; }
+    .block-container { padding: .9rem .85rem 3.25rem !important; }
+    .metrora-premium-hero {
+        gap: 2rem;
+        margin-bottom: 1.35rem;
+        padding: 1.85rem 1.15rem !important;
+        border-radius: 1.1rem !important;
+    }
+    .metrora-premium-hero::before,
+    .metrora-premium-hero::after { opacity: .58; }
+    .metrora-product-hero h1 {
+        font-size: clamp(2.75rem, 13.5vw, 3.55rem) !important;
+        line-height: .98;
+        overflow-wrap: anywhere;
+    }
+    .metrora-product-hero p {
+        margin: 1.45rem 0 1.3rem;
+        font-size: .96rem;
+        line-height: 1.68;
+    }
+    .metrora-command-surface { padding: 1rem !important; }
+    .metrora-line-visual { height: 8.75rem; margin: 1rem 0 .8rem; }
     .metrora-command-flow { grid-template-columns: 1fr; gap: .5rem; }
     .metrora-command-link { display: none; }
-    .metrora-product-section { margin-top: 6rem; }
+    .metrora-centered-caption {
+        margin: .9rem 0 2.75rem !important;
+        padding: 0 .35rem !important;
+        line-height: 1.6;
+    }
+    .metrora-product-section { margin: 3.9rem auto 2.25rem; }
+    .metrora-product-section h2,
+    .metrora-native-bridge h2,
+    .metrora-live-connections h2 {
+        font-size: clamp(2.05rem, 11vw, 2.9rem) !important;
+        letter-spacing: -.06em;
+    }
     .metrora-model-map { grid-template-columns: 1fr; }
     .metrora-model-node {
         grid-column: 1 / -1 !important;
@@ -1806,9 +1838,25 @@ html { scroll-behavior: smooth; }
         padding: 1.4rem 1.25rem !important;
         border: 0 !important;
     }
+    .metrora-live-connections {
+        margin: 3.9rem auto 1rem;
+        padding: 0 !important;
+    }
+    .metrora-live-connections > header { margin-bottom: 2rem; }
+    .metrora-connection-grid article { padding: 1.3rem 1.15rem; }
+    .metrora-native-bridge {
+        margin: 3.9rem auto 1.5rem;
+        padding: 1.45rem 1.15rem;
+        border-radius: 1rem;
+    }
+    .metrora-native-bridge header { margin-bottom: 2rem; }
     .metrora-native-lanes { grid-template-columns: 1fr; }
+    .metrora-native-lane { min-height: auto; padding: 1.45rem 1.25rem; }
     .metrora-accountability-loop { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-    .metrora-accountability-loop div:nth-child(2)::after { content: none; }
+    .metrora-accountability-loop div { padding: 1.1rem .65rem; }
+    .metrora-accountability-loop div::after { content: none !important; }
+    .metrora-product-story,
+    .metrora-evidence-visual { min-height: auto; margin-bottom: 2rem; }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -1835,7 +1883,7 @@ html { scroll-behavior: smooth; }
 
 .metrora-live-connections {
     max-width: 76rem;
-    margin: 8rem auto 1rem;
+    margin: 6.5rem auto 1rem;
     padding: 0;
 }
 
@@ -2175,7 +2223,7 @@ def _render_page_intro(
 ) -> None:
     st.markdown(
         f"""
-        <section{f' id="{anchor_id}"' if anchor_id else ""} class="metrora-product-section">
+        <section{f' id="{anchor_id}"' if anchor_id else ""} class="metrora-product-section metrora-scroll-reveal">
             <div class="metrora-product-section-kicker">{kicker}</div>
             <h2>{title}</h2>
             <p>{copy}</p>
@@ -2189,7 +2237,7 @@ def _render_model_map() -> None:
     """Show the calculation-to-explanation model in a compact visual map."""
     st.markdown(
         """
-        <div class="metrora-model-map" role="list" aria-label="Metrora operating model">
+        <div class="metrora-model-map metrora-scroll-reveal" role="list" aria-label="Metrora operating model">
             <div class="metrora-model-node" role="listitem">
                 <small>01 / Source</small>
                 <strong>Billing export</strong>
@@ -2681,10 +2729,16 @@ def _render_demo_access(settings: Settings) -> None:
 
 def render_product_page(settings: Settings) -> None:
     """Render the public Metrora product experience before the analytical workspace."""
-    st.markdown(PRODUCT_PAGE_CSS, unsafe_allow_html=True)
-    st.markdown(PRODUCT_PAGE_DARK_CSS, unsafe_allow_html=True)
-    st.markdown(PRODUCT_PAGE_REFINED_CSS, unsafe_allow_html=True)
-    st.markdown(PRODUCT_PAGE_V2_CSS, unsafe_allow_html=True)
+    st.html(
+        "".join(
+            (
+                PRODUCT_PAGE_CSS,
+                PRODUCT_PAGE_DARK_CSS,
+                PRODUCT_PAGE_REFINED_CSS,
+                PRODUCT_PAGE_V2_CSS,
+            )
+        )
+    )
 
     selected_page = st.session_state.get("product_page", "Product")
     if selected_page not in PUBLIC_PAGES:

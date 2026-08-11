@@ -2854,34 +2854,53 @@ def inject_styles() -> None:
     """Inject Metrora's single dark application theme."""
     import streamlit as st
 
-    st.markdown(METRORA_CSS, unsafe_allow_html=True)
-    st.markdown(METRORA_DARK_CSS, unsafe_allow_html=True)
-    st.markdown(METRORA_REFINED_CSS, unsafe_allow_html=True)
-    st.markdown(METRORA_WORKSPACE_V2_CSS, unsafe_allow_html=True)
-    st.markdown(METRORA_SCROLL_REVEAL_CSS, unsafe_allow_html=True)
+    # A style-only st.html block takes up no layout space. Keeping the theme in one
+    # block also avoids the empty Streamlit wrappers that used to add a large blank
+    # area before the first visible control, especially on narrow screens.
+    st.html(
+        "".join(
+            (
+                METRORA_CSS,
+                METRORA_DARK_CSS,
+                METRORA_REFINED_CSS,
+                METRORA_WORKSPACE_V2_CSS,
+                METRORA_SCROLL_REVEAL_CSS,
+            )
+        )
+    )
 
 
 METRORA_SCROLL_REVEAL_CSS = """
 <style>
-/* Applied only after the scroll observer has attached. This prevents below-the-fold
-   content from animating before a visitor reaches it. */
+/* Content is visible by default. Scroll animation is progressive enhancement, so a
+   slow phone, embedded browser, or blocked script can never leave a blank page. */
 .metrora-scroll-reveal {
-    opacity: 0;
-    transform: translate3d(0, 18px, 0);
-    transition: opacity .56s cubic-bezier(.2, .7, .2, 1), transform .56s cubic-bezier(.2, .7, .2, 1);
-    will-change: opacity, transform;
-}
-
-.metrora-scroll-reveal.metrora-scroll-reveal--visible {
     opacity: 1;
-    transform: translate3d(0, 0, 0);
+    visibility: visible;
+    transform: none;
 }
 
-@media (prefers-reduced-motion: reduce) {
-    .metrora-scroll-reveal,
-    .metrora-scroll-reveal.metrora-scroll-reveal--visible {
+@keyframes metrora-safe-scroll-enter {
+    from { opacity: .58; transform: translate3d(0, 16px, 0); }
+    to { opacity: 1; transform: translate3d(0, 0, 0); }
+}
+
+@supports (animation-timeline: view()) {
+    @media (min-width: 721px) and (prefers-reduced-motion: no-preference) {
+        .metrora-scroll-reveal {
+            animation: metrora-safe-scroll-enter both linear;
+            animation-timeline: view();
+            animation-range: entry 0% entry 34%;
+        }
+    }
+}
+
+@media (max-width: 720px), (prefers-reduced-motion: reduce) {
+    .metrora-scroll-reveal {
         opacity: 1 !important;
+        visibility: visible !important;
         transform: none !important;
+        animation: none !important;
         transition: none !important;
     }
 }
@@ -2890,67 +2909,7 @@ METRORA_SCROLL_REVEAL_CSS = """
 
 
 def enable_scroll_reveals() -> None:
-    """Attach one lightweight observer that reveals meaningful content on scroll."""
-    from streamlit.components.v1 import html
-
-    html(
-        """
-        <script>
-        (() => {
-          try {
-            const host = window.parent;
-            const doc = host.document;
-            const selector = [
-              '.metrora-premium-hero', '.metrora-product-section', '.metrora-model-map',
-              '.metrora-product-principle', '.metrora-product-story', '.metrora-evidence-visual',
-              '.metrora-product-step', '.metrora-product-output', '.metrora-product-card',
-              '.metrora-product-split', '.metrora-scenario-card', '.metrora-access-note',
-              '.metrora-workspace-topbar', '.metrora-analysis-flow', '.metrora-planning-strip',
-              '.metrora-decision-snapshot', '.metrora-report-decision', '.metrora-report-answers',
-              '.metrora-driver-list', '.metrora-table-shell', '.metrora-automation-note',
-              '.metrora-source-strip', '.metrora-advanced-note', '.st-key-workspace-kpi-strip',
-              '.st-key-explorer-kpi-strip', '.st-key-home-trend-surface',
-              '.st-key-home-attention-surface', '.st-key-explorer-trend-surface',
-              '.st-key-explorer-breakdown-surface', '.st-key-explorer-control-bar',
-              '.st-key-anomaly_summary_metric', '.st-key-forecast_summary_metrics'
-            ].join(',');
-
-            const reveal = (entry) => {
-              entry.target.classList.add('metrora-scroll-reveal--visible');
-              host.__metroraScrollObserver.unobserve(entry.target);
-            };
-
-            if (!host.__metroraScrollObserver) {
-              host.__metroraScrollObserver = new IntersectionObserver((entries) => {
-                entries.forEach((entry) => {
-                  if (entry.isIntersecting) reveal(entry);
-                });
-              }, { root: null, rootMargin: '0px 0px -8% 0px', threshold: 0.08 });
-            }
-
-            const scan = () => {
-              doc.querySelectorAll(selector).forEach((element) => {
-                if (element.dataset.metroraRevealAttached === 'true') return;
-                element.dataset.metroraRevealAttached = 'true';
-                element.classList.add('metrora-scroll-reveal');
-                host.__metroraScrollObserver.observe(element);
-              });
-            };
-
-            if (!host.__metroraScrollRevealWatch) {
-              host.__metroraScrollRevealWatch = new MutationObserver(scan);
-              host.__metroraScrollRevealWatch.observe(doc.body, { childList: true, subtree: true });
-            }
-            scan();
-          } catch (_) {
-            // The workspace remains fully usable if an embedding context blocks parent access.
-          }
-        })();
-        </script>
-        """,
-        height=0,
-        width=0,
-    )
+    """Retain the app-shell hook; reveal effects now use safe CSS enhancement."""
 
 
 TOP_NAVIGATION_CSS = """
@@ -3294,11 +3253,35 @@ TOP_NAVIGATION_CSS = """
 .metrora-decision-meta span { color: #8795a7; font-size: .7rem; }
 
 @media (max-width: 760px) {
-    .metrora-topbar { align-items: flex-start; }
-    .metrora-topbar-context { max-width: 12rem; }
+    .metrora-topbar {
+        align-items: flex-start;
+        gap: .8rem;
+        padding-bottom: .8rem;
+    }
+    .metrora-topbar-context {
+        max-width: 11.5rem;
+        font-size: .61rem;
+        line-height: 1.45;
+    }
     .st-key-metrora_top_nav [data-testid="stHorizontalBlock"] { gap: .25rem !important; }
     .st-key-metrora_top_nav [data-testid="stButton"] button { font-size: .69rem; padding: .42rem .25rem; }
-    .metrora-product-top-links { justify-content: flex-start; }
+    .metrora-product-top-links {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: .35rem;
+        margin: .75rem 0 1.35rem;
+        padding-bottom: .75rem;
+    }
+    .metrora-product-top-links a {
+        display: flex;
+        min-width: 0;
+        min-height: 2.45rem;
+        align-items: center;
+        justify-content: center;
+        padding: .55rem .35rem;
+        text-align: center;
+    }
+    .metrora-product-top-links .metrora-product-demo-link { margin-left: 0; }
     .metrora-connection-row { grid-template-columns: 1fr; gap: 1rem; }
     .metrora-governance-row { grid-template-columns: 1fr; gap: .65rem; }
     .metrora-decision-row { grid-template-columns: 3.5rem 1fr; }
@@ -3329,7 +3312,7 @@ def render_top_navigation(settings: Settings) -> None:
     else:
         context = "Local product preview / no sign-in required"
 
-    st.markdown(TOP_NAVIGATION_CSS, unsafe_allow_html=True)
+    st.html(TOP_NAVIGATION_CSS)
     st.markdown(
         f"""
         <header class="metrora-topbar">
