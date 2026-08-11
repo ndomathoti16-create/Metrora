@@ -1248,7 +1248,7 @@ html { scroll-behavior: smooth; }
     align-items: center;
     gap: clamp(2.25rem, 4cqw, 4.5rem);
     min-height: 39rem;
-    margin: 0 0 2.4rem;
+    margin: 0 auto 2.4rem;
     padding: clamp(3rem, 6vw, 6rem) clamp(2rem, 6vw, 6rem) !important;
     overflow: hidden;
     border: 1px solid rgba(126, 145, 170, .20) !important;
@@ -1513,36 +1513,46 @@ html { scroll-behavior: smooth; }
 
 .metrora-model-map {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(min(100%, 13rem), 1fr));
+    grid-template-columns: repeat(5, minmax(0, 1fr));
     align-items: stretch;
-    gap: clamp(1rem, 2.4vw, 2.4rem);
-    margin: 3.5rem 0 0;
-    overflow: visible;
-    border-top: 1px solid var(--metrora-line-soft) !important;
-    border-bottom: 1px solid var(--metrora-line-soft) !important;
-    background: transparent !important;
+    gap: 1px;
+    margin: 3.5rem auto 0;
+    overflow: hidden;
+    border: 1px solid var(--metrora-line-soft) !important;
+    border-radius: 1rem;
+    background: var(--metrora-line-soft) !important;
 }
 .metrora-model-node {
     position: relative;
     min-width: 0;
-    min-height: 11rem;
-    padding: 1.75rem 1.2rem 1.75rem 0 !important;
+    min-height: 12rem;
+    padding: 1.75rem clamp(1rem, 1.6vw, 1.4rem) !important;
     border: 0 !important;
-    border-right: 1px solid var(--metrora-line-soft) !important;
-    background: transparent !important;
+    background: linear-gradient(155deg, #0d151e, #0a1118) !important;
 }
-.metrora-model-node:last-child { border-right: 0 !important; }
-.metrora-model-node small { color: var(--metrora-teal-v2) !important; }
+.metrora-model-node small {
+    display: block;
+    color: var(--metrora-teal-v2) !important;
+    font-size: .62rem;
+    font-weight: 800;
+    letter-spacing: .11em;
+    text-transform: uppercase;
+}
 .metrora-model-node strong {
     display: block;
-    margin-top: 1.3rem;
+    margin-top: 1.55rem;
     color: #edf2f7 !important;
     font-family: 'Manrope', sans-serif;
+    font-size: 1rem;
+    line-height: 1.35;
     overflow-wrap: normal;
     word-break: normal;
 }
 .metrora-model-node p {
+    margin: .8rem 0 0;
     color: #8f9ba9 !important;
+    font-size: .82rem;
+    line-height: 1.62;
     overflow-wrap: normal;
     word-break: normal;
 }
@@ -1633,7 +1643,7 @@ html { scroll-behavior: smooth; }
 .metrora-evidence-row i::before { background: linear-gradient(90deg, var(--metrora-teal-v2), var(--metrora-blue-v2)); }
 
 .metrora-native-bridge {
-    margin: 8rem 0 2rem;
+    margin: 8rem auto 2rem;
     padding: clamp(2.2rem, 5vw, 4.5rem);
     border: 1px solid #253241;
     border-radius: 1.35rem;
@@ -1641,7 +1651,11 @@ html { scroll-behavior: smooth; }
         radial-gradient(circle at 84% 12%, rgba(85, 214, 199, .08), transparent 20rem),
         linear-gradient(140deg, rgba(16, 24, 34, .94), rgba(8, 13, 19, .9));
 }
-.metrora-native-bridge header { max-width: 47rem; margin-bottom: 2.8rem; }
+.metrora-native-bridge header {
+    max-width: 59rem;
+    margin: 0 auto 3rem;
+    text-align: center;
+}
 .metrora-native-bridge header > span {
     color: var(--metrora-teal-v2);
     font-size: .66rem;
@@ -1650,14 +1664,20 @@ html { scroll-behavior: smooth; }
     text-transform: uppercase;
 }
 .metrora-native-bridge h2 {
-    margin: 1rem 0 1.2rem;
+    max-width: 55rem;
+    margin: 1rem auto 1.3rem;
     color: #f1f5f8 !important;
     font-family: 'Manrope', 'Outfit', sans-serif;
     font-size: clamp(2.35rem, 4.4vw, 4.35rem) !important;
     letter-spacing: -.065em;
     line-height: 1.02;
 }
-.metrora-native-bridge header p { color: #98a5b4 !important; line-height: 1.75; }
+.metrora-native-bridge header p {
+    max-width: 50rem;
+    margin: 0 auto;
+    color: #98a5b4 !important;
+    line-height: 1.75;
+}
 .metrora-native-lanes {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -1667,7 +1687,12 @@ html { scroll-behavior: smooth; }
     border-radius: 1rem;
     background: #263444;
 }
-.metrora-native-lane { padding: 1.7rem; background: #0c121a; }
+.metrora-native-lane {
+    min-width: 0;
+    min-height: 17rem;
+    padding: clamp(1.7rem, 3vw, 2.25rem);
+    background: #0c121a;
+}
 .metrora-native-lane.metrora { background: linear-gradient(145deg, #101a25, #0d151e); }
 .metrora-native-lane small {
     color: #718197;
@@ -1691,23 +1716,29 @@ html { scroll-behavior: smooth; }
     font-size: .82rem;
     line-height: 1.55;
 }
+.metrora-native-lane li { padding-left: .2rem; }
 .metrora-accountability-loop {
     display: grid;
     grid-template-columns: repeat(4, minmax(0, 1fr));
-    margin-top: 1.25rem;
+    margin: 1.5rem auto 0;
     border-top: 1px solid #273646;
     border-bottom: 1px solid #273646;
 }
 .metrora-accountability-loop div {
     position: relative;
-    padding: 1.25rem 1.4rem 1.25rem 0;
+    min-width: 0;
+    padding: 1.35rem 1.75rem;
+    text-align: center;
 }
 .metrora-accountability-loop div:not(:last-child)::after {
     position: absolute;
     top: 50%;
-    right: .65rem;
-    color: #4d647e;
-    content: '→';
+    right: -.7rem;
+    width: 1.4rem;
+    height: 1px;
+    background: linear-gradient(90deg, #34465a, #55d6c7);
+    content: '';
+    transform: translateY(-50%);
 }
 .metrora-accountability-loop span {
     display: block;
@@ -1754,6 +1785,10 @@ html { scroll-behavior: smooth; }
 @media (max-width: 980px) {
     .metrora-premium-hero { min-height: auto; }
     .metrora-command-surface { max-width: 44rem; }
+    .metrora-model-map { grid-template-columns: repeat(6, minmax(0, 1fr)); }
+    .metrora-model-node { grid-column: span 2; }
+    .metrora-model-node:nth-child(4) { grid-column: 2 / span 2; }
+    .metrora-model-node:nth-child(5) { grid-column: 4 / span 2; }
     .metrora-model-node { min-height: 9rem; }
 }
 
@@ -1766,14 +1801,14 @@ html { scroll-behavior: smooth; }
     .metrora-product-section { margin-top: 6rem; }
     .metrora-model-map { grid-template-columns: 1fr; }
     .metrora-model-node {
+        grid-column: 1 / -1 !important;
         min-height: auto;
-        padding: 1.35rem 0 !important;
-        border-right: 0 !important;
-        border-bottom: 1px solid #222c38 !important;
+        padding: 1.4rem 1.25rem !important;
+        border: 0 !important;
     }
-    .metrora-model-node:last-child { border-bottom: 0 !important; }
     .metrora-native-lanes { grid-template-columns: 1fr; }
     .metrora-accountability-loop { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .metrora-accountability-loop div:nth-child(2)::after { content: none; }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -1799,14 +1834,15 @@ html { scroll-behavior: smooth; }
 }
 
 .metrora-live-connections {
-    max-width: 78rem;
-    margin: 7rem auto 1rem;
-    padding: 0 1rem;
+    max-width: 76rem;
+    margin: 8rem auto 1rem;
+    padding: 0;
 }
 
 .metrora-live-connections > header {
-    max-width: 45rem;
-    margin-bottom: 2.4rem;
+    max-width: 53rem;
+    margin: 0 auto 3rem;
+    text-align: center;
 }
 
 .metrora-live-connections > header span {
@@ -1818,7 +1854,8 @@ html { scroll-behavior: smooth; }
 }
 
 .metrora-live-connections h2 {
-    margin: .75rem 0 1rem;
+    max-width: 49rem;
+    margin: .9rem auto 1.15rem;
     color: #f3f6fa;
     font-family: Manrope, sans-serif;
     font-size: clamp(2.1rem, 4vw, 4.2rem);
@@ -1827,6 +1864,8 @@ html { scroll-behavior: smooth; }
 }
 
 .metrora-live-connections header p {
+    max-width: 47rem;
+    margin: 0 auto;
     color: #9aa7b8;
     font-size: 1rem;
     line-height: 1.7;
@@ -1835,18 +1874,22 @@ html { scroll-behavior: smooth; }
 .metrora-connection-grid {
     display: grid;
     grid-template-columns: repeat(4, minmax(0, 1fr));
-    border-top: 1px solid #273441;
-    border-bottom: 1px solid #273441;
+    gap: 1px;
+    overflow: hidden;
+    border: 1px solid #273441;
+    border-radius: 1rem;
+    background: #273441;
 }
 
 .metrora-connection-grid article {
+    display: flex;
+    min-width: 0;
     min-height: 13rem;
+    flex-direction: column;
     padding: 1.65rem 1.4rem;
-    border-right: 1px solid #1e2a36;
     background: linear-gradient(180deg, rgba(18,28,39,.66), rgba(10,16,23,.12));
 }
 
-.metrora-connection-grid article:last-child { border-right: 0; }
 .metrora-connection-grid small {
     color: #7da7ff;
     font-size: .66rem;
@@ -1866,24 +1909,51 @@ html { scroll-behavior: smooth; }
     color: #8f9dad;
     font-size: .82rem;
     line-height: 1.65;
+    overflow-wrap: anywhere;
 }
 
 .metrora-connection-footnote {
-    margin: 1.3rem 0 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: .8rem;
+    max-width: 62rem;
+    margin: 1.5rem auto 0 !important;
+    padding: 1rem 1.2rem !important;
+    border: 1px solid #22303d;
+    border-radius: .8rem;
+    background: rgba(14, 22, 31, .7);
     color: #7f8c9c;
     font-size: .78rem;
     line-height: 1.6;
+    text-align: left;
+}
+
+.metrora-connection-footnote strong {
+    flex: 0 0 auto;
+    color: #66d9cc;
+    font-size: .64rem;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+}
+
+.metrora-connection-footnote span {
+    color: #8f9dac;
 }
 
 @media (max-width: 900px) {
     .metrora-connection-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-    .metrora-connection-grid article:nth-child(2) { border-right: 0; }
-    .metrora-connection-grid article:nth-child(-n+2) { border-bottom: 1px solid #1e2a36; }
+    .metrora-live-connections { padding: 0 .5rem; }
 }
 
 @media (max-width: 600px) {
     .metrora-connection-grid { grid-template-columns: 1fr; }
-    .metrora-connection-grid article { min-height: auto; border-right: 0; border-bottom: 1px solid #1e2a36; }
+    .metrora-connection-grid article { min-height: auto; }
+    .metrora-connection-footnote {
+        align-items: flex-start;
+        flex-direction: column;
+        padding: 1rem !important;
+    }
 }
 </style>
 """
@@ -2119,28 +2189,28 @@ def _render_model_map() -> None:
     """Show the calculation-to-explanation model in a compact visual map."""
     st.markdown(
         """
-        <div class="metrora-model-map">
-            <div class="metrora-model-node">
+        <div class="metrora-model-map" role="list" aria-label="Metrora operating model">
+            <div class="metrora-model-node" role="listitem">
                 <small>01 / Source</small>
                 <strong>Billing export</strong>
                 <p>Provider rows, budgets, ownership, and business metrics.</p>
             </div>
-            <div class="metrora-model-node">
+            <div class="metrora-model-node" role="listitem">
                 <small>02 / Model</small>
                 <strong>Trusted cost model</strong>
                 <p>Mapped, normalized, reconciled, and quality-checked data.</p>
             </div>
-            <div class="metrora-model-node">
+            <div class="metrora-model-node" role="listitem">
                 <small>03 / Insight</small>
                 <strong>Decision signals</strong>
                 <p>Trends, drivers, forecasts, anomalies, and coverage.</p>
             </div>
-            <div class="metrora-model-node">
+            <div class="metrora-model-node" role="listitem">
                 <small>04 / Action</small>
                 <strong>Owned decision</strong>
                 <p>Owner, due date, disposition, and evidence in one operating record.</p>
             </div>
-            <div class="metrora-model-node">
+            <div class="metrora-model-node" role="listitem">
                 <small>05 / Outcome</small>
                 <strong>Verified value</strong>
                 <p>Before-and-after actuals prove what changed after implementation.</p>
@@ -2300,23 +2370,25 @@ def _render_overview(settings: Settings) -> None:
                 applies the same mapping, reconciliation, quality, and decision pipeline used
                 for every file.</p>
             </header>
-            <div class="metrora-connection-grid">
-                <article><small>01 / AWS</small><h3>Data Exports &amp; CUR</h3>
+            <div class="metrora-connection-grid" role="list" aria-label="Supported cost data sources">
+                <article role="listitem"><small>01 / AWS</small><h3>Data Exports &amp; CUR</h3>
                 <p>Read the latest complete CSV.GZ or Parquet batch from an S3 prefix through
                 AWS SSO or an IAM role.</p></article>
-                <article><small>02 / Azure</small><h3>Cost Management</h3>
+                <article role="listitem"><small>02 / Azure</small><h3>Cost Management</h3>
                 <p>Refresh recurring ActualCost or AmortizedCost exports from Blob Storage
                 through Entra ID.</p></article>
-                <article><small>03 / Google Cloud</small><h3>Cloud Billing</h3>
+                <article role="listitem"><small>03 / Google Cloud</small><h3>Cloud Billing</h3>
                 <p>Query a BigQuery billing export with Application Default Credentials and
                 include credits in effective cost.</p></article>
-                <article><small>04 / Portable</small><h3>Files &amp; FOCUS</h3>
+                <article role="listitem"><small>04 / Portable</small><h3>Files &amp; FOCUS</h3>
                 <p>Open CSV, Excel, Parquet, or FOCUS-shaped exports from other cloud and
                 technology providers.</p></article>
             </div>
-            <p class="metrora-connection-footnote">Read-only by design. Metrora stores export
-            locations and refresh history—not passwords, access keys, tokens, or cloud resource
-            controls.</p>
+            <p class="metrora-connection-footnote">
+                <strong>Read-only by design</strong>
+                <span>Metrora stores export locations and refresh history&mdash;not passwords,
+                access keys, tokens, or cloud resource controls.</span>
+            </p>
         </section>
         """,
         unsafe_allow_html=True,
