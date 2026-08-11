@@ -40,8 +40,7 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           $tag = "${{ github.ref_name }}"
-          gh release view $tag 2>$null
-          if ($LASTEXITCODE -ne 0) {
-            gh release create $tag --title "Metrora $tag" --generate-notes
-          }
-          gh release upload $tag dist\Metrora-Windows-x64.zip --clobber
+          gh release create $tag "dist\Metrora-Windows-x64.zip#Metrora-Windows-x64.zip" `
+            --title "Metrora $tag" `
+            --generate-notes `
+            --verify-tag

@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "metrora"
-version = "0.2.0"
+version = "0.2.1"
 description = "Metrora: a local-first cloud FinOps analytics platform."
 readme = "README.md"
 requires-python = ">=3.11"
