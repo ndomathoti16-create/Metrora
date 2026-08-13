@@ -37,7 +37,8 @@ def test_workspace_headings_use_page_specific_anchors() -> None:
     )
 
     assert 'heading_id = page.lower().replace(" & ", "-").replace(" ", "-")' in source
-    assert '<h1 id="{escape(heading_id)}">{escape(title)}</h1>' in source
+    assert 'class="metrora-workspace-page-title" id="{escape(heading_id)}"' in source
+    assert 'role="heading" aria-level="1">{escape(title)}</div>' in source
 
 
 def test_guided_workspace_pages_render_without_errors() -> None:

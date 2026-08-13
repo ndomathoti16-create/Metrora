@@ -134,7 +134,8 @@ def _render_page_header(page: str) -> None:
             </div>
             <div class="metrora-workspace-title-row">
                 <div class="metrora-workspace-title-copy">
-                    <h1 id="{escape(heading_id)}">{escape(title)}</h1>
+                    <div class="metrora-workspace-page-title" id="{escape(heading_id)}"
+                         role="heading" aria-level="1">{escape(title)}</div>
                     <p>{escape(description)}</p>
                 </div>
                 <div class="metrora-workspace-command-meta">

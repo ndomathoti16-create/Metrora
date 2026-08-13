@@ -464,7 +464,8 @@ button[aria-label^="Help for"] {
     text-transform: uppercase;
 }
 
-.metrora-workspace-topbar h1 {
+.metrora-workspace-topbar h1,
+.metrora-workspace-page-title {
     margin: 0;
     color: var(--metrora-ink);
     font-family: 'Outfit', sans-serif;
@@ -1081,7 +1082,8 @@ div[data-testid="stDataFrame"] {
     padding-bottom: 1.25rem;
 }
 
-.st-key-workspace-shell .metrora-workspace-topbar h1 {
+.st-key-workspace-shell .metrora-workspace-topbar h1,
+.st-key-workspace-shell .metrora-workspace-page-title {
     font-size: clamp(1.85rem, 2.5vw, 2.25rem);
     letter-spacing: -.045em;
 }
@@ -1631,6 +1633,7 @@ div[data-testid="stDataFrame"] .stDataFrameGlideDataEditor {
 }
 
 .metrora-workspace-topbar h1,
+.metrora-workspace-page-title,
 .metrora-automation-note strong,
 .metrora-source-strip strong {
     color: #f4f7fb !important;
@@ -2415,7 +2418,8 @@ html, body, [class*="css"] {
     padding-top: 1.05rem;
 }
 .metrora-workspace-title-copy { min-width: 0; }
-.metrora-workspace-topbar h1 {
+.metrora-workspace-topbar h1,
+.metrora-workspace-page-title {
     margin: 0;
     color: #f3f6f8 !important;
     font-family: 'Manrope', 'Outfit', sans-serif;
