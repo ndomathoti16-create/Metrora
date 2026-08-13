@@ -3381,15 +3381,17 @@ def render_top_navigation(settings: Settings) -> None:
         )
         return
 
-    pages = (
+    desktop_mode = bool(st.session_state.get("desktop_mode", False))
+    pages = [
         ("Overview", "Home", "home"),
         ("Explore spend", "Cost explorer", "cost_explorer"),
         ("Forecast & alerts", "Plans & alerts", "plans_alerts"),
         ("Decisions", "Decisions", "decisions"),
         ("Reports & exports", "Reports", "reports"),
-        ("Data sources", "Connections", "connections"),
         ("Data settings", "Advanced", "advanced"),
-    )
+    ]
+    if desktop_mode:
+        pages.insert(5, ("Data sources", "Connections", "connections"))
     legacy_pages = {
         "Overview": "Home",
         "Spend explorer": "Cost explorer",
@@ -3406,13 +3408,11 @@ def render_top_navigation(settings: Settings) -> None:
     )
     st.session_state["workspace_page"] = current_page
 
-    desktop_mode = bool(st.session_state.get("desktop_mode", False))
     with st.container(key="metrora_top_nav"):
-        weights = [1, 1.1, 1.25, 0.9, 1.2, 1, 0.95, 1]
-        if not desktop_mode:
-            weights.append(1)
+        action_count = 1
+        weights = [1] * (len(pages) + action_count)
         columns = st.columns(weights, gap="small")
-        for column, (label, destination, slug) in zip(columns[:7], pages, strict=True):
+        for column, (label, destination, slug) in zip(columns[: len(pages)], pages, strict=True):
             with column:
                 if st.button(
                     label,
@@ -3422,21 +3422,21 @@ def render_top_navigation(settings: Settings) -> None:
                 ):
                     set_workspace_route(destination)
                     st.rerun()
-        with columns[7]:
-            if st.button(
-                "New analysis",
-                key="top_workspace_new_analysis",
-                disabled=not (has_source or has_model),
-                width="stretch",
-                help="Clear the current data and start a new analysis.",
-            ):
-                reset_workspace_state()
-                for key in ("demo_mode", "demo_scenario", "demo_workspace"):
-                    st.session_state.pop(key, None)
-                set_workspace_route("Home", scenario_id=None)
-                st.rerun()
-        if not desktop_mode:
-            with columns[8]:
+        with columns[-1]:
+            if desktop_mode:
+                if st.button(
+                    "New analysis",
+                    key="top_workspace_new_analysis",
+                    disabled=not (has_source or has_model),
+                    width="stretch",
+                    help="Clear the current data and start a new analysis.",
+                ):
+                    reset_workspace_state()
+                    for key in ("demo_mode", "demo_scenario", "demo_workspace"):
+                        st.session_state.pop(key, None)
+                    set_workspace_route("Home", scenario_id=None)
+                    st.rerun()
+            else:
                 if st.button(
                     "Exit demo",
                     key="top_workspace_back_to_product",

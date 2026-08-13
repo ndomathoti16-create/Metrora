@@ -539,6 +539,14 @@ def render_decision_view(
         unsafe_allow_html=True,
     )
     _render_register_metrics(decisions)
+    if not bool(st.session_state.get("desktop_mode", False)):
+        _render_priority_queue(decisions)
+        st.info(
+            "This hosted workspace is read-only and uses synthetic data. Download the "
+            "Windows app to assign owners, import provider recommendations, record "
+            "decisions, and verify outcomes."
+        )
+        return
     queue_tab, update_tab, new_tab, verify_tab, import_tab = st.tabs(
         [
             "Priority queue",

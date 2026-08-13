@@ -292,3 +292,52 @@ def render_mapping_view(
         and st.session_state.get("normalized_source_key") == source_key
     ):
         render_analytics_view(settings, normalized, source_key)
+
+
+def render_mapping_audit(
+    settings: Settings,
+    loaded_table: LoadedTable,
+    profile: DataProfile,
+) -> None:
+    """Render immutable mapping and quality evidence for the hosted demo."""
+    import streamlit as st
+
+    source_key = source_key_for(loaded_table, profile)
+    review = suggest_mappings(profile)
+    normalized = st.session_state.get("normalized_table")
+    model_ready = bool(
+        normalized is not None and st.session_state.get("normalized_source_key") == source_key
+    )
+    required_specs = [spec for spec in CANONICAL_FIELD_SPECS if spec.required]
+    required_matched = sum(
+        bool(review.suggestion_for(spec.name).source_column) for spec in required_specs
+    )
+    optional_specs = [spec for spec in CANONICAL_FIELD_SPECS if not spec.required]
+    optional_matched = sum(
+        bool(review.suggestion_for(spec.name).source_column) for spec in optional_specs
+    )
+
+    st.subheader("Automatic field mapping")
+    st.write(
+        "This guided source is fixed. Metrora detected its semantic fields and retained "
+        "the mapping evidence below for review."
+    )
+    metrics = st.columns(3)
+    metrics[0].metric(
+        "Required fields",
+        f"{required_matched}/{len(required_specs)} matched",
+    )
+    metrics[1].metric(
+        "Optional context",
+        f"{optional_matched}/{len(optional_specs)} matched",
+    )
+    metrics[2].metric("Model status", "Ready" if model_ready else "Review needed")
+    with st.expander("Review detected fields", expanded=not model_ready):
+        render_compact_table(_review_frame(review), max_rows=len(review.suggestions))
+    _render_normalized_result(source_key)
+    render_quality_view(
+        settings,
+        loaded_table,
+        source_key,
+        allow_persistence=False,
+    )

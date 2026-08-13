@@ -11,7 +11,7 @@ from .connections_view import maybe_refresh_active_connection, render_connection
 from .decision_view import render_decision_view
 from .forecast_view import render_anomaly_panel, render_forecast_panel
 from .ingestion_view import render_ingestion_view
-from .mapping_view import source_key_for
+from .mapping_view import render_mapping_audit, source_key_for
 from .operations_view import (
     render_allocation_panel,
     render_budget_panel,
@@ -34,12 +34,34 @@ WORKSPACE_PAGES = (
     "Advanced",
 )
 
+HOSTED_DEMO_PAGES = (
+    "Home",
+    "Cost explorer",
+    "Plans & alerts",
+    "Decisions",
+    "Reports",
+    "Advanced",
+)
+
 LEGACY_PAGE_ALIASES = {
     "Overview": "Home",
     "Data & quality": "Advanced",
     "Investigate": "Plans & alerts",
     "Reports & exports": "Reports",
 }
+
+
+def resolve_workspace_page(requested_page: object, *, desktop_mode: bool) -> str:
+    """Return a route that is valid for the active product surface.
+
+    The hosted Streamlit deployment is a synthetic-data demonstration. Connections
+    and source replacement are intentionally reserved for the downloadable desktop
+    application, including when a visitor manually edits the query string.
+    """
+    requested = str(requested_page or "Home")
+    page = LEGACY_PAGE_ALIASES.get(requested, requested)
+    allowed_pages = WORKSPACE_PAGES if desktop_mode else HOSTED_DEMO_PAGES
+    return page if page in allowed_pages else "Home"
 
 
 def _context() -> tuple[object | None, str | None]:
@@ -425,16 +447,32 @@ def _render_advanced(settings: Settings) -> None:
     import streamlit as st
 
     normalized, source_key = _context()
+    desktop_mode = bool(st.session_state.get("desktop_mode", False))
+    area_title = "Power-user area" if desktop_mode else "Demo evidence"
+    area_copy = (
+        "Use this page to inspect or override automation. It is not required for a "
+        "standard analysis unless Metrora flags an exception."
+        if desktop_mode
+        else "Review how the preloaded source was mapped, normalized, and checked. "
+        "Uploads and mapping changes are available in the Windows app."
+    )
     st.markdown(
-        """
+        f"""
         <div class="metrora-advanced-note">
-            <strong>Power-user area</strong>
-            <span>Use this page to inspect or override automation. It is not required for a
-            standard analysis unless Metrora flags an exception.</span>
+            <strong>{escape(area_title)}</strong>
+            <span>{escape(area_copy)}</span>
         </div>
         """,
         unsafe_allow_html=True,
     )
+    if not desktop_mode:
+        loaded_table = st.session_state.get("loaded_table")
+        profile = st.session_state.get("data_profile")
+        if loaded_table is None or profile is None or source_key is None:
+            st.info("Choose a demo scenario to inspect its calculated data-quality evidence.")
+            return
+        render_mapping_audit(settings, loaded_table, profile)
+        return
     if normalized is None or source_key is None:
         render_ingestion_view(settings, include_mapping=True)
         return
@@ -451,9 +489,10 @@ def render_workspace(settings: Settings) -> None:
 
     maybe_refresh_active_connection(settings)
     requested_page = st.session_state.get("workspace_page", "Home")
-    page = LEGACY_PAGE_ALIASES.get(requested_page, requested_page)
-    if page not in WORKSPACE_PAGES:
-        page = "Home"
+    page = resolve_workspace_page(
+        requested_page,
+        desktop_mode=bool(st.session_state.get("desktop_mode", False)),
+    )
     st.session_state["workspace_page"] = page
 
     with st.container(key="workspace-shell"):

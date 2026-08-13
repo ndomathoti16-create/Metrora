@@ -41,6 +41,8 @@ def render_quality_view(
     settings: Settings,
     loaded_table: LoadedTable,
     source_key: str,
+    *,
+    allow_persistence: bool = True,
 ) -> None:
     """Render quality checks, reconciliation, and a save-to-DuckDB action."""
     import streamlit as st
@@ -113,6 +115,13 @@ def render_quality_view(
             ]
         )
         render_compact_table(reconciliation_frame, max_rows=1)
+
+    if not allow_persistence:
+        st.caption(
+            "This is read-only demo evidence. Local DuckDB storage is available in the "
+            "downloadable Windows app."
+        )
+        return
 
     with st.expander("Local storage", expanded=False):
         st.caption(

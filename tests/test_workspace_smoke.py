@@ -65,9 +65,8 @@ def test_guided_workspace_pages_render_without_errors() -> None:
     expected_content = (
         ("top_workspace_nav_cost_explorer", "Total spend"),
         ("top_workspace_nav_plans_alerts", "Forecast"),
-        ("top_workspace_nav_decisions", "Priority queue"),
+        ("top_workspace_nav_decisions", "Open decisions"),
         ("top_workspace_nav_reports", "The decision in one minute"),
-        ("top_workspace_nav_connections", "Upload a file"),
         ("top_workspace_nav_advanced", "Automatic field mapping"),
         ("top_workspace_nav_home", "Current window spend"),
     )
@@ -97,11 +96,51 @@ def test_desktop_mode_opens_real_workspace_and_restores_data_sources(monkeypatch
     assert "top_workspace_back_to_product" not in {item.key for item in app.button}
 
 
-def test_one_upload_opens_a_complete_analysis_automatically() -> None:
-    """A first-time user should not need a separate mapping or validation action."""
+def test_hosted_demo_has_no_data_ingestion_or_mutation_controls() -> None:
+    """The public deployment must remain synthetic and read-only."""
     app = AppTest.from_file(APP_PATH).run(timeout=30)
     app.button(key="product_demo_hero").click().run(timeout=30)
     app.button(key="product_demo_scenario_forecast_risk").click().run(timeout=30)
+
+    button_keys = {item.key for item in app.button}
+    assert "top_workspace_new_analysis" not in button_keys
+    assert "top_workspace_nav_connections" not in button_keys
+    assert not app.file_uploader
+
+    app.button(key="top_workspace_nav_plans_alerts").click().run(timeout=30)
+    assert not app.file_uploader
+    app.button(key="top_workspace_nav_advanced").click().run(timeout=30)
+    assert not app.file_uploader
+    assert "Change field mapping" not in {item.label for item in app.button}
+    assert "Apply mapping and rerun checks" not in {item.label for item in app.button}
+    assert "Save this run to local DuckDB" not in {item.label for item in app.button}
+
+
+def test_hosted_connections_route_cannot_bypass_demo_only_boundary() -> None:
+    """A manually edited public URL cannot open the desktop data-source view."""
+    app = AppTest.from_file(APP_PATH)
+    app.query_params.update(
+        {
+            "surface": "workspace",
+            "page": "Connections",
+            "scenario": "forecast_risk",
+        }
+    )
+    app.run(timeout=30)
+
+    assert not app.exception
+    assert app.session_state["desktop_mode"] is False
+    assert app.session_state["workspace_page"] == "Home"
+    assert not app.file_uploader
+    assert "top_workspace_nav_connections" not in {item.key for item in app.button}
+
+
+def test_one_desktop_upload_opens_a_complete_analysis_automatically(monkeypatch) -> None:
+    """A first-time user should not need a separate mapping or validation action."""
+    monkeypatch.setenv("METRORA_DESKTOP", "1")
+    app = AppTest.from_file(APP_PATH)
+    app.query_params.update({"surface": "workspace", "page": "Home"})
+    app.run(timeout=30)
     app.button(key="top_workspace_new_analysis").click().run(timeout=30)
 
     content = DEMO_BILLING_PATH.read_bytes()

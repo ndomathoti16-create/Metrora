@@ -10,7 +10,7 @@ Metrora helps finance, FinOps, and engineering leaders understand where cloud mo
 
 It brings provider billing data, native optimization recommendations, budgets, ownership, business context, forecasts, decisions, and verified outcomes into one provider-neutral workspace.
 
-**Live product preview:** [metrora.streamlit.app](https://metrora.streamlit.app/)
+**Live read-only product demo:** [metrora.streamlit.app](https://metrora.streamlit.app/)
 
 **Windows desktop app:** [download the latest portable release](https://github.com/ndomathoti16-create/Metrora/releases/latest)
 
@@ -181,6 +181,9 @@ The sections below are intended for implementation teams and technical stakehold
 
 Metrora now has two deliberate surfaces: a hosted product preview with synthetic demo stories,
 and a portable Windows application that opens directly into the real analytical workspace.
+The hosted surface is intentionally read-only: visitors can explore preloaded scenarios but
+cannot upload files, replace planning or business data, change mappings, connect cloud exports,
+or import provider recommendations. Those capabilities remain in the downloadable desktop app.
 The desktop release includes secure read-only AWS, Azure, and Google Cloud billing connections,
 AWS Cost Optimization Hub recommendation intake, refresh-on-open, local connection history,
 governance review, an accountable decision register, actual outcome verification, and the
@@ -252,8 +255,8 @@ artifact, or push a version tag such as `v0.2.0` to publish the ZIP on the Relea
 ### Hosted preview
 
 Open [metrora.streamlit.app](https://metrora.streamlit.app/) to explore the hosted product
-experience. The public preview uses synthetic data only and does not require an account, cloud
-credentials, or an API key.
+experience. The public preview uses synthetic data only, is read-only, and does not accept user
+uploads or cloud connections. It does not require an account, cloud credentials, or an API key.
 
 ### Run locally
 

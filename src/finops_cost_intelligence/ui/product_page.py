@@ -2395,8 +2395,8 @@ def _render_overview(settings: Settings) -> None:
         )
     st.markdown(
         '<p class="metrora-centered-caption">'
-        f"Calculated from {facts['rows']:,} synthetic billing rows. No cloud connection or "
-        "credentials required."
+        f"Hosted preview: {facts['rows']:,} synthetic billing rows. Download the Windows "
+        "app to analyze your own files or cloud exports."
         "</p>",
         unsafe_allow_html=True,
     )
@@ -2708,9 +2708,10 @@ def _render_access_panel(settings: Settings) -> None:
     st.markdown(
         """
         <div class="metrora-access-note">
-            <strong>Safe to explore.</strong>
-            Every scenario is synthetic and deterministic. No account, credentials, or cloud
-            connection is required, and nothing leaves the current app session.
+            <strong>Read-only product demo.</strong>
+            Every scenario is synthetic and deterministic. The hosted preview does not accept
+            personal files, planning data, business metrics, or cloud connections. Download the
+            Windows app to work with your own data.
         </div>
         """,
         unsafe_allow_html=True,

@@ -19,7 +19,7 @@ from .product_page import (
     activate_demo_session,
     render_product_page,
 )
-from .workspace_view import WORKSPACE_PAGES, render_workspace
+from .workspace_view import WORKSPACE_PAGES, render_workspace, resolve_workspace_page
 
 if TYPE_CHECKING:
     from ..config import Settings
@@ -69,9 +69,9 @@ def _restore_route(settings: Settings) -> None:
             set_product_route("Demo")
             return
 
-    requested_page = route.get("page", "Home")
-    st.session_state["workspace_page"] = (
-        requested_page if requested_page in WORKSPACE_PAGES else "Home"
+    st.session_state["workspace_page"] = resolve_workspace_page(
+        route.get("page", "Home"),
+        desktop_mode=bool(st.session_state.get("desktop_mode", False)),
     )
 
 

@@ -46,12 +46,17 @@ def _render_budget_view(actual: pd.DataFrame, source_key: str) -> None:
     import plotly.express as px
     import streamlit as st
 
-    uploaded = st.file_uploader(
-        "Upload a budget file",
-        type=["csv", "xlsx", "xls", "parquet"],
-        key=f"budget_upload_{source_key}",
-        help="Accepted fields include period_start, budget_amount, scope_type, and scope_value.",
-    )
+    desktop_mode = bool(st.session_state.get("desktop_mode", False))
+    uploaded = None
+    if desktop_mode:
+        uploaded = st.file_uploader(
+            "Upload a budget file",
+            type=["csv", "xlsx", "xls", "parquet"],
+            key=f"budget_upload_{source_key}",
+            help=(
+                "Accepted fields include period_start, budget_amount, scope_type, and scope_value."
+            ),
+        )
     budget = st.session_state.get("budget_table")
     if uploaded is not None:
         upload_key = f"{uploaded.name}:{getattr(uploaded, 'size', '')}"
@@ -68,7 +73,10 @@ def _render_budget_view(actual: pd.DataFrame, source_key: str) -> None:
         st.info("Optional: upload a budget table to compare planned and actual cost.")
         return
     if st.session_state.get("demo_mode") and uploaded is None:
-        st.caption("Guided demo context loaded from budget_demo.csv. Upload a file to replace it.")
+        st.caption(
+            "Preloaded synthetic budget context. Download the Windows app to analyze "
+            "your own planning data."
+        )
     try:
         comparison, summary = calculate_budget_variance(actual, budget)
     except AnalyticsInputError as exc:
@@ -175,12 +183,15 @@ def _render_business_metric_view(actual: pd.DataFrame, source_key: str) -> None:
     import plotly.express as px
     import streamlit as st
 
-    uploaded = st.file_uploader(
-        "Upload a business metrics file",
-        type=["csv", "xlsx", "xls", "parquet"],
-        key=f"business_upload_{source_key}",
-        help="Accepted fields include metric_date, metric_name, and metric_value.",
-    )
+    desktop_mode = bool(st.session_state.get("desktop_mode", False))
+    uploaded = None
+    if desktop_mode:
+        uploaded = st.file_uploader(
+            "Upload a business metrics file",
+            type=["csv", "xlsx", "xls", "parquet"],
+            key=f"business_upload_{source_key}",
+            help="Accepted fields include metric_date, metric_name, and metric_value.",
+        )
     metrics = st.session_state.get("business_metrics_table")
     if uploaded is not None:
         upload_key = f"{uploaded.name}:{getattr(uploaded, 'size', '')}"
@@ -198,8 +209,8 @@ def _render_business_metric_view(actual: pd.DataFrame, source_key: str) -> None:
         return
     if st.session_state.get("demo_mode") and uploaded is None:
         st.caption(
-            "Guided demo context loaded from business_metrics_demo.csv. "
-            "Upload a file to replace it."
+            "Preloaded synthetic business context. Download the Windows app to connect "
+            "your own operating metrics."
         )
     names = sorted(metrics["metric_name"].unique().tolist())
     metric_name = st.selectbox(
