@@ -210,6 +210,7 @@ CANONICAL_FIELD_SPECS: tuple[CanonicalFieldSpec, ...] = (
         "string",
         (
             "usage unit",
+            "consumed unit",
             "unit",
             "unit type",
             "unit of measure",

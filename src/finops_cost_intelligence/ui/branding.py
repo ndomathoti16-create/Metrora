@@ -2800,6 +2800,28 @@ html, body, [class*="css"] {
 [data-testid="stDataFrame"],
 .metrora-table-shell { border-color: #222d39 !important; background: #0d131b !important; }
 
+/* Keep keyboard navigation visible and every icon-sized action large enough to
+   operate without changing Streamlit or Plotly's visual density. */
+:where(button, a, input, textarea, select, summary, [role="tab"]):focus-visible {
+    outline: 3px solid #8faeff !important;
+    outline-offset: 3px !important;
+    box-shadow: 0 0 0 2px #080c13 !important;
+}
+
+button[aria-label^="Help for"],
+[data-testid="stHeaderActionElements"] a,
+[data-testid="stPlotlyChart"] .modebar-btn {
+    min-width: 1.5rem !important;
+    min-height: 1.5rem !important;
+}
+
+[data-testid="stHeaderActionElements"] a,
+[data-testid="stPlotlyChart"] .modebar-btn {
+    display: inline-flex !important;
+    align-items: center;
+    justify-content: center;
+}
+
 @keyframes metrora-workspace-flow {
     0%, 15% { left: 0; opacity: 0; }
     35%, 70% { opacity: .75; }
@@ -3380,7 +3402,7 @@ def render_top_navigation(settings: Settings) -> None:
 
     desktop_mode = bool(st.session_state.get("desktop_mode", False))
     with st.container(key="metrora_top_nav"):
-        weights = [1, 1.1, 1.25, .9, 1.2, 1, .95, 1]
+        weights = [1, 1.1, 1.25, 0.9, 1.2, 1, 0.95, 1]
         if not desktop_mode:
             weights.append(1)
         columns = st.columns(weights, gap="small")

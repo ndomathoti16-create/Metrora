@@ -54,9 +54,7 @@ def _render_source_summary(loaded_table, profile) -> None:
             lambda values: ", ".join(str(value) for value in values)
         )
         for rate_column in ("null_rate", "numeric_parse_rate", "datetime_parse_rate"):
-            column_frame[rate_column] = column_frame[rate_column].map(
-                lambda value: f"{value:.1%}"
-            )
+            column_frame[rate_column] = column_frame[rate_column].map(lambda value: f"{value:.1%}")
         st.markdown("**Column profile**")
         render_compact_table(
             column_frame[

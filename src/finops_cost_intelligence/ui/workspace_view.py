@@ -87,6 +87,7 @@ def _render_page_header(page: str) -> None:
         ),
     }
     title, description = copy[page]
+    heading_id = page.lower().replace(" & ", "-").replace(" ", "-")
     loaded = st.session_state.get("loaded_table")
     profile = st.session_state.get("data_profile")
     quality = st.session_state.get("quality_report")
@@ -133,7 +134,7 @@ def _render_page_header(page: str) -> None:
             </div>
             <div class="metrora-workspace-title-row">
                 <div class="metrora-workspace-title-copy">
-                    <h1>{escape(title)}</h1>
+                    <h1 id="{escape(heading_id)}">{escape(title)}</h1>
                     <p>{escape(description)}</p>
                 </div>
                 <div class="metrora-workspace-command-meta">

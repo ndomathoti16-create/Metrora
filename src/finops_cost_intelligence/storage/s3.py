@@ -67,9 +67,7 @@ class S3Storage:
                 ContentType=content_type,
             )
         except (BotoCoreError, ClientError, OSError) as exc:
-            raise S3StorageError(
-                f"Could not upload s3://{self.bucket}/{object_key}."
-            ) from exc
+            raise S3StorageError(f"Could not upload s3://{self.bucket}/{object_key}.") from exc
         return self.uri(object_key)
 
     def upload_dataframe(self, dataframe: pd.DataFrame, key: str) -> str:
@@ -105,6 +103,4 @@ class S3Storage:
             response = self.client.get_object(Bucket=self.bucket, Key=object_key)
             return bytes(response["Body"].read())
         except (BotoCoreError, ClientError, OSError, KeyError, TypeError) as exc:
-            raise S3StorageError(
-                f"Could not download s3://{self.bucket}/{object_key}."
-            ) from exc
+            raise S3StorageError(f"Could not download s3://{self.bucket}/{object_key}.") from exc

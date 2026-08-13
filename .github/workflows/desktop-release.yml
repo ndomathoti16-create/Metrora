@@ -22,6 +22,12 @@ jobs:
           cache: pip
       - name: Install desktop and cloud dependencies
         run: python -m pip install -e ".[cloud,desktop]"
+      - name: Verify release source
+        run: |
+          python -m pytest -q
+          python -m ruff check .
+          python -m ruff format --check .
+          python -m compileall -q app.py src tests data/demo
       - name: Build portable Metrora application
         run: python -m PyInstaller packaging/metrora.spec --noconfirm --clean
       - name: Package Windows download

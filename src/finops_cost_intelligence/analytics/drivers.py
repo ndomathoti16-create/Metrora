@@ -84,12 +84,7 @@ def _usage_explanation(
     prior_usage = float(prior_usage_values.sum())
     recent_cost = float(pd.to_numeric(recent["cost"], errors="coerce").sum())
     prior_cost = float(pd.to_numeric(prior["cost"], errors="coerce").sum())
-    if (
-        recent_usage <= 0
-        or prior_usage <= 0
-        or recent_cost < 0
-        or prior_cost <= 0
-    ):
+    if recent_usage <= 0 or prior_usage <= 0 or recent_cost < 0 or prior_cost <= 0:
         return result
 
     recent_rate = recent_cost / recent_usage
@@ -109,9 +104,10 @@ def _usage_explanation(
             "Usage and effective cost per usage unit were stable in the comparable windows. "
             "The remaining movement is immaterial at the service level."
         )
-    elif usage_effect * rate_mix_effect < 0 and min(
-        abs(usage_effect), abs(rate_mix_effect)
-    ) > effect_total * 0.1:
+    elif (
+        usage_effect * rate_mix_effect < 0
+        and min(abs(usage_effect), abs(rate_mix_effect)) > effect_total * 0.1
+    ):
         driver_type = "Offsetting usage and rate/mix"
         explanation = (
             "Usage and effective cost per usage unit moved in opposing directions. Inspect "
@@ -189,12 +185,15 @@ def analyze_service_cost_drivers(
     if working.empty:
         return _empty_driver_frame()
 
-    bounds = [pd.to_datetime(value, errors="coerce") for value in (
-        recent_start,
-        recent_end,
-        prior_start,
-        prior_end,
-    )]
+    bounds = [
+        pd.to_datetime(value, errors="coerce")
+        for value in (
+            recent_start,
+            recent_end,
+            prior_start,
+            prior_end,
+        )
+    ]
     if any(pd.isna(value) for value in bounds):
         raise AnalyticsInputError("Cost-driver comparison dates must be valid.")
     recent_start_ts, recent_end_ts, prior_start_ts, prior_end_ts = (
@@ -219,11 +218,15 @@ def analyze_service_cost_drivers(
             .rename(columns={"_service": "service", "cost": label})
         )
 
-    movers = spend_by_service(recent, "recent_spend").merge(
-        spend_by_service(prior, "prior_spend"),
-        on="service",
-        how="outer",
-    ).fillna(0.0)
+    movers = (
+        spend_by_service(recent, "recent_spend")
+        .merge(
+            spend_by_service(prior, "prior_spend"),
+            on="service",
+            how="outer",
+        )
+        .fillna(0.0)
+    )
     movers["change_amount"] = movers["recent_spend"] - movers["prior_spend"]
     movers["change_pct"] = movers.apply(
         lambda row: (

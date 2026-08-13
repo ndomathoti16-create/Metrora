@@ -24,5 +24,7 @@ jobs:
         run: python -m pytest -q
       - name: Run lint checks
         run: python -m ruff check .
+      - name: Check Python formatting
+        run: python -m ruff format --check .
       - name: Compile Python sources
         run: python -m compileall -q app.py src tests data/demo

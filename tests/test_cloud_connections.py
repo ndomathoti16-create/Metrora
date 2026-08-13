@@ -69,12 +69,8 @@ def test_aws_connector_combines_only_latest_export_chunks():
     ]
     objects = {
         "cur/old/part.csv.gz": gzip.compress(_csv([("2026-01-01", "Old", 1.0)])),
-        "cur/new/part-1.csv.gz": gzip.compress(
-            _csv([("2026-02-01", "Compute", 10.0)])
-        ),
-        "cur/new/part-2.csv.gz": gzip.compress(
-            _csv([("2026-02-01", "Storage", 5.0)])
-        ),
+        "cur/new/part-1.csv.gz": gzip.compress(_csv([("2026-02-01", "Compute", 10.0)])),
+        "cur/new/part-2.csv.gz": gzip.compress(_csv([("2026-02-01", "Storage", 5.0)])),
     }
     connector = AwsS3BillingConnector(
         AwsS3ExportConfig(bucket="finops-exports", prefix="cur"),

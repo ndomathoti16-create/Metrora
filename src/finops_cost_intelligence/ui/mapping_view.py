@@ -57,8 +57,7 @@ def build_automatic_model(
     """Build and validate the suggested model without requiring a confirmation click."""
     review = suggest_mappings(profile)
     suggested_mapping = {
-        suggestion.canonical_field: suggestion.source_column
-        for suggestion in review.suggestions
+        suggestion.canonical_field: suggestion.source_column for suggestion in review.suggestions
     }
     accepted_mapping = validate_mapping(suggested_mapping, review.source_columns)
     normalized = normalize_billing_table(loaded_table, accepted_mapping)
@@ -199,12 +198,9 @@ def render_mapping_view(
 
     normalized = st.session_state.get("normalized_table")
     model_ready = bool(
-        normalized is not None
-        and st.session_state.get("normalized_source_key") == source_key
+        normalized is not None and st.session_state.get("normalized_source_key") == source_key
     )
-    matched_count = sum(
-        suggestion.source_column is not None for suggestion in review.suggestions
-    )
+    matched_count = sum(suggestion.source_column is not None for suggestion in review.suggestions)
     required_count = sum(spec.required for spec in CANONICAL_FIELD_SPECS)
     required_matched = sum(
         bool(review.suggestion_for(spec.name).source_column)

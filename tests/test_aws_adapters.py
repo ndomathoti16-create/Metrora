@@ -39,9 +39,7 @@ class _FakeAthenaClient:
         assert kwargs["QueryExecutionId"] == "query-001"
         return {
             "ResultSet": {
-                "ResultSetMetadata": {
-                    "ColumnInfo": [{"Name": "service"}, {"Name": "total_cost"}]
-                },
+                "ResultSetMetadata": {"ColumnInfo": [{"Name": "service"}, {"Name": "total_cost"}]},
                 "Rows": [
                     {
                         "Data": [
@@ -91,9 +89,7 @@ def test_athena_adapter_returns_dataframe_from_injected_client():
 
     assert result.query_execution_id == "query-001"
     assert result.state == "SUCCEEDED"
-    assert result.dataframe.to_dict("records") == [
-        {"service": "Compute", "total_cost": "12.5"}
-    ]
+    assert result.dataframe.to_dict("records") == [{"service": "Compute", "total_cost": "12.5"}]
     assert client.sql.startswith("SELECT service")
 
 

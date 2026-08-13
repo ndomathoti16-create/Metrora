@@ -23,10 +23,12 @@ The FinOps Foundation framework and current industry products converge on eight 
 7. Optimization recommendations supported by utilization or commitment evidence.
 8. Executive communication that states the answer, impact, owner, evidence, and next step.
 
-The 2025 State of FinOps report places workload optimization, full allocation, and accurate
-forecasting among current priorities, while governance at scale, AI spend, unit economics,
-and broader technology spend are rising priorities. That supports an ingestion-and-governance
-foundation before adding more decorative dashboards.
+The 2026 FinOps Framework formalizes Executive Strategy Alignment: concise decision support,
+shared accountability, business-relevant measures, clear decision rights, named owners, and
+measured follow-through. That reinforces Metrora's decision register and evidence trail rather
+than arguing for more decorative dashboards. Allocation quality, forecasting accuracy, anomaly
+response, unit economics, and optimization outcomes remain the operating measures beneath that
+executive layer.
 
 ## Provider ingestion design
 
@@ -57,10 +59,11 @@ BigQuery Job User and Data Viewer.
 
 ### Other providers and SaaS
 
-CSV, Excel, Parquet, and FOCUS-shaped exports remain the portable integration path. FOCUS 1.2
-extends the normalized specification beyond public-cloud IaaS toward SaaS and other technology
-charges, which is the preferred expansion route before writing vendor-specific logic for every
-tool.
+CSV, Excel, Parquet, and FOCUS-shaped exports remain the portable integration path. FOCUS 1.3
+extends the normalized specification across technology categories and makes both BilledCost and
+EffectiveCost mandatory. Metrora proposes EffectiveCost for trend, forecast, and unit-economics
+analysis, while keeping BilledCost available through mapping review for cash-basis and invoice
+work. Standards-first expansion remains preferable to vendor-specific logic for every tool.
 
 ## Security and trust boundaries
 
@@ -97,10 +100,11 @@ Post-release enterprise work:
 ## Primary sources
 
 - FinOps Foundation Framework: <https://www.finops.org/framework/>
-- State of FinOps 2025: <https://data.finops.org/2025-report/>
+- FinOps Framework 2026 update: <https://www.finops.org/insights/2026-finops-framework/>
+- Executive Strategy Alignment: <https://www.finops.org/framework/capabilities/executive-strategy-alignment/>
 - FinOps allocation capability: <https://www.finops.org/framework/capabilities/allocation/>
 - FinOps unit economics capability: <https://www.finops.org/framework/capabilities/unit-economics/>
-- FOCUS 1.2: <https://focus.finops.org/focus-specification/v1-2/>
+- FOCUS 1.3: <https://focus.finops.org/focus-specification/v1-3/>
 - AWS Data Exports delivery: <https://docs.aws.amazon.com/cur/latest/userguide/dataexports-export-delivery.html>
 - Azure scheduled cost exports: <https://learn.microsoft.com/azure/cost-management-billing/costs/tutorial-improved-exports>
 - Azure Blob passwordless Python access: <https://learn.microsoft.com/azure/storage/blobs/storage-quickstart-blobs-python>

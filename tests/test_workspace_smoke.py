@@ -4,6 +4,8 @@ from pathlib import Path
 
 from streamlit.testing.v1 import AppTest
 
+from finops_cost_intelligence.ui.branding import METRORA_WORKSPACE_V2_CSS
+
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 APP_PATH = PROJECT_ROOT / "app.py"
 DEMO_BILLING_PATH = PROJECT_ROOT / "data" / "demo" / "cloud_billing_demo.csv"
@@ -18,6 +20,24 @@ def test_public_product_page_renders_the_complete_scrolling_story() -> None:
     assert "One defensible path from raw export to recommendation." in rendered_copy
     assert "Numbers first. Narrative second." in rendered_copy
     assert app.button(key="product_demo_hero")
+
+
+def test_shared_theme_exposes_keyboard_focus_and_accessible_icon_targets() -> None:
+    """Regression guard for controls that Streamlit and Plotly render very small."""
+    assert ":focus-visible" in METRORA_WORKSPACE_V2_CSS
+    assert '[data-testid="stHeaderActionElements"] a' in METRORA_WORKSPACE_V2_CSS
+    assert '[data-testid="stPlotlyChart"] .modebar-btn' in METRORA_WORKSPACE_V2_CSS
+    assert "min-height: 1.5rem" in METRORA_WORKSPACE_V2_CSS
+
+
+def test_workspace_headings_use_page_specific_anchors() -> None:
+    """Workspace heading links must follow the selected destination."""
+    source = (PROJECT_ROOT / "src/finops_cost_intelligence/ui/workspace_view.py").read_text(
+        encoding="utf-8"
+    )
+
+    assert 'heading_id = page.lower().replace(" & ", "-").replace(" ", "-")' in source
+    assert '<h1 id="{escape(heading_id)}">{escape(title)}</h1>' in source
 
 
 def test_guided_workspace_pages_render_without_errors() -> None:

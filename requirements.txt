@@ -1,1 +1,4 @@
+# Streamlit Community Cloud installs this file. Pin the UI runtime so a platform
+# release cannot change Metrora's rendering before the application is verified.
+streamlit==1.59.2
 -e .

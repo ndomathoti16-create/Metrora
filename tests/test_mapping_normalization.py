@@ -48,6 +48,66 @@ class MappingDetectorTests(unittest.TestCase):
 
         self.assertEqual(len(selected), len(set(selected)))
 
+    def test_numeric_account_identifier_keeps_its_semantic_mapping(self) -> None:
+        source = pd.DataFrame(
+            {
+                "UsageDate": ["2026-01-01"],
+                "Service": ["Compute"],
+                "Cost": [10.0],
+                "AccountNumber": [123456789],
+            }
+        )
+        loaded = LoadedTable(source, "numeric-account.csv", "csv", None)
+
+        mapping = suggest_mappings(profile_table(loaded)).suggested_mapping()
+
+        self.assertEqual(mapping["account_id"], "AccountNumber")
+
+    def test_focus_1_3_export_maps_to_the_trend_cost_model(self) -> None:
+        source = pd.DataFrame(
+            {
+                "ChargePeriodStart": ["2026-01-01", "2026-01-02"],
+                "ServiceName": ["Compute", "Storage"],
+                "ServiceProviderName": ["Example Cloud", "Example Cloud"],
+                "BilledCost": [110.0, 55.0],
+                "EffectiveCost": [100.0, 50.0],
+                "BillingCurrency": ["USD", "USD"],
+                "BillingAccountId": ["billing-001", "billing-001"],
+                "BillingAccountName": ["Corporate", "Corporate"],
+                "RegionName": ["us-east", "us-east"],
+                "ResourceId": ["vm-001", "bucket-001"],
+                "ResourceName": ["api", "archive"],
+                "ConsumedQuantity": [20.0, 500.0],
+                "ConsumedUnit": ["Hours", "GB-Month"],
+                "ChargeCategory": ["Usage", "Usage"],
+                "Tags": ['{"environment":"prod"}', '{"environment":"prod"}'],
+            }
+        )
+        loaded = LoadedTable(source, "focus-1.3.csv", "csv", None)
+
+        review = suggest_mappings(profile_table(loaded))
+        mapping = review.suggested_mapping()
+
+        self.assertEqual(mapping["usage_date"], "ChargePeriodStart")
+        self.assertEqual(mapping["service"], "ServiceName")
+        self.assertEqual(mapping["provider"], "ServiceProviderName")
+        self.assertEqual(mapping["cost"], "EffectiveCost")
+        self.assertEqual(mapping["currency"], "BillingCurrency")
+        self.assertEqual(mapping["account_id"], "BillingAccountId")
+        self.assertEqual(mapping["region"], "RegionName")
+        self.assertEqual(mapping["usage_quantity"], "ConsumedQuantity")
+        self.assertEqual(mapping["usage_unit"], "ConsumedUnit")
+        self.assertEqual(mapping["cost_type"], "ChargeCategory")
+        self.assertIsNone(mapping["department"])
+        self.assertIsNone(mapping["usage_type"])
+
+        normalized = normalize_billing_table(loaded, mapping, ingestion_id="focus-1.3")
+
+        self.assertEqual(normalized.report.issue_count, 0)
+        self.assertEqual(float(normalized.dataframe["cost"].sum()), 150.0)
+        self.assertEqual(set(normalized.dataframe["currency"]), {"USD"})
+        self.assertEqual(set(normalized.dataframe["provider"]), {"Example Cloud"})
+
 
 class MappingValidationTests(unittest.TestCase):
     def test_validation_returns_a_complete_mapping(self) -> None:

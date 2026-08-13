@@ -260,8 +260,8 @@ def _governance_row(
 ) -> str:
     return (
         f'<article class="metrora-governance-row {escape(tone)}">'
-        f'<div><span>{escape(status)}</span><strong>{escape(policy)}</strong></div>'
-        f'<p>{escape(evidence)}</p><small>{escape(action)}</small></article>'
+        f"<div><span>{escape(status)}</span><strong>{escape(policy)}</strong></div>"
+        f"<p>{escape(evidence)}</p><small>{escape(action)}</small></article>"
     )
 
 
@@ -318,8 +318,7 @@ def render_governance_panel(actual: pd.DataFrame, source_key: str) -> None:
             cost_coverage = float(any_row["cost_coverage"] or 0.0)
             unallocated = max(
                 0.0,
-                float(any_row["positive_cost"])
-                - float(any_row["allocated_positive_cost"]),
+                float(any_row["positive_cost"]) - float(any_row["allocated_positive_cost"]),
             )
         except (AnalyticsInputError, KeyError, ValueError):
             cost_coverage = 0.0

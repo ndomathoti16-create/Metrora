@@ -54,9 +54,7 @@ class AthenaWarehouse:
         started = time.monotonic()
         while True:
             try:
-                response = self.client.get_query_execution(
-                    QueryExecutionId=query_execution_id
-                )
+                response = self.client.get_query_execution(QueryExecutionId=query_execution_id)
             except (BotoCoreError, ClientError, OSError) as exc:
                 raise AthenaQueryError("Could not read Athena query status.") from exc
             status = response.get("QueryExecution", {}).get("Status", {})
