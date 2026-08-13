@@ -2814,7 +2814,9 @@ html, body, [class*="css"] {
 
 button[aria-label^="Help for"],
 [data-testid="stHeaderActionElements"] a,
-[data-testid="stPlotlyChart"] .modebar-btn {
+[data-testid="stPlotlyChart"] .modebar-btn,
+[data-testid="stTabsScrollLeft"],
+[data-testid="stTabsScrollRight"] {
     min-width: 1.5rem !important;
     min-height: 1.5rem !important;
 }

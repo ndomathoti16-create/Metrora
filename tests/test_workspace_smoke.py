@@ -27,6 +27,7 @@ def test_shared_theme_exposes_keyboard_focus_and_accessible_icon_targets() -> No
     assert ":focus-visible" in METRORA_WORKSPACE_V2_CSS
     assert '[data-testid="stHeaderActionElements"] a' in METRORA_WORKSPACE_V2_CSS
     assert '[data-testid="stPlotlyChart"] .modebar-btn' in METRORA_WORKSPACE_V2_CSS
+    assert '[data-testid="stTabsScrollRight"]' in METRORA_WORKSPACE_V2_CSS
     assert "min-height: 1.5rem" in METRORA_WORKSPACE_V2_CSS
 
 
