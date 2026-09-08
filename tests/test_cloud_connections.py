@@ -11,10 +11,15 @@ from finops_cost_intelligence.connections import (
     AwsS3ExportConfig,
     AzureBlobBillingConnector,
     AzureBlobExportConfig,
+    CloudConnectionError,
     ConnectionProfile,
     ConnectionStore,
     GcpBigQueryBillingConnector,
     GcpBigQueryExportConfig,
+)
+from finops_cost_intelligence.connections.contracts import (
+    RemoteBillingObject,
+    combine_remote_payloads,
 )
 
 
@@ -22,8 +27,8 @@ class _Body:
     def __init__(self, payload: bytes):
         self.payload = payload
 
-    def read(self) -> bytes:
-        return self.payload
+    def read(self, amount: int | None = None) -> bytes:
+        return self.payload if amount is None else self.payload[:amount]
 
 
 class _Paginator:
@@ -99,6 +104,11 @@ class _Download:
     def readall(self):
         return self.payload
 
+    def chunks(self):
+        midpoint = max(1, len(self.payload) // 2)
+        yield self.payload[:midpoint]
+        yield self.payload[midpoint:]
+
 
 class _ContainerClient:
     def __init__(self, objects: dict[str, tuple[bytes, datetime]]):
@@ -143,11 +153,11 @@ class _QueryResult:
     def __init__(self, dataframe):
         self.dataframe = dataframe
 
-    def result(self):
+    def result(self, **kwargs):
         return self
 
-    def to_dataframe(self):
-        return self.dataframe
+    def __iter__(self):
+        return iter(self.dataframe.to_dict(orient="records"))
 
 
 class _BigQueryClient:
@@ -213,4 +223,105 @@ def test_connection_profile_rejects_secret_fields():
             provider="aws",
             settings={"bucket": "demo", "secret_access_key": "not-allowed"},
             refresh_on_open=False,
+        )
+
+
+@pytest.mark.parametrize(
+    "account_url",
+    [
+        "https://example.com",
+        "https://user@costs.blob.core.windows.net",
+        "https://costs.blob.core.windows.net:443",
+        "https://costs.blob.core.windows.net/container",
+        "https://costs.blob.core.windows.net?redirect=example.com",
+    ],
+)
+def test_azure_connection_rejects_noncanonical_or_non_azure_urls(account_url):
+    with pytest.raises(ValueError, match="direct Azure Blob Storage account URL"):
+        AzureBlobExportConfig(account_url=account_url, container="exports")
+
+
+def test_aws_connector_rejects_batch_above_configured_limit_before_download():
+    modified = datetime.now(UTC)
+    pages = [{"Contents": [{"Key": "cur/new/part.csv", "Size": 100, "LastModified": modified}]}]
+    client = _S3Client(pages, {"cur/new/part.csv": _csv([("2026-01-01", "Compute", 1)])})
+    connector = AwsS3BillingConnector(
+        AwsS3ExportConfig(bucket="finops-exports", prefix="cur"),
+        client=client,
+        max_bytes=50,
+    )
+
+    with pytest.raises(CloudConnectionError, match="above the configured"):
+        connector.sync_latest()
+
+
+def test_aws_connector_rejects_underreported_object_during_download():
+    modified = datetime.now(UTC)
+    payload = _csv([("2026-01-01", "Compute", 1)] * 20)
+    pages = [{"Contents": [{"Key": "cur/new/part.csv", "Size": 1, "LastModified": modified}]}]
+    connector = AwsS3BillingConnector(
+        AwsS3ExportConfig(bucket="finops-exports", prefix="cur"),
+        client=_S3Client(pages, {"cur/new/part.csv": payload}),
+        max_bytes=50,
+    )
+
+    with pytest.raises(CloudConnectionError, match="Downloaded AWS export batch"):
+        connector.sync_latest()
+
+
+def test_azure_connector_rejects_underreported_object_during_download():
+    modified = datetime.now(UTC)
+    payload = _csv([("2026-01-01", "Compute", 1)] * 20)
+
+    class _UnderreportedContainerClient(_ContainerClient):
+        def list_blobs(self, *, name_starts_with=None):
+            blob = _Blob("new/part.csv", payload, modified)
+            blob.size = 1
+            return [blob]
+
+    connector = AzureBlobBillingConnector(
+        AzureBlobExportConfig(
+            account_url="https://costs.blob.core.windows.net",
+            container="exports",
+        ),
+        container_client=_UnderreportedContainerClient({"new/part.csv": (payload, modified)}),
+        max_bytes=50,
+    )
+
+    with pytest.raises(CloudConnectionError, match="Azure billing object"):
+        connector.sync_latest()
+
+
+def test_gcp_connector_rejects_materialized_result_above_configured_limit():
+    dataframe = pd.DataFrame(
+        {
+            "UsageStartDate": ["2026-01-01"],
+            "ProductName": ["Compute Engine"],
+            "EffectiveCost": [42.0],
+        }
+    )
+    connector = GcpBigQueryBillingConnector(
+        GcpBigQueryExportConfig(project_id="finops-demo-123", dataset="billing_export"),
+        client=_BigQueryClient(dataframe),
+        max_bytes=10,
+    )
+
+    with pytest.raises(CloudConnectionError, match="above the configured"):
+        connector.sync_latest()
+
+
+def test_remote_gzip_rejects_expanded_payload_above_configured_limit():
+    expanded = _csv([("2026-01-01", "Compute", 1.0)] * 100)
+    compressed = gzip.compress(expanded)
+    remote_object = RemoteBillingObject(
+        key="cur/new/part.csv.gz",
+        size_bytes=len(compressed),
+        last_modified=datetime.now(UTC),
+    )
+
+    with pytest.raises(CloudConnectionError, match="Decompressed billing object"):
+        combine_remote_payloads(
+            [(remote_object, compressed)],
+            source_uri="s3://finops-exports/cur/new",
+            max_bytes=len(compressed) + 32,
         )

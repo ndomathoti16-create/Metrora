@@ -7,6 +7,8 @@ from collections.abc import Mapping
 from urllib.error import HTTPError, URLError
 from urllib.request import Request, urlopen
 
+from ..config import ConfigurationError, validate_ai_base_url
+
 
 class AIProviderError(RuntimeError):
     """Raised when an optional provider cannot return a response."""
@@ -27,9 +29,13 @@ class OpenAICompatibleClient:
             raise AIProviderError("An API key is required for the AI provider.")
         if not model.strip():
             raise AIProviderError("An AI model is required for the AI provider.")
+        try:
+            validated_base_url = validate_ai_base_url(base_url)
+        except ConfigurationError as exc:
+            raise AIProviderError(str(exc)) from exc
         self.api_key = api_key
         self.model = model
-        self.endpoint = base_url.rstrip("/") + "/chat/completions"
+        self.endpoint = validated_base_url + "/chat/completions"
         self.timeout_seconds = timeout_seconds
 
     def complete(self, system_prompt: str, user_prompt: str) -> str:
@@ -52,7 +58,8 @@ class OpenAICompatibleClient:
             method="POST",
         )
         try:
-            with urlopen(request, timeout=self.timeout_seconds) as response:
+            # The URL was constrained to HTTPS or loopback by validate_ai_base_url.
+            with urlopen(request, timeout=self.timeout_seconds) as response:  # nosec B310
                 body = json.loads(response.read().decode("utf-8"))
         except (HTTPError, URLError, TimeoutError, OSError, json.JSONDecodeError) as exc:
             raise AIProviderError(

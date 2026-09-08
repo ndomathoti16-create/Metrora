@@ -12,6 +12,10 @@ datas = [
     (str(ROOT / ".streamlit" / "config.toml"), ".streamlit"),
     (str(ROOT / "data" / "demo"), "data/demo"),
     (str(ROOT / "docs" / "assets"), "docs/assets"),
+    (str(ROOT / "PRIVACY.md"), "."),
+    (str(ROOT / "SECURITY.md"), "."),
+    (str(ROOT / "THIRD_PARTY_NOTICES.md"), "."),
+    (str(ROOT / "THIRD_PARTY_LICENSES.txt"), "."),
 ]
 binaries = []
 hiddenimports = collect_submodules("finops_cost_intelligence")

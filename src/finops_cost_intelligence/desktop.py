@@ -4,7 +4,9 @@ from __future__ import annotations
 
 import os
 import socket
-import subprocess
+
+# This module starts only this package's fixed local child command.
+import subprocess  # nosec B404
 import sys
 import time
 import traceback
@@ -135,7 +137,8 @@ def _wait_until_ready(url: str, process: subprocess.Popen, *, timeout: float = 4
         if process.poll() is not None:
             raise RuntimeError("The local Metrora service stopped before the window opened.")
         try:
-            with urlopen(url, timeout=1.0) as response:
+            # Callers construct this health URL from a locally allocated loopback port.
+            with urlopen(url, timeout=1.0) as response:  # nosec B310
                 if response.status < 500:
                     return
         except (URLError, OSError, TimeoutError):
@@ -162,7 +165,8 @@ def _launch_desktop() -> None:
     creation_flags = getattr(subprocess, "CREATE_NO_WINDOW", 0)
 
     with log_path.open("a", encoding="utf-8") as log_file:
-        process = subprocess.Popen(
+        # The argv list is generated internally by _child_command and never invokes a shell.
+        process = subprocess.Popen(  # nosec B603
             _child_command(port),
             stdout=log_file,
             stderr=subprocess.STDOUT,
@@ -179,7 +183,7 @@ def _launch_desktop() -> None:
                 min_size=(1100, 720),
                 background_color="#080d13",
             )
-            webview.start(debug=False, private_mode=False)
+            webview.start(debug=False, private_mode=True)
         finally:
             if process.poll() is None:
                 process.terminate()

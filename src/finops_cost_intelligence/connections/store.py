@@ -116,6 +116,8 @@ class ConnectionStore:
         temporary = self.path.with_suffix(self.path.suffix + ".tmp")
         temporary.write_text(json.dumps(payload, indent=2), encoding="utf-8")
         os.replace(temporary, self.path)
+        if os.name != "nt":
+            self.path.chmod(0o600)
 
     def list(self) -> list[ConnectionProfile]:
         payload = self._read()

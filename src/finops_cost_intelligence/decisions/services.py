@@ -10,6 +10,7 @@ from hashlib import sha256
 import pandas as pd
 
 from ..contracts.ai import FactPack, Recommendation
+from ..csv_safety import neutralize_spreadsheet_formulas
 from .models import DecisionRecord
 
 IMPACT_FACTS = {
@@ -158,5 +159,5 @@ def decisions_csv_bytes(decisions: list[DecisionRecord]) -> bytes:
         records.append(payload)
     dataframe = pd.DataFrame.from_records(records)
     output = io.StringIO()
-    dataframe.to_csv(output, index=False)
+    neutralize_spreadsheet_formulas(dataframe).to_csv(output, index=False)
     return output.getvalue().encode("utf-8")

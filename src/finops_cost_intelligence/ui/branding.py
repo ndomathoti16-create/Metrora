@@ -38,7 +38,6 @@ METRORA_LOGO_SVG = """
 
 METRORA_CSS = """
 <style>
-@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap');
 
 :root {
     color-scheme: light;
@@ -1820,7 +1819,6 @@ button[aria-label^="Help for"] {
 
 METRORA_REFINED_CSS = """
 <style>
-@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=DM+Serif+Display:ital@0;1&family=Outfit:wght@500;600;700;800&display=swap');
 
 :root {
     color-scheme: dark;
@@ -2203,7 +2201,6 @@ div[data-testid="stDataFrame"] .stDataFrameGlideDataEditor {
 METRORA_WORKSPACE_V2_CSS = """
 <style>
 /* Workspace v2: a focused operating canvas with quiet navigation and visible flow. */
-@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700&display=swap');
 
 :root {
     color-scheme: dark;

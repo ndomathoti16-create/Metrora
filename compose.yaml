@@ -2,11 +2,15 @@ services:
   metrora:
     build: .
     ports:
-      - "8501:8501"
+      - "127.0.0.1:8501:8501"
     environment:
       APP_ENV: production
       AI_PROVIDER: none
       MAX_UPLOAD_MB: 200
+      METRORA_DESKTOP: 1
     volumes:
-      - ./data:/app/data
+      - metrora-data:/app/data
     restart: unless-stopped
+
+volumes:
+  metrora-data:

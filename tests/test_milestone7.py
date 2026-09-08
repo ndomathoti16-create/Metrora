@@ -121,6 +121,30 @@ def test_cleaned_exports_round_trip():
     assert csv_frame["service"].tolist() == normalized.dataframe["service"].tolist()
 
 
+def test_cleaned_csv_neutralizes_spreadsheet_formulas():
+    source = pd.DataFrame(
+        {
+            "service": [
+                '=HYPERLINK("https://example.invalid")',
+                "+cmd",
+                "  @SUM(1,1)",
+                "Compute",
+            ],
+            "cost": [-12.5, 4.0, 5.0, 8.0],
+        }
+    )
+
+    exported = pd.read_csv(io.BytesIO(cleaned_csv_bytes(source)))
+
+    assert exported["service"].tolist() == [
+        '\'=HYPERLINK("https://example.invalid")',
+        "'+cmd",
+        "'  @SUM(1,1)",
+        "Compute",
+    ]
+    assert exported["cost"].tolist() == [-12.5, 4.0, 5.0, 8.0]
+
+
 def test_external_summary_with_unsupported_number_falls_back():
     normalized, quality, _ = _run_with_evidence()
     fact_pack = build_fact_pack(normalized, quality)

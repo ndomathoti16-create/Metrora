@@ -4,6 +4,9 @@ on:
   push:
   pull_request:
 
+permissions:
+  contents: read
+
 jobs:
   test:
     runs-on: ubuntu-latest
@@ -28,3 +31,7 @@ jobs:
         run: python -m ruff format --check .
       - name: Compile Python sources
         run: python -m compileall -q app.py src tests data/demo
+      - name: Scan Python source for common security issues
+        run: python -m bandit -q -r src app.py
+      - name: Audit installed dependencies
+        run: python -m pip_audit --local

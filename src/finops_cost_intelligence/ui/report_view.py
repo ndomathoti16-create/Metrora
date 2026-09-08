@@ -483,7 +483,8 @@ def render_report_view(
         st.session_state["summary_result"] = summarize_fact_pack(fact_pack, client=None)
         st.session_state["summary_fact_signature"] = fact_signature
 
-    if settings.ai_provider != "none":
+    # The public product demo never sends data to an external narrative provider.
+    if settings.ai_provider != "none" and st.session_state.get("desktop_mode", False):
         with st.expander("Optional AI narrative", expanded=False):
             st.caption(
                 "The provider can rewrite the calculated evidence for readability. It cannot "

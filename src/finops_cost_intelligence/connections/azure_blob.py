@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import re
 from dataclasses import dataclass
 from datetime import UTC, datetime
 from pathlib import PurePosixPath
@@ -9,15 +10,26 @@ from typing import Any
 from urllib.parse import urlparse
 
 from .contracts import (
+    DEFAULT_CLOUD_IMPORT_LIMIT_BYTES,
     CloudConnectionError,
     CloudDependencyError,
     CloudSyncResult,
     RemoteBillingObject,
     combine_remote_payloads,
+    enforce_batch_limit,
+    enforce_size_limit,
     is_supported_billing_object,
     select_latest_batch,
     utc_now,
 )
+
+_AZURE_BLOB_HOST_SUFFIXES = (
+    "blob.core.windows.net",
+    "blob.core.usgovcloudapi.net",
+    "blob.core.chinacloudapi.cn",
+    "blob.core.cloudapi.de",
+)
+_STORAGE_ACCOUNT_PATTERN = re.compile(r"^[a-z0-9]{3,24}$")
 
 
 @dataclass(frozen=True)
@@ -30,10 +42,34 @@ class AzureBlobExportConfig:
 
     def __post_init__(self) -> None:
         parsed = urlparse(self.account_url.strip())
-        if parsed.scheme != "https" or not parsed.netloc:
+        try:
+            port = parsed.port
+        except ValueError as exc:
+            raise ValueError("Azure storage account URL contains an invalid port.") from exc
+        hostname = (parsed.hostname or "").casefold()
+        account_name = next(
+            (
+                hostname[: -(len(suffix) + 1)]
+                for suffix in _AZURE_BLOB_HOST_SUFFIXES
+                if hostname.endswith(f".{suffix}")
+            ),
+            "",
+        )
+        invalid_url_parts = (
+            parsed.scheme != "https"
+            or not hostname
+            or parsed.username is not None
+            or parsed.password is not None
+            or port is not None
+            or parsed.path not in {"", "/"}
+            or bool(parsed.params or parsed.query or parsed.fragment)
+        )
+        if invalid_url_parts or not _STORAGE_ACCOUNT_PATTERN.fullmatch(account_name):
             raise ValueError(
-                "Azure storage account URL must use https, for example "
-                "https://companycosts.blob.core.windows.net."
+                "Enter a direct Azure Blob Storage account URL, for example "
+                "https://companycosts.blob.core.windows.net. Custom domains and "
+                "non-Azure hosts are not accepted because this connection uses your "
+                "Azure identity."
             )
         container = self.container.strip()
         if not container:
@@ -56,9 +92,12 @@ class AzureBlobBillingConnector:
         config: AzureBlobExportConfig,
         *,
         container_client: Any | None = None,
+        max_bytes: int | None = DEFAULT_CLOUD_IMPORT_LIMIT_BYTES,
     ) -> None:
         self.config = config
         self._container_client = container_client
+        self.max_bytes = max_bytes or DEFAULT_CLOUD_IMPORT_LIMIT_BYTES
+        enforce_size_limit(0, self.max_bytes, label="Azure export batch")
 
     @property
     def container_client(self):
@@ -102,6 +141,8 @@ class AzureBlobBillingConnector:
                 )
         except CloudDependencyError:
             raise
+        except CloudConnectionError:
+            raise
         except Exception as exc:
             raise CloudConnectionError(
                 "Azure could not list this export. Sign in with Azure CLI or a managed "
@@ -115,11 +156,36 @@ class AzureBlobBillingConnector:
             self.list_objects(),
             configured_prefix=self.config.normalized_prefix,
         )
+        enforce_batch_limit(batch, self.max_bytes, provider="Azure")
         payloads: list[tuple[RemoteBillingObject, bytes]] = []
+        downloaded_bytes = 0
         try:
             for item in batch:
-                payload = self.container_client.download_blob(item.key).readall()
-                payloads.append((item, bytes(payload)))
+                download = self.container_client.download_blob(item.key)
+                remaining_bytes = (
+                    None if self.max_bytes is None else self.max_bytes - downloaded_bytes
+                )
+                if remaining_bytes is None:
+                    payload = bytes(download.readall())
+                else:
+                    payload_buffer = bytearray()
+                    for chunk in download.chunks():
+                        payload_buffer.extend(bytes(chunk))
+                        enforce_size_limit(
+                            len(payload_buffer),
+                            remaining_bytes,
+                            label=f"Azure billing object {item.key!r}",
+                        )
+                    payload = bytes(payload_buffer)
+                downloaded_bytes += len(payload)
+                enforce_size_limit(
+                    downloaded_bytes,
+                    self.max_bytes,
+                    label="Downloaded Azure export batch",
+                )
+                payloads.append((item, payload))
+        except CloudConnectionError:
+            raise
         except Exception as exc:
             raise CloudConnectionError(
                 "Azure could not download every file in the latest export batch. Confirm "
@@ -129,7 +195,11 @@ class AzureBlobBillingConnector:
         parent = batch[0].parent or batch[0].key
         account = urlparse(self.config.account_url).netloc
         source_uri = f"azure://{account}/{self.config.container.strip()}/{parent}"
-        loaded = combine_remote_payloads(payloads, source_uri=source_uri)
+        loaded = combine_remote_payloads(
+            payloads,
+            source_uri=source_uri,
+            max_bytes=self.max_bytes,
+        )
         return CloudSyncResult(
             provider=self.provider,
             source_uri=source_uri,

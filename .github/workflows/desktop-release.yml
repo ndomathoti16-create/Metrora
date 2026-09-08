@@ -20,24 +20,35 @@ jobs:
         with:
           python-version: "3.12"
           cache: pip
-      - name: Install desktop and cloud dependencies
-        run: python -m pip install -e ".[cloud,desktop]"
+      - name: Install desktop, cloud, and verification dependencies
+        run: python -m pip install -e ".[cloud,desktop,dev]"
       - name: Verify release source
         run: |
           python -m pytest -q
           python -m ruff check .
           python -m ruff format --check .
           python -m compileall -q app.py src tests data/demo
+          python -m bandit -q -r src app.py
+          python -m pip_audit --local
+      - name: Generate third-party license bundle
+        run: python packaging/generate_third_party_licenses.py --output THIRD_PARTY_LICENSES.txt
       - name: Build portable Metrora application
         run: python -m PyInstaller packaging/metrora.spec --noconfirm --clean
       - name: Package Windows download
         shell: powershell
         run: Compress-Archive -Path dist\Metrora\* -DestinationPath dist\Metrora-Windows-x64.zip
+      - name: Create release checksum
+        shell: powershell
+        run: |
+          $hash = (Get-FileHash dist\Metrora-Windows-x64.zip -Algorithm SHA256).Hash.ToLower()
+          "$hash  Metrora-Windows-x64.zip" | Set-Content dist\SHA256SUMS.txt
       - name: Upload build artifact
         uses: actions/upload-artifact@v4
         with:
           name: Metrora-Windows-x64
-          path: dist/Metrora-Windows-x64.zip
+          path: |
+            dist/Metrora-Windows-x64.zip
+            dist/SHA256SUMS.txt
           if-no-files-found: error
       - name: Publish tagged GitHub release
         if: startsWith(github.ref, 'refs/tags/')
@@ -46,7 +57,7 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           $tag = "${{ github.ref_name }}"
-          gh release create $tag "dist\Metrora-Windows-x64.zip#Metrora-Windows-x64.zip" `
+          gh release create $tag "dist\Metrora-Windows-x64.zip#Metrora-Windows-x64.zip" "dist\SHA256SUMS.txt#SHA256SUMS.txt" `
             --title "Metrora $tag" `
             --generate-notes `
             --verify-tag

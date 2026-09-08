@@ -13,6 +13,7 @@ from finops_cost_intelligence.contracts.ai import Fact, FactPack, Recommendation
 from finops_cost_intelligence.decisions import (
     DecisionRecord,
     DecisionStore,
+    decisions_csv_bytes,
     merge_decisions,
     ranked_decisions,
     recommendations_to_decisions,
@@ -86,6 +87,12 @@ def test_decision_store_round_trips_records(tmp_path) -> None:
     assert len(restored) == 1
     assert restored[0].owner == "Platform team"
     assert restored[0].impact_amount == 1200.0
+
+
+def test_decision_csv_neutralizes_spreadsheet_formulas() -> None:
+    exported = decisions_csv_bytes([_decision(owner='=WEBSERVICE("https://example.invalid")')])
+
+    assert b"'=WEBSERVICE" in exported
 
 
 def test_signal_refresh_preserves_human_disposition() -> None:

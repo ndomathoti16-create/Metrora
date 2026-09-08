@@ -2,11 +2,21 @@
 
 from __future__ import annotations
 
+import json
 import re
 from dataclasses import dataclass
 
+import pandas as pd
+
 from ..ingestion.readers import LoadedTable
-from .contracts import CloudConnectionError, CloudDependencyError, CloudSyncResult, utc_now
+from .contracts import (
+    DEFAULT_CLOUD_IMPORT_LIMIT_BYTES,
+    CloudConnectionError,
+    CloudDependencyError,
+    CloudSyncResult,
+    enforce_size_limit,
+    utc_now,
+)
 
 _PROJECT_PATTERN = re.compile(r"^[a-z][a-z0-9-]{4,28}[a-z0-9]$")
 _DATASET_PATTERN = re.compile(r"^[A-Za-z_][A-Za-z0-9_]{0,1023}$")
@@ -38,9 +48,17 @@ class GcpBigQueryBillingConnector:
 
     provider = "Google Cloud"
 
-    def __init__(self, config: GcpBigQueryExportConfig, *, client=None) -> None:
+    def __init__(
+        self,
+        config: GcpBigQueryExportConfig,
+        *,
+        client=None,
+        max_bytes: int | None = DEFAULT_CLOUD_IMPORT_LIMIT_BYTES,
+    ) -> None:
         self.config = config
         self._client = client
+        self.max_bytes = max_bytes or DEFAULT_CLOUD_IMPORT_LIMIT_BYTES
+        enforce_size_limit(0, self.max_bytes, label="Google Cloud billing result")
 
     @property
     def client(self):
@@ -60,6 +78,8 @@ class GcpBigQueryBillingConnector:
             f"{self.config.project_id.strip()}."
             f"{self.config.dataset.strip()}.{self.config.table.strip()}"
         )
+        # Every interpolated identifier is allow-list validated in the config model and the
+        # lookback is converted to a bounded integer before this read-only query is built.
         return f"""
             SELECT
               usage_start_time AS UsageStartDate,
@@ -80,14 +100,28 @@ class GcpBigQueryBillingConnector:
             WHERE DATE(usage_start_time) >= DATE_SUB(
               CURRENT_DATE(), INTERVAL {int(self.config.lookback_days)} DAY
             )
-        """
+        """  # nosec B608
 
     def sync_latest(self) -> CloudSyncResult:
         """Query the configured export and return its calculated net-cost rows."""
         try:
             query_job = self.client.query(self._query_text())
-            dataframe = query_job.result().to_dataframe()
-        except CloudDependencyError:
+            result = query_job.result(page_size=1000)
+            records: list[dict[str, object]] = []
+            observed_bytes = 0
+            for row in result:
+                record = dict(row.items()) if hasattr(row, "items") else dict(row)
+                observed_bytes += len(
+                    json.dumps(record, default=str, ensure_ascii=False).encode("utf-8")
+                )
+                enforce_size_limit(
+                    observed_bytes,
+                    self.max_bytes,
+                    label="Google Cloud billing result",
+                )
+                records.append(record)
+            dataframe = pd.DataFrame.from_records(records)
+        except (CloudConnectionError, CloudDependencyError):
             raise
         except Exception as exc:
             raise CloudConnectionError(
@@ -100,6 +134,13 @@ class GcpBigQueryBillingConnector:
                 "The Google Cloud billing export returned no rows for the selected lookback."
             )
 
+        dataframe_bytes = int(dataframe.memory_usage(index=True, deep=True).sum())
+        enforce_size_limit(
+            dataframe_bytes,
+            self.max_bytes,
+            label="Google Cloud billing table in memory",
+        )
+
         source_uri = (
             f"bigquery://{self.config.project_id.strip()}/"
             f"{self.config.dataset.strip()}/{self.config.table.strip()}"
@@ -108,7 +149,7 @@ class GcpBigQueryBillingConnector:
             dataframe=dataframe,
             source_name=source_uri,
             file_format="bigquery",
-            source_size_bytes=int(dataframe.memory_usage(deep=True).sum()),
+            source_size_bytes=dataframe_bytes,
         )
         timestamp = utc_now()
         return CloudSyncResult(

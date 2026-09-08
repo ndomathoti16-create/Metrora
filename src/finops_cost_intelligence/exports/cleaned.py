@@ -10,6 +10,7 @@ import pandas as pd
 from ..contracts.ai import FactPack
 from ..contracts.normalization import NormalizedTable
 from ..contracts.quality import QualityReport
+from ..csv_safety import neutralize_spreadsheet_formulas
 
 
 def cleaned_csv_bytes(normalized: NormalizedTable | pd.DataFrame) -> bytes:
@@ -19,7 +20,8 @@ def cleaned_csv_bytes(normalized: NormalizedTable | pd.DataFrame) -> bytes:
     dataframe = getattr(normalized, "dataframe", normalized)
     if not isinstance(dataframe, pd.DataFrame):
         raise TypeError("Cleaned CSV export requires a normalized pandas dataframe.")
-    return dataframe.to_csv(index=False).encode("utf-8")
+    safe_dataframe = neutralize_spreadsheet_formulas(dataframe)
+    return safe_dataframe.to_csv(index=False).encode("utf-8")
 
 
 def cleaned_parquet_bytes(normalized: NormalizedTable | pd.DataFrame) -> bytes:

@@ -20,12 +20,25 @@ htmlcov/
 .env.*
 !.env.example
 .streamlit/secrets.toml
+.aws/
+.azure/
+.config/gcloud/
+*.pem
+*.key
+*.p12
+service-account*.json
+credentials*.json
 
 # Local application state and user uploads
 data/uploads/
 data/outputs/
 data/generated/
 data/state/
+data/*.csv
+data/*.xlsx
+data/*.xls
+data/*.parquet
+data/*.json
 *.duckdb
 *.duckdb.wal
 *.db

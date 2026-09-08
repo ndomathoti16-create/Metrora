@@ -16,6 +16,13 @@ RUN python -m pip install --upgrade pip && python -m pip install .
 COPY app.py ./
 COPY data/demo ./data/demo
 
+RUN groupadd --system metrora \
+    && useradd --system --gid metrora --home-dir /app --no-create-home metrora \
+    && mkdir -p /app/data \
+    && chown -R metrora:metrora /app
+
+USER metrora
+
 EXPOSE 8501
 
 HEALTHCHECK --interval=30s --timeout=5s --start-period=20s --retries=3 \

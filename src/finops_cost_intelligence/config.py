@@ -5,11 +5,46 @@ from __future__ import annotations
 import os
 from collections.abc import Mapping
 from dataclasses import dataclass
+from ipaddress import ip_address
 from pathlib import Path
+from urllib.parse import urlsplit
 
 
 class ConfigurationError(ValueError):
     """Raised when an environment setting cannot be used safely."""
+
+
+def validate_ai_base_url(raw_value: str) -> str:
+    """Validate an OpenAI-compatible base URL before credentials can be sent to it."""
+    value = raw_value.strip()
+    if not value:
+        raise ConfigurationError("AI_BASE_URL cannot be empty.")
+    if any(character in value for character in "\r\n\t"):
+        raise ConfigurationError("AI_BASE_URL cannot contain control characters.")
+
+    parsed = urlsplit(value)
+    if parsed.scheme not in {"http", "https"} or not parsed.hostname:
+        raise ConfigurationError("AI_BASE_URL must be an absolute HTTP or HTTPS URL.")
+    if parsed.username is not None or parsed.password is not None:
+        raise ConfigurationError("AI_BASE_URL cannot contain embedded credentials.")
+    if parsed.query or parsed.fragment:
+        raise ConfigurationError("AI_BASE_URL cannot contain a query string or fragment.")
+    try:
+        parsed.port
+    except ValueError as exc:
+        raise ConfigurationError("AI_BASE_URL contains an invalid port.") from exc
+
+    is_loopback = parsed.hostname.casefold() == "localhost"
+    if not is_loopback:
+        try:
+            is_loopback = ip_address(parsed.hostname).is_loopback
+        except ValueError:
+            is_loopback = False
+    if parsed.scheme != "https" and not is_loopback:
+        raise ConfigurationError(
+            "AI_BASE_URL must use HTTPS unless it points to a local loopback service."
+        )
+    return value.rstrip("/")
 
 
 def _read_positive_int(raw_value: str, variable_name: str) -> int:
@@ -86,9 +121,7 @@ class Settings:
             value = values.get(name, "").strip()
             return value or None
 
-        ai_base_url = values.get("AI_BASE_URL", "https://api.openai.com/v1").strip()
-        if not ai_base_url:
-            raise ConfigurationError("AI_BASE_URL cannot be empty.")
+        ai_base_url = validate_ai_base_url(values.get("AI_BASE_URL", "https://api.openai.com/v1"))
 
         aws_region = values.get("AWS_REGION", "us-east-1").strip()
         if not aws_region:

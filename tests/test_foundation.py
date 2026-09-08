@@ -6,7 +6,7 @@ import unittest
 from pathlib import Path
 
 from finops_cost_intelligence import __version__
-from finops_cost_intelligence.config import ConfigurationError, Settings
+from finops_cost_intelligence.config import ConfigurationError, Settings, validate_ai_base_url
 from finops_cost_intelligence.logging_utils import LOGGER_NAME, configure_logging
 
 
@@ -43,10 +43,24 @@ class SettingsTests(unittest.TestCase):
         with self.assertRaisesRegex(ConfigurationError, "APP_ENV"):
             Settings.from_environment({"APP_ENV": "staging"})
 
+    def test_ai_base_url_requires_tls_for_remote_hosts(self) -> None:
+        with self.assertRaisesRegex(ConfigurationError, "HTTPS"):
+            validate_ai_base_url("http://example.com/v1")
+
+    def test_ai_base_url_allows_a_local_development_endpoint(self) -> None:
+        self.assertEqual(
+            validate_ai_base_url("http://127.0.0.1:11434/v1/"),
+            "http://127.0.0.1:11434/v1",
+        )
+
+    def test_ai_base_url_rejects_embedded_credentials(self) -> None:
+        with self.assertRaisesRegex(ConfigurationError, "embedded credentials"):
+            validate_ai_base_url("https://user:password@example.com/v1")
+
 
 class FoundationTests(unittest.TestCase):
     def test_package_version_is_defined(self) -> None:
-        self.assertEqual(__version__, "0.1.0")
+        self.assertEqual(__version__, "0.2.3")
 
     def test_logging_configuration_returns_project_logger(self) -> None:
         settings = Settings.from_environment({"LOG_LEVEL": "DEBUG"})

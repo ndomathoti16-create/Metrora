@@ -28,13 +28,18 @@ def _store(settings: Settings) -> ConnectionStore:
     return ConnectionStore(settings.data_dir / "state" / "connections.json")
 
 
-def _connector_for(profile: ConnectionProfile):
+def _connector_for(profile: ConnectionProfile, settings: Settings):
+    max_bytes = settings.max_upload_mb * 1024 * 1024
     if profile.provider == "aws":
-        return AwsS3BillingConnector(AwsS3ExportConfig(**profile.settings))
+        return AwsS3BillingConnector(AwsS3ExportConfig(**profile.settings), max_bytes=max_bytes)
     if profile.provider == "azure":
-        return AzureBlobBillingConnector(AzureBlobExportConfig(**profile.settings))
+        return AzureBlobBillingConnector(
+            AzureBlobExportConfig(**profile.settings), max_bytes=max_bytes
+        )
     if profile.provider == "gcp":
-        return GcpBigQueryBillingConnector(GcpBigQueryExportConfig(**profile.settings))
+        return GcpBigQueryBillingConnector(
+            GcpBigQueryExportConfig(**profile.settings), max_bytes=max_bytes
+        )
     raise CloudConnectionError(f"Unsupported provider {profile.provider!r}.")
 
 
@@ -59,7 +64,7 @@ def _sync_profile(settings: Settings, profile: ConnectionProfile) -> bool:
 
     store = _store(settings)
     try:
-        result = _connector_for(profile).sync_latest()
+        result = _connector_for(profile, settings).sync_latest()
         row_count = _install_sync_result(result, profile)
     except (CloudConnectionError, ValueError) as exc:
         message = str(exc)
@@ -337,7 +342,7 @@ def maybe_refresh_active_connection(settings: Settings) -> None:
     if profile is None or not profile.refresh_on_open:
         return
     try:
-        result = _connector_for(profile).sync_latest()
+        result = _connector_for(profile, settings).sync_latest()
         row_count = _install_sync_result(result, profile)
         _store(settings).record_sync(
             profile,

@@ -103,7 +103,7 @@ flowchart LR
 
 Metrora keeps the analytical path explainable: source data is profiled and normalized before metrics are calculated, and every summary is grounded in those calculated facts.
 
-The authenticated workspace is organized as business software rather than a long-form site:
+The downloadable workspace is organized as business software rather than a long-form site:
 
 - **Home** — automated operating position and prioritized attention queue.
 - **Cost explorer** — date, dimension, and ownership filtering with exact drilldown values.
@@ -169,7 +169,9 @@ AI helps explain validated results and prioritize follow-up actions. It does not
 
 ## Delivery model
 
-Metrora is structured as a SaaS-ready product: a clear data contract, modular analytical services, a Streamlit workspace, local persistence, and optional AWS storage and query adapters.
+Metrora is a local-first desktop product with a clear data contract, modular analytical services,
+a Streamlit workspace, local persistence, and optional cloud storage and query adapters. The
+public website is a read-only product demonstration, not a hosted customer-data service.
 
 The current reference implementation runs locally and can operate without cloud credentials or an AI API key. The same canonical Parquet model provides a path to S3, Glue, and Athena for a hosted deployment.
 
@@ -245,12 +247,13 @@ download `Metrora-Windows-x64.zip`, extract the folder, and run `Metrora.exe`. P
 required. The app opens directly into a private local workspace and stores its database and
 non-secret connection profiles under the current Windows user's local application-data folder.
 
-The Windows package is portable rather than a signed installer. Windows may show a reputation
-warning until the executable is code-signed. The source and automated build recipe are included
-in this repository for inspection.
+The Windows package is portable rather than a signed installer. Windows SmartScreen may show an
+unrecognized-app warning until the executable has established reputation or is code-signed.
+Compare the downloaded ZIP with `SHA256SUMS.txt` on the release before opening it. The source and
+automated build recipe are included in this repository for inspection.
 
 To create a release, run the **Windows desktop release** workflow from GitHub Actions for a test
-artifact, or push a version tag such as `v0.2.0` to publish the ZIP on the Releases page.
+artifact, or push a version tag such as `v0.2.3` to publish the ZIP and checksum on the Releases page.
 
 ### Hosted preview
 
@@ -267,7 +270,8 @@ docker compose up --build
 ```
 
 Open `http://localhost:8501`. The included health check, production defaults, and persistent
-local `data` volume are configured in `compose.yaml`. Stop the service with
+Docker volume are configured in `compose.yaml`. The port is bound to this computer's loopback
+interface and the container runs as a non-root user. Stop the service with
 `docker compose down`.
 
 For a Python development environment, run these commands from the Metrora repository root.
@@ -329,7 +333,8 @@ python -m ruff check .
 python -m compileall -q app.py src tests data/demo
 ```
 
-GitHub Actions runs tests, linting, and compilation checks on Python 3.11 and 3.12.
+GitHub Actions runs tests, linting, formatting, compilation, source security checks, and a
+dependency vulnerability audit on Python 3.11 and 3.12.
 
 ### AI guardrails
 
@@ -349,6 +354,22 @@ See [docs/AWS_ARCHITECTURE.md](docs/AWS_ARCHITECTURE.md) and [infra/aws/README.m
 - [docs/DATA_DICTIONARY.md](docs/DATA_DICTIONARY.md): canonical fields and accepted upload shapes.
 - [docs/METRIC_DEFINITIONS.md](docs/METRIC_DEFINITIONS.md): formulas, denominators, and caveats.
 - [data/demo/README.md](data/demo/README.md): deterministic demo-data workflow.
+
+### Privacy, security, and licensing
+
+- [PRIVACY.md](PRIVACY.md) explains what the hosted demo and desktop app process and where local
+  application state is stored.
+- [SECURITY.md](SECURITY.md) documents supported versions, safe configuration, and private
+  vulnerability reporting.
+- [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md) describes third-party dependency attribution.
+
+This repository does not currently include an open-source license. Copyright therefore remains
+with the repository owner, and public visibility should not be interpreted as permission to copy,
+modify, or redistribute the software. A formal license should be selected before inviting outside
+reuse or contributions.
+
+Portable builds also contain a generated `THIRD_PARTY_LICENSES.txt` inventory with the dependency
+license files declared by the exact build environment.
 
 ### Security and limitations
 

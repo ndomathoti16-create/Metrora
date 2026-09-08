@@ -16,10 +16,13 @@ from botocore.exceptions import (
 )
 
 from .contracts import (
+    DEFAULT_CLOUD_IMPORT_LIMIT_BYTES,
     CloudConnectionError,
     CloudSyncResult,
     RemoteBillingObject,
     combine_remote_payloads,
+    enforce_batch_limit,
+    enforce_size_limit,
     is_supported_billing_object,
     select_latest_batch,
     utc_now,
@@ -57,9 +60,17 @@ class AwsS3BillingConnector:
 
     provider = "AWS"
 
-    def __init__(self, config: AwsS3ExportConfig, *, client: Any | None = None) -> None:
+    def __init__(
+        self,
+        config: AwsS3ExportConfig,
+        *,
+        client: Any | None = None,
+        max_bytes: int | None = DEFAULT_CLOUD_IMPORT_LIMIT_BYTES,
+    ) -> None:
         self.config = config
         self._client = client
+        self.max_bytes = max_bytes or DEFAULT_CLOUD_IMPORT_LIMIT_BYTES
+        enforce_size_limit(0, self.max_bytes, label="AWS export batch")
 
     @property
     def client(self):
@@ -118,14 +129,27 @@ class AwsS3BillingConnector:
             self.list_objects(),
             configured_prefix=self.config.normalized_prefix,
         )
+        enforce_batch_limit(batch, self.max_bytes, provider="AWS")
         payloads: list[tuple[RemoteBillingObject, bytes]] = []
+        downloaded_bytes = 0
         try:
             for item in batch:
                 request = {"Bucket": self.config.bucket.strip(), "Key": item.key}
                 if self.config.expected_bucket_owner:
                     request["ExpectedBucketOwner"] = self.config.expected_bucket_owner.strip()
                 response = self.client.get_object(**request)
-                payloads.append((item, bytes(response["Body"].read())))
+                remaining_bytes = (
+                    None if self.max_bytes is None else self.max_bytes - downloaded_bytes
+                )
+                read_size = None if remaining_bytes is None else remaining_bytes + 1
+                payload = bytes(response["Body"].read(read_size))
+                downloaded_bytes += len(payload)
+                enforce_size_limit(
+                    downloaded_bytes,
+                    self.max_bytes,
+                    label="Downloaded AWS export batch",
+                )
+                payloads.append((item, payload))
         except (BotoCoreError, ClientError, NoCredentialsError, PartialCredentialsError) as exc:
             raise CloudConnectionError(
                 "AWS could not download the latest export. Confirm the selected identity "
@@ -136,7 +160,11 @@ class AwsS3BillingConnector:
 
         parent = batch[0].parent or batch[0].key
         source_uri = f"s3://{self.config.bucket.strip()}/{parent}"
-        loaded = combine_remote_payloads(payloads, source_uri=source_uri)
+        loaded = combine_remote_payloads(
+            payloads,
+            source_uri=source_uri,
+            max_bytes=self.max_bytes,
+        )
         return CloudSyncResult(
             provider=self.provider,
             source_uri=source_uri,
